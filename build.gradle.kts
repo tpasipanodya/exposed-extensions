@@ -7,7 +7,6 @@ plugins {
 	kotlin("jvm") version "1.4.32"
 	id("com.jfrog.artifactory") version "4.21.0"
 	id("org.jetbrains.dokka") version "1.4.30"
-	kotlin("plugin.serialization") version "1.4.32"
 	`maven-publish`
 	idea
 }
@@ -34,9 +33,13 @@ dependencies {
 	runtimeOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 	api("io.github.microutils:kotlin-logging-jvm:2.0.6")
 	api("com.github.kittinunf.fuel:fuel:2.3.1")
-	api("com.github.kittinunf.fuel:fuel-kotlinx-serialization:2.3.1")
 	api("com.github.kittinunf.fuel:fuel-coroutines:2.3.1")
-	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
+	api("org.slf4j:slf4j-simple:1.7.30")
+	api("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.2")
+	api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.2")
+	testImplementation("com.apurebase:kgraphql:0.17.4")
+	testImplementation("com.taff:hephaestus-test:0.1.0")
+	testImplementation("io.javalin:javalin:3.13.5")
 }
 
 tasks.withType<KotlinCompile> {
@@ -131,4 +134,4 @@ artifactory {
 	})
 }
 
-fun isReleaseBuild() = System.getenv("IS_SNAPSHOT_BUILD")?.toBoolean() == true
+fun isReleaseBuild() = System.getenv("IS_RELEASE_BUILD")?.toBoolean() == true

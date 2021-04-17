@@ -2,7 +2,7 @@ package io.taff.hephaestus.graphql.client
 
 import com.apurebase.kgraphql.KGraphQL
 import io.javalin.Javalin
-import io.taff.hephaestus.Config
+import io.taff.hephaestus.Hephaestus
 import io.taff.hephaestus.configure
 import kotlinx.coroutines.runBlocking
 import io.javalin.http.Context
@@ -16,7 +16,7 @@ sealed class Publication(open val title: String) {
     data class Song(override val title: String, val lyrics: String) : Publication(title)
 }
 
-class DummyService(val name: String, val port: Int) {
+class DummyRemoteService(val name: String, val port: Int) {
 
     /* The data being served. */
     val writers = mutableListOf<Writer>()
@@ -35,9 +35,17 @@ class DummyService(val name: String, val port: Int) {
             }
         }
 
-        mutation("addWriter") {
-            resolver { writer: Writer ->
-                writers.add(writer)
+        query("songs") {
+            resolver { ->
+                writers.flatMap { it.publications.filterIsInstance<Publication.Song>() }
+            }
+        }
+
+        mutation("addBook") {
+            resolver { writerName: String,
+                       book: Publication.Book ->
+                writers.first { it.name == writerName }
+                    .publications.add(book)
                 writers
             }
         }
@@ -64,10 +72,11 @@ class DummyService(val name: String, val port: Int) {
 
     /** Point the graphql client to this dummy service */
     private val hephaestusConfig = configure {
-        services.service(ServiceConfig(
+        graphqlClients.add(ClientConfig(
             name,
             "http://localhost:$port/graphql"
         ))
+        logGraphqlClientRequests = true
     }
 
     /** Start the service */
@@ -82,6 +91,7 @@ class DummyService(val name: String, val port: Int) {
         app?.stop()
     }
 
+    /** Resets writters in-between tests */
     private fun resetWriters() {
         writers.clear()
 
@@ -94,11 +104,12 @@ class DummyService(val name: String, val port: Int) {
                 "I will not lose, for even in defeat, there's a valuable lesson learned, so it evens up for me..."))))
     }
 
+    /** Resets the webserver in-between tests */
     private fun resetJavalin() {
         app = Javalin.create()
         app?.start(port)
         app?.post("/graphql") { ctx: Context ->
-            val  body = Config.objectMapper.readTree(ctx.body())
+            val  body = Hephaestus.objectMapper.readTree(ctx.body())
             runBlocking {
                 schema.execute(
                     body["query"].asText(),

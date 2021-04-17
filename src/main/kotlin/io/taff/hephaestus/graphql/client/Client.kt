@@ -2,9 +2,13 @@ package io.taff.hephaestus.graphql.client
 
 import com.github.kittinunf.fuel.httpPost
 import com.github.kittinunf.result.Result
+import io.taff.hephaestus.Hephaestus
 import java.lang.IllegalStateException
 
-class Service(val config: ServiceConfig) {
+/**
+ * Access point for querying graphql services.
+ */
+class Client(private val config: ClientConfig) {
 
     /**
      * Perform a graphql query.
@@ -61,17 +65,26 @@ class Service(val config: ServiceConfig) {
     /**
      * Make a graphql call.
      */
-    internal fun operation(name: String,
+    private fun operation(name: String,
                            type: OperationType,
                            runtimeHeaders: Map<String, Any> = mapOf(),
                            queryBuilder: QueryMutationDSL.() -> Unit) = QueryMutationDSL(name, type)
         .apply(queryBuilder)
         .compile()
         .let { compiledQuery ->
+            val headers = config.headers + runtimeHeaders
+            if (Hephaestus.logGraphqlClientRequests) {
+                Hephaestus.logger.info {
+                    "\n\tquery: $compiledQuery ${
+                    if (Hephaestus.logGraphqlClientRequestHeaders) "\n\theaders: $headers"
+                    else ""
+                }"
+                }
+            }
             config.url
                 .httpPost()
                 .body(compiledQuery)
-                .header(config.headers + runtimeHeaders)
+                .header(headers)
                 .responseString { _, response, result ->
                     when (result) {
                         is Result.Failure -> throw result.getException()
@@ -81,5 +94,6 @@ class Service(val config: ServiceConfig) {
                         else -> throw IllegalStateException("Unknown result $result")
                     }
                 }.join()
+                .let { GraphqlResponse(name, it) }
         }
 }

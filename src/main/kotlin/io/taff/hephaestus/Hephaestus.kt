@@ -3,16 +3,10 @@ package io.taff.hephaestus
 import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.github.kittinunf.fuel.httpPost
-import io.taff.hephaestus.graphql.client.ServiceConfig
-import com.github.kittinunf.result.Result.Failure
-import com.github.kittinunf.result.Result.Success
-import io.taff.hephaestus.graphql.client.ServiceRegistry
+import io.taff.hephaestus.graphql.client.ClientRegistry
 import mu.NamedKLogging
-import java.lang.IllegalStateException
 
-
-object Config {
+object Hephaestus {
 
 	/**
 	 * Used for all logging.
@@ -20,9 +14,26 @@ object Config {
 	val logger = NamedKLogging("hephaestus").logger
 
 	/**
-	 *
+	 * Whether graphql requests to other services should be logged.
 	 */
-	val services = ServiceRegistry
+	var logGraphqlClientRequests = false
+
+	/**
+	 * Whether or not graphql request headers to other services should be logged.
+	 */
+	var logGraphqlClientRequestHeaders = false
+
+	/**
+	 * Graphql clients.
+	 * ```
+	 * graphqlClients.add(ClientConfig("myFancyService", "http://fancyservice.com/graphql))
+	 *
+	 * graphqlClients["myFancyService"]?.query("...") {
+	 *    ...
+	 * }
+	 * ```
+	 */
+	val graphqlClients = ClientRegistry
 
 	/**
 	 * used for serializing objects for logging as well as deserializing json into lists and maps.
@@ -33,4 +44,10 @@ object Config {
 	}
 }
 
-fun configure(fxn: Config.() -> Unit) = fxn(Config).let { Config }
+/**
+ * Configure Hephaestus, e.g:
+ * ```
+ * val configured = configure { logGraphqlClientRequests = true }
+ * ```
+ */
+fun configure(fxn: Hephaestus.() -> Unit) = fxn(Hephaestus).let { Hephaestus }

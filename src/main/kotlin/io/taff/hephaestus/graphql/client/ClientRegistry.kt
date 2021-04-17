@@ -1,12 +1,24 @@
 package io.taff.hephaestus.graphql.client
 
-object ServiceRegistry {
+/**
+ * Stores graphql clients.
+ */
+object ClientRegistry {
 
-    private val services = mutableMapOf<Any, Service>()
+    private val clients = mutableMapOf<Any, Client>()
 
-    fun service(config: ServiceConfig) {
-        services[config.name] = Service(config)
+    /**
+     * Add a new client.
+     * @param config The client configuration.
+     */
+    fun add(config: ClientConfig) {
+        clients[config.name] = Client(config)
     }
 
-    operator fun <N : Any> get(name: N) = services[name]
+    /**
+     * Get a client by name.
+     * @param N The type for the name.
+     * @param name The name.
+     */
+    operator fun <N : Any> get(name: N) : Client? = clients[name]
 }

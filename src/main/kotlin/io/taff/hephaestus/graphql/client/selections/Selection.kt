@@ -27,7 +27,10 @@ interface Selection : Compilable<String> {
     fun onFragment(entity: String,
                    selector: (FragmentSelection.() -> Unit)) = rawSelections.add(FragmentSelection(entity, selector))
 
+    /**
+     * Compile these selections into their string form.
+     */
     override fun compile() = rawSelections.map {
         it.compile()
-    }.joinToString(separator = "\n\t")
+    }.joinToString(separator = " ")
 }

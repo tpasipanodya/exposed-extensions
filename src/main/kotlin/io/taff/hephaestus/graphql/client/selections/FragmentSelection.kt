@@ -12,7 +12,7 @@ class FragmentSelection(private val entity: String, selector: FragmentSelection.
 
     init { selector() }
 
-    override fun compile() = "...on $entity {${
-        rawSelections.joinToString(separator = "\n\t") { it.compile() }
-    }}"
+    override fun compile() = "...on $entity { ${
+        rawSelections.joinToString(separator = " ") { it.compile() }
+    } }"
 }

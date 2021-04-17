@@ -1,8 +1,7 @@
 package io.taff.hephaestus.graphql.client
 
+import io.taff.hephaestus.Hephaestus
 import io.taff.hephaestus.graphql.client.selections.Selection
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 
 class QueryMutationDSL(var name: String, var type: OperationType) : Selection {
@@ -31,35 +30,33 @@ class QueryMutationDSL(var name: String, var type: OperationType) : Selection {
      * @param value The input's value. An iterable of type E.
      */
     inline fun <reified E> input(name: String,
-                                 value: Iterable<E>,
                                  required: Boolean = true,
+                                 value: Iterable<E>,
                                  requiredElements: Boolean = true) = Input(
         name,
         required,
         value,
-        type = "[${E::class.java.simpleErasedName()}" + if (requiredElements) "!" else "" +"]")
-        .also { inputs.add(it) }
+        type = "[${E::class.java.simpleName}" + if (requiredElements) "!]" else "" +"]").also { inputs.add(it) }
 
     /**
      * Compile this query/mutation.
      */
     override fun compile() = mapOf(
-            "query" to compiledQuery(),
-            "variables" to inputs.associateBy({ it.name }) {
-                it.coalescedValue()
-            }
-    ).let { Json.encodeToString(it) }
+        "query" to compiledQuery(),
+        "variables" to inputs.associateBy({ it.name }) {
+            it.coalescedValue()
+        }
+    ).let { Hephaestus.objectMapper.writeValueAsString(it) }
 
-    private fun compileSelections() = if (rawSelections.isEmpty()) "" else "{\n\t${super.compile()}\n}"
+    private fun compileSelections() = if (rawSelections.isEmpty()) "" else "{ ${super.compile()} }"
 
     private fun compileHeader() = if (inputs.isEmpty()) {
         type.compile()
     } else {
         "${type.compile()}(" +
-                inputs
-                    .map { input -> "\$${input.name}: ${input.type}${if (input.required) "!" else ""}" }
-                    .joinToString() +
-                ")"
+                inputs.map {
+                        input -> "\$${input.name}: ${input.type}${if (input.required) "!" else ""}"
+                }.joinToString() + ")"
     }
 
     private fun compileBody() = """$name${
@@ -67,5 +64,5 @@ class QueryMutationDSL(var name: String, var type: OperationType) : Selection {
         else "(" + inputs.map { (name) -> "$name: \$$name" }.joinToString { it } + ")"
     } ${compileSelections()}""".trimIndent()
 
-    private fun compiledQuery() = "${compileHeader()} {\n\t" + compileBody() + "\n}"
+    private fun compiledQuery() = "${compileHeader()} { " + compileBody() + " }"
 }

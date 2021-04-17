@@ -7,5 +7,8 @@ package io.taff.hephaestus.graphql.client
  */
 interface Compilable<T> {
 
+    /**
+     * Compile this to a T.
+     */
     fun compile(): T
 }

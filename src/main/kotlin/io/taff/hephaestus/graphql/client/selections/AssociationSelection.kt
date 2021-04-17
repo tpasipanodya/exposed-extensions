@@ -3,7 +3,7 @@ package io.taff.hephaestus.graphql.client.selections
 import io.taff.hephaestus.graphql.client.Compilable
 
 /**
- * For selection associations.
+ * For selecting associations.
  */
 class AssociationSelection(private val field: String, selector: AssociationSelection.() -> Unit = {}) : Selection {
 
@@ -13,9 +13,9 @@ class AssociationSelection(private val field: String, selector: AssociationSelec
 
     override fun compile() = "$field${
         if (rawSelections.isNotEmpty())
-            " {\n\t${rawSelections.map {
+            " { ${rawSelections.map {
                 it.compile()
-            }.joinToString(separator = "\n\t")}}"
+            }.joinToString(separator = "")} }"
         else
             ""
     }"
