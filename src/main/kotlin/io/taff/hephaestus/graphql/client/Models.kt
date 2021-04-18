@@ -60,49 +60,48 @@ class GraphqlResponse(val operationName: String, val _response: Response) {
                 it,
                 object : TypeReference<Map<String, Any?>>() {}
             )
-        }.let { it["errors"] as Map<String, List<String>?> }
+        }.let { it["errors"] as Map<String, List<String>?>? }
     
     /**
      * Parse the query/mutation's result to a map.
      */
-    fun resultAsMap(contentType: String = "application/json") : Map<String, Any?> = parseDataAsMap(contentType)
-        .let { it[operationName] as Map<String, Any?> }
+    fun resultAsMap(contentType: String = "application/json") = parseDataAsMap(contentType)
+        .let { it!![operationName] as Map<String, Any?>? }
 
     /**
      * Parse the query/mutation's result to a list of maps.
      */
-    fun resultAsListOfMaps(contentType: String = "application/json") : List<Map<String, Any?>> = parseDataAsMap(contentType)
-        .let { it[operationName] as List<Map<String, Any?>> }
+    fun resultAsListOfMaps(contentType: String = "application/json") = parseDataAsMap(contentType)
+        .let { it!![operationName] as List<Map<String, Any?>>? }
 
     /**
      * Helper function for deserializing a query/mutation's result to a map.
      */
-    private fun parseDataAsMap(contentType: String = "application/json") : Map<String, Any?> = _response.body()
+    private fun parseDataAsMap(contentType: String = "application/json") = _response.body()
         .asString(contentType)
         .let {
             Hephaestus.objectMapper.readValue(
                 it,
                 object : TypeReference<Map<String, Any?>>() {}
             )
-        }.let { it["data"]!! as Map<String, Any?> }
+        }.let { it["data"] as Map<String, Any?>? }
 
     /**
      * Parse the query/mutation's result to an instance of type T.
      * @param T the return type.
      */
-    inline fun <reified T> resultAs(contentType: String = "application/json") : T = _response.body()
+    inline fun <reified T> resultAs(contentType: String = "application/json") : T? = _response.body()
         .asString(contentType)
         .let { body ->
             Hephaestus
                 .objectMapper.readTree(body).let { parsedBody ->
-                    parsedBody["data"]!![operationName]!!
-                        .let {
-                            Hephaestus
-                                .objectMapper.readValue(
-                                    it.toPrettyString(),
-                                    object : TypeReference<T>() {}
-                                )
-                        }
+                    parsedBody["data"]!![operationName]?.let {
+                        Hephaestus
+                            .objectMapper.readValue(
+                                it.toPrettyString(),
+                                object : TypeReference<T>() {}
+                            )
+                    }
                 }
 
         }
