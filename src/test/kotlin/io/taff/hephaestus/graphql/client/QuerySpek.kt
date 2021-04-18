@@ -33,7 +33,7 @@ object QuerySpek : Spek({
                             onFragment("Book") { select("title", "text") }
                             onFragment("Song") { select("title", "lyrics") }
                         }
-                    }.resultAsMap()
+                    }.resultAsMap()!!
                 }
 
                 it("successfully loads") {
@@ -62,7 +62,7 @@ object QuerySpek : Spek({
                                 onFragment("Book") { select("title", "text") }
                                 onFragment("Song") { select("title", "lyrics") }
                             }
-                        }.resultAsMap()
+                        }.resultAsMap()!!
                     }
 
                     it("successfully loads") {
@@ -104,7 +104,7 @@ object QuerySpek : Spek({
                         onFragment("Book") { select("title", "text") }
                         onFragment("Song") { select("title", "lyrics") }
                     }
-                }.resultAsListOfMaps()
+                }.resultAsListOfMaps()!!
             }
 
             it("successfully loads") {
@@ -136,7 +136,7 @@ object QuerySpek : Spek({
                             onFragment("Book") { select("title", "text") }
                             onFragment("Song") { select("title", "lyrics") }
                         }
-                    }.resultAsListOfMaps()
+                    }.resultAsListOfMaps()!!
                 }
 
 
@@ -181,7 +181,7 @@ object QuerySpek : Spek({
             Hephaestus
                 .graphqlClients[remoteService1.name]!!
                 .query("songs") { select("title", "lyrics") }
-                .resultAs<List<Publication.Song>>()
+                .resultAs<List<Publication.Song>>()!!
         }
 
         it("correctly parses the response") {

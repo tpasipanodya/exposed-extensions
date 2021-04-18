@@ -34,7 +34,7 @@ class MutationSpek : Spek({
                         onFragment("Book") { select("title", "text") }
                         onFragment("Song") { select("title", "lyrics") }
                     }
-                }.resultAsListOfMaps()
+                }.resultAsListOfMaps()!!
             }
 
             it("successfully loads") {
@@ -74,7 +74,7 @@ class MutationSpek : Spek({
                             onFragment("Book") { select("title", "text") }
                             onFragment("Song") { select("title", "lyrics") }
                         }
-                    }.resultAsListOfMaps()
+                    }.resultAsListOfMaps()!!
                 }
 
                 it("successfully loads") {
@@ -94,7 +94,7 @@ class MutationSpek : Spek({
                                     )
                                 }
                             )
-                        }.toTypedArray()
+                        }.toTypedArray()!!
                     )
 
                     otherResult[0]["publications"] as List<*> should satisfy { size == 2 }
@@ -135,7 +135,7 @@ class MutationSpek : Spek({
                         onFragment("Book") { select("title", "text") }
                         onFragment("Song") { select("title", "lyrics") }
                     }
-                }.resultAsListOfMaps()
+                }.resultAsListOfMaps()!!
             }
 
             it("successfully loads") {
@@ -175,7 +175,7 @@ class MutationSpek : Spek({
                             onFragment("Book") { select("title", "text") }
                             onFragment("Song") { select("title", "lyrics") }
                         }
-                    }.resultAsListOfMaps()
+                    }.resultAsListOfMaps()!!
                 }
 
                 it("successfully loads") {
