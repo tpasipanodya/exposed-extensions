@@ -24,23 +24,16 @@ You can use Hephaestus to query that service as shown below:
 /** Create our model class */
 data class Author(val name: String)
 
-/** Configure a client for the above service. */
-val hephaestus = configure {
-    graphqlClients.add(
-        ClientConfig(
-            "myFancyService",
-            "http://fancyservice.com/graphql"
-        )
-    )
-}
+/** Create a client*/
+val client = Client.new()
+    .url("http://fancyservice.com/graphql")
+    .build()
 
 /** Call that service returning a deserialized Kotlin type */
-val author = hephaestus
-    .graphqlClients["myFancyService"]!!
-    .query("author") {
-        input(name = "id", value = 1)
-        select("name")
-    }.resultAs<Author>()
+val author = client.query("author") {
+    input(name = "id", value = 1)
+    select("name")
+}.resultAs<Author>()
 ```
 ### What is it
 A simple graphql query builder that lets you programmatically build and run graphql queries. For example, 

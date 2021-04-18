@@ -13,9 +13,7 @@ class AssociationSelection(private val field: String, selector: AssociationSelec
 
     override fun compile() = "$field${
         if (rawSelections.isNotEmpty())
-            " { ${rawSelections.map {
-                it.compile()
-            }.joinToString(separator = "")} }"
+            " { ${rawSelections.joinToString(separator = " ") { it.compile() }} }"
         else
             ""
     }"

@@ -2,8 +2,7 @@ package io.taff.hephaestus.graphql.client
 
 import com.apurebase.kgraphql.KGraphQL
 import io.javalin.Javalin
-import io.taff.hephaestus.Hephaestus
-import io.taff.hephaestus.configure
+import io.taff.hephaestus.Config
 import kotlinx.coroutines.runBlocking
 import io.javalin.http.Context
 
@@ -16,7 +15,7 @@ sealed class Publication(open val title: String) {
     data class Song(override val title: String, val lyrics: String) : Publication(title)
 }
 
-class DummyRemoteService(val name: String, val port: Int) {
+class DummyRemoteService(val port: Int) {
 
     /* The data being served. */
     val writers = mutableListOf<Writer>()
@@ -71,13 +70,10 @@ class DummyRemoteService(val name: String, val port: Int) {
     private var app: Javalin? = null
 
     /** Point the graphql client to this dummy service */
-    private val hephaestusConfig = configure {
-        graphqlClients.add(ClientConfig(
-            name,
-            "http://localhost:$port/graphql"
-        ))
-        logGraphqlClientRequests = true
-    }
+    val client = Client.new()
+        .url( "http://localhost:$port/graphql")
+        .build()
+
 
     /** Start the service */
     fun start() {
@@ -109,7 +105,7 @@ class DummyRemoteService(val name: String, val port: Int) {
         app = Javalin.create()
         app?.start(port)
         app?.post("/graphql") { ctx: Context ->
-            val  body = Hephaestus.objectMapper.readTree(ctx.body())
+            val  body = Config.objectMapper.readTree(ctx.body())
             runBlocking {
                 schema.execute(
                     body["query"].asText(),

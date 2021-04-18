@@ -1,6 +1,6 @@
 package io.taff.hephaestus.graphql.client
 
-import io.taff.hephaestus.Hephaestus
+import io.taff.hephaestus.Config
 import io.taff.hephaestus.graphql.client.selections.Selection
 
 
@@ -46,7 +46,7 @@ class QueryMutationDSL(var name: String, var type: OperationType) : Selection {
         "variables" to inputs.associateBy({ it.name }) {
             it.coalescedValue()
         }
-    ).let { Hephaestus.objectMapper.writeValueAsString(it) }
+    ).let { Config.objectMapper.writeValueAsString(it) }
 
     private fun compileSelections() = if (rawSelections.isEmpty()) "" else "{ ${super.compile()} }"
 

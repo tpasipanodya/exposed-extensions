@@ -2,13 +2,17 @@ package io.taff.hephaestus.graphql.client
 
 import com.github.kittinunf.fuel.httpPost
 import com.github.kittinunf.result.Result
-import io.taff.hephaestus.Hephaestus
+import io.taff.hephaestus.Config
 import java.lang.IllegalStateException
 
 /**
  * Access point for querying graphql services.
  */
-class Client(private val config: ClientConfig) {
+class Client(private val config: ClientBuilder) {
+
+    companion object {
+        fun new() = ClientBuilder()
+    }
 
     /**
      * Perform a graphql query.
@@ -73,10 +77,10 @@ class Client(private val config: ClientConfig) {
         .compile()
         .let { compiledQuery ->
             val headers = config.headers + runtimeHeaders
-            if (Hephaestus.logGraphqlClientRequests) {
-                Hephaestus.logger.info {
+            if (Config.logGraphqlClientRequests) {
+                Config.logger.info {
                     "\n\tquery: $compiledQuery ${
-                    if (Hephaestus.logGraphqlClientRequestHeaders) "\n\theaders: $headers"
+                    if (Config.logGraphqlClientRequestHeaders) "\n\theaders: $headers"
                     else ""
                 }"
                 }

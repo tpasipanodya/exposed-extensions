@@ -2,31 +2,10 @@ package io.taff.hephaestus.graphql.client
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.github.kittinunf.fuel.core.Response
-import io.taff.hephaestus.Hephaestus
-import java.time.OffsetDateTime
-import java.time.format.DateTimeFormatter
+import io.taff.hephaestus.Config
 
 /**
- * An input for a graphql operation.
- */
-data class Input(val name: String,
-                 val required: Boolean,
-                 val value: Any,
-                 val type: String = value.javaClass.simpleName) {
-
-    fun coalescedValue() : Any = if (value is OffsetDateTime) {
-        value.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-    } else value
-}
-
-/**
- * Configuration for setting up new graphql clients.
- */
-data class ClientConfig(val name: Any, val url: String, val headers: Map<String, Any> = mapOf())
-
-
-/**
- *
+ * Represents the response from performing a graphql opeartion.
  */
 class GraphqlResponse(val operationName: String, val _response: Response) {
 
@@ -56,12 +35,12 @@ class GraphqlResponse(val operationName: String, val _response: Response) {
      */
     fun errors(contentType: String = "application/json") = bodyAsString(contentType)
         .let {
-            Hephaestus.objectMapper.readValue(
+            Config.objectMapper.readValue(
                 it,
                 object : TypeReference<Map<String, Any?>>() {}
             )
         }.let { it["errors"] as Map<String, List<String>?>? }
-    
+
     /**
      * Parse the query/mutation's result to a map.
      */
@@ -80,7 +59,7 @@ class GraphqlResponse(val operationName: String, val _response: Response) {
     private fun parseDataAsMap(contentType: String = "application/json") = _response.body()
         .asString(contentType)
         .let {
-            Hephaestus.objectMapper.readValue(
+            Config.objectMapper.readValue(
                 it,
                 object : TypeReference<Map<String, Any?>>() {}
             )
@@ -93,10 +72,10 @@ class GraphqlResponse(val operationName: String, val _response: Response) {
     inline fun <reified T> resultAs(contentType: String = "application/json") : T? = _response.body()
         .asString(contentType)
         .let { body ->
-            Hephaestus
+            Config
                 .objectMapper.readTree(body).let { parsedBody ->
                     parsedBody["data"]!![operationName]?.let {
-                        Hephaestus
+                        Config
                             .objectMapper.readValue(
                                 it.toPrettyString(),
                                 object : TypeReference<T>() {}

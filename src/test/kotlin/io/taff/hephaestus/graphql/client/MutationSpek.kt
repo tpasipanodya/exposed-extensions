@@ -4,13 +4,17 @@ import org.spekframework.spek2.Spek
 import com.taff.hephaestustest.expectation.any.satisfy
 import com.taff.hephaestustest.expectation.iterable.beAnOrderedCollectionOf
 import com.taff.hephaestustest.expectation.should
-import io.taff.hephaestus.Hephaestus
+import io.taff.hephaestus.configure
 import org.spekframework.spek2.style.specification.describe
+
+
 
 class MutationSpek : Spek({
 
-    val remoteService1 = DummyRemoteService("WritersClub", 5577)
-    val remoteService2 = DummyRemoteService("fancyWritersClub", 7755)
+    configure { logGraphqlClientRequests = true }
+
+    val remoteService1 = DummyRemoteService( 5577)
+    val remoteService2 = DummyRemoteService( 7755)
     val services = listOf(remoteService1, remoteService2)
 
     beforeEachTest { services.forEach { it.start() } }
@@ -26,7 +30,7 @@ class MutationSpek : Spek({
                 )
             }
             val result by memoized {
-                Hephaestus.graphqlClients[remoteService1.name]!!.mutation("addBook") {
+                remoteService1.client.mutation("addBook") {
                     input(name = "writerName", value = remoteService1.writers.first().name)
                     input(name = "book", value = bookInput)
                     select("name")
@@ -66,7 +70,7 @@ class MutationSpek : Spek({
                     )
                 }
                 val otherResult by memoized {
-                    Hephaestus.graphqlClients[remoteService2.name]!!.mutation("addBook") {
+                    remoteService2.client.mutation("addBook") {
                         input(name = "writerName", value = remoteService2.writers[0].name)
                         input(name = "book", value = otherBook)
                         select("name")
@@ -127,7 +131,7 @@ class MutationSpek : Spek({
                 ))
             }
             val result by memoized {
-                Hephaestus.graphqlClients[remoteService1.name]!!.mutation("addSongs") {
+                remoteService1.client.mutation("addSongs") {
                     input(name = "writerName", value = remoteService1.writers[1].name)
                     input(name = "songs",  value = songInputs)
                     select("name")
@@ -167,7 +171,7 @@ class MutationSpek : Spek({
                     ))
                 }
                 val otherResult by memoized {
-                    Hephaestus.graphqlClients[remoteService2.name]!!.mutation("addSongs") {
+                    remoteService2.client.mutation("addSongs") {
                         input(name = "writerName", value = remoteService2.writers[1].name)
                         input(name = "songs",  value = otherSongInputs)
                         select("name")

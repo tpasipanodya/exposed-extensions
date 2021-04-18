@@ -4,15 +4,17 @@ import com.taff.hephaestustest.expectation.any.satisfy
 import com.taff.hephaestustest.expectation.iterable.beAnOrderedCollectionOf
 import com.taff.hephaestustest.expectation.map.beAMapOf
 import com.taff.hephaestustest.expectation.should
-import io.taff.hephaestus.Hephaestus
+import io.taff.hephaestus.configure
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
 
 object QuerySpek : Spek({
 
-    val remoteService1 = DummyRemoteService("WritersClub", 5577)
-    val remoteService2 = DummyRemoteService("fancyWritersClub", 7755)
+    configure { logGraphqlClientRequests = true }
+
+    val remoteService1 = DummyRemoteService( 5577)
+    val remoteService2 = DummyRemoteService(7755)
     val remoteServices = listOf(remoteService1, remoteService2)
 
     beforeEachTest { remoteServices.forEach { it.start() } }
@@ -26,7 +28,7 @@ object QuerySpek : Spek({
         context("with a non-iterable parameter") {
             context("a query with a non-iterable argument") {
                 val result by memoized {
-                    Hephaestus.graphqlClients[remoteService1.name]!!.query("writer") {
+                    remoteService1.client.query("writer") {
                         input("name", value = remoteService1.writers.first().name)
                         select("name")
                         onAssociation("publications") {
@@ -55,7 +57,7 @@ object QuerySpek : Spek({
 
                 context("with multiple services") {
                     val otherResult by memoized {
-                        Hephaestus.graphqlClients[remoteService2.name]!!.query("writer") {
+                        remoteService2.client.query("writer") {
                             input("name", value = remoteService2.writers[1].name)
                             select("name")
                             onAssociation("publications") {
@@ -97,7 +99,7 @@ object QuerySpek : Spek({
 
         context("a query with an iterable parameter") {
             val result by memoized {
-                Hephaestus.graphqlClients[remoteService1.name]!!.query("writers") {
+                remoteService1.client.query("writers") {
                     input("names", value = remoteService1.writers.map { it.name })
                     select("name")
                     onAssociation("publications") {
@@ -129,7 +131,7 @@ object QuerySpek : Spek({
 
             context("with multiple services") {
                 val otherRsult by memoized {
-                    Hephaestus.graphqlClients[remoteService2.name]!!.query("writers") {
+                    remoteService2.client.query("writers") {
                         input("names", value = listOf(otherWriter.name))
                         select("name")
                         onAssociation("publications") {
@@ -178,10 +180,9 @@ object QuerySpek : Spek({
 
     describe("asType") {
         val result by memoized {
-            Hephaestus
-                .graphqlClients[remoteService1.name]!!
-                .query("songs") { select("title", "lyrics") }
-                .resultAs<List<Publication.Song>>()!!
+                remoteService1.client
+                    .query("songs") { select("title", "lyrics") }
+                    .resultAs<List<Publication.Song>>()!!
         }
 
         it("correctly parses the response") {

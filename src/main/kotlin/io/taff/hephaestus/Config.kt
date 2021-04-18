@@ -3,10 +3,9 @@ package io.taff.hephaestus
 import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.taff.hephaestus.graphql.client.ClientRegistry
 import mu.NamedKLogging
 
-object Hephaestus {
+object Config {
 
 	/**
 	 * Used for all logging.
@@ -24,18 +23,6 @@ object Hephaestus {
 	var logGraphqlClientRequestHeaders = false
 
 	/**
-	 * Graphql clients.
-	 * ```
-	 * graphqlClients.add(ClientConfig("myFancyService", "http://fancyservice.com/graphql))
-	 *
-	 * graphqlClients["myFancyService"]?.query("...") {
-	 *    ...
-	 * }
-	 * ```
-	 */
-	val graphqlClients = ClientRegistry
-
-	/**
 	 * used for serializing objects for logging as well as deserializing json into lists and maps.
 	 */
 	var objectMapper = jacksonObjectMapper().apply {
@@ -50,4 +37,4 @@ object Hephaestus {
  * val configured = configure { logGraphqlClientRequests = true }
  * ```
  */
-fun configure(fxn: Hephaestus.() -> Unit) = fxn(Hephaestus).let { Hephaestus }
+fun configure(fxn: Config.() -> Unit) = fxn(Config).let { Config }
