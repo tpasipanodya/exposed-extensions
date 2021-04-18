@@ -48,25 +48,37 @@ class GraphqlResponse(val operationName: String, val _response: Response) {
     /**
      * Get the raw body as a string.
      */
-    fun bodyAsString(contentType: String) = _response.body().asString(contentType)
+    fun bodyAsString(contentType: String = "application/json") = _response.body()
+        .asString(contentType)
+
+    /**
+     *
+     */
+    fun errors(contentType: String = "application/json") = bodyAsString(contentType)
+        .let {
+            Hephaestus.objectMapper.readValue(
+                it,
+                object : TypeReference<Map<String, Any?>>() {}
+            )
+        }.let { it["errors"] as Map<String, List<String>?> }
     
     /**
      * Parse the query/mutation's result to a map.
      */
-    fun asMap() : Map<String, Any?> = parseBodyAsMap()
+    fun resultAsMap(contentType: String = "application/json") : Map<String, Any?> = parseDataAsMap(contentType)
         .let { it[operationName] as Map<String, Any?> }
 
     /**
      * Parse the query/mutation's result to a list of maps.
      */
-    fun asListOfMaps() : List<Map<String, Any?>> = parseBodyAsMap()
+    fun resultAsListOfMaps(contentType: String = "application/json") : List<Map<String, Any?>> = parseDataAsMap(contentType)
         .let { it[operationName] as List<Map<String, Any?>> }
 
     /**
      * Helper function for deserializing a query/mutation's result to a map.
      */
-    private fun parseBodyAsMap() : Map<String, Any?> = _response.body()
-        .asString("application/json")
+    private fun parseDataAsMap(contentType: String = "application/json") : Map<String, Any?> = _response.body()
+        .asString(contentType)
         .let {
             Hephaestus.objectMapper.readValue(
                 it,
@@ -78,7 +90,7 @@ class GraphqlResponse(val operationName: String, val _response: Response) {
      * Parse the query/mutation's result to an instance of type T.
      * @param T the return type.
      */
-    inline fun <reified T> asType(contentType: String = "application/json") : T = _response.body()
+    inline fun <reified T> resultAs(contentType: String = "application/json") : T = _response.body()
         .asString(contentType)
         .let { body ->
             Hephaestus

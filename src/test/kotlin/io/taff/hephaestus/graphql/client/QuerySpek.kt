@@ -5,7 +5,6 @@ import com.taff.hephaestustest.expectation.iterable.beAnOrderedCollectionOf
 import com.taff.hephaestustest.expectation.map.beAMapOf
 import com.taff.hephaestustest.expectation.should
 import io.taff.hephaestus.Hephaestus
-import jdk.dynalink.linker.support.Guards.asType
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
@@ -34,7 +33,7 @@ object QuerySpek : Spek({
                             onFragment("Book") { select("title", "text") }
                             onFragment("Song") { select("title", "lyrics") }
                         }
-                    }.asMap()
+                    }.resultAsMap()
                 }
 
                 it("successfully loads") {
@@ -63,7 +62,7 @@ object QuerySpek : Spek({
                                 onFragment("Book") { select("title", "text") }
                                 onFragment("Song") { select("title", "lyrics") }
                             }
-                        }.asMap()
+                        }.resultAsMap()
                     }
 
                     it("successfully loads") {
@@ -105,7 +104,7 @@ object QuerySpek : Spek({
                         onFragment("Book") { select("title", "text") }
                         onFragment("Song") { select("title", "lyrics") }
                     }
-                }.asListOfMaps()
+                }.resultAsListOfMaps()
             }
 
             it("successfully loads") {
@@ -137,7 +136,7 @@ object QuerySpek : Spek({
                             onFragment("Book") { select("title", "text") }
                             onFragment("Song") { select("title", "lyrics") }
                         }
-                    }.asListOfMaps()
+                    }.resultAsListOfMaps()
                 }
 
 
@@ -182,7 +181,7 @@ object QuerySpek : Spek({
             Hephaestus
                 .graphqlClients[remoteService1.name]!!
                 .query("songs") { select("title", "lyrics") }
-                .asType<List<Publication.Song>>()
+                .resultAs<List<Publication.Song>>()
         }
 
         it("correctly parses the response") {
