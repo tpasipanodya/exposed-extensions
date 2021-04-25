@@ -16,23 +16,37 @@ import java.time.OffsetDateTime.now
  */
 abstract class ModelAwareTable<M : Model>(open val name: String) : LongIdTable(name) {
 
-    val createdAt = moment("created_at").default(now())
-    val updatedAt = moment("updated_at").default(now())
+    val createdAt = moment("created_at").clientDefault { now() }
+    val updatedAt = moment("updated_at").clientDefault { now() }
 
+    /**
+     *
+     */
     private fun entityId(id: Long) = createEntityID(id, this)
 
+    /**
+     *
+     */
     fun toModel(row: ResultRow) = fill(row, initializeModel(row))
 
+    /**
+     *
+     */
     abstract fun initializeModel(row: ResultRow) : M
 
-    protected open fun fill(row: ResultRow, model: M) = model
-        .also {
-            it.id = row[id].value
-            it.createdAt = row[createdAt]
-            it.updatedAt = row[updatedAt]
-        }
+    /**
+     *
+     */
+    protected open fun fill(row: ResultRow, model: M) = model.also {
+        it.id = row[id].value
+        it.createdAt = row[createdAt]
+        it.updatedAt = row[updatedAt]
+    }
 
-    protected open fun fill(stmt: UpdateBuilder<Int>, model: M) {
+    /**
+     *
+     */
+    protected open fun fillStatement(stmt: UpdateBuilder<Int>, model: M) {
         model.id?.let { stmt[id] = entityId(it) }
     }
 
@@ -44,12 +58,10 @@ abstract class ModelAwareTable<M : Model>(open val name: String) : LongIdTable(n
     /**
      * Insert an orderd list of models into the database and run the after insert callback.
      */
-    fun insert(models: List<M>) : Iterable<M> = batchInsert(models) { fill(this, it) }
+    fun insert(models: List<M>) : Iterable<M> = batchInsert(models) { fillStatement(this, it) }
         .forEachIndexed { index, resultRow ->
             models[index].also { model -> model.id = resultRow[id].value }
         }.let { models }
-
-
 
     /**
      * Update an ordred list of models and run the after update callbacks.
@@ -59,7 +71,7 @@ abstract class ModelAwareTable<M : Model>(open val name: String) : LongIdTable(n
             models.forEach { model ->
                 model.id?.let { id ->
                     addBatch(entityId(id))
-                    fill(this, model)
+                    fillStatement(this, model)
                 } ?: throw SQLException("Cannot update the following model because it doesn't have an Id. Model: $model")
             }
         }.execute(transaction)
@@ -68,13 +80,7 @@ abstract class ModelAwareTable<M : Model>(open val name: String) : LongIdTable(n
     /**
      *
      */
-    fun update(model: M, transaction: Transaction) = update(transaction, listOf(model)).first()
-
-    /**
-     *
-     */
-    open fun delete(where: SqlExpressionBuilder.() -> Op<Boolean>) = deleteWhere { where(this) }
-
+    fun update(transaction: Transaction, model: M) = update(transaction, listOf(model)).first()
 
     /**
      *

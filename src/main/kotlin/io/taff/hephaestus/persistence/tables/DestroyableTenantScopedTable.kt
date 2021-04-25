@@ -13,9 +13,9 @@ abstract class DestroyableTenantScopedTable<TI, M : DestroyableTenantScopedModel
     override fun fill(row: ResultRow, model: M) = super.fill(row, model)
         .also { it.destroyedAt = row[destroyedAt] }
 
-    override fun fill(stmt: UpdateBuilder<Int>, model: M) {
+    override fun fillStatement(stmt: UpdateBuilder<Int>, model: M) {
         model.destroyedAt?.let { stmt[destroyedAt] = it }
-        super.fill(stmt, model)
+        super.fillStatement(stmt, model)
     }
 
     /**
