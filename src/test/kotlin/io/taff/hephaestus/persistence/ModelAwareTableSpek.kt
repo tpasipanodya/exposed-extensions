@@ -6,12 +6,12 @@ import com.taff.hephaestustest.expectation.iterable.beAnOrderedCollectionOf
 import com.taff.hephaestustest.expectation.should
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.helpers.isNull
-import io.taff.hephaestus.persistence.models.Model
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import io.taff.hephaestus.persistence.models.Model
+import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import java.time.OffsetDateTime
 
 data class Record(val title: String? = null,
@@ -27,7 +27,7 @@ val records = object : ModelAwareTable<Record>("records") {
     }
 }
 
-object ModelSpek  : Spek({
+object ModelAwareTableSpek  : Spek({
 
     Database.connect(env<String>("DB_URL"))
     transaction { SchemaUtils.create(records) }
@@ -36,7 +36,6 @@ object ModelSpek  : Spek({
 
     describe("insert") {
         val record by memoized { Record("Soul food") }
-
 
         context("with non iterables") {
             val persisted by memoized { transaction { records.insert(record) } }
@@ -47,11 +46,11 @@ object ModelSpek  : Spek({
                 record.isPersisted() should beTrue()
                 reloaded should satisfy {
                     size == 1 &&
-                            first().let {
-                                it.title == record.title &&
-                                        !it.createdAt.isNull() &&
-                                        !it.updatedAt.isNull()
-                            }
+                    first().let {
+                        it.title == record.title &&
+                                !it.createdAt.isNull() &&
+                                !it.updatedAt.isNull()
+                    }
                 }
             }
         }
@@ -65,11 +64,11 @@ object ModelSpek  : Spek({
                 record.isPersisted() should beTrue()
                 reloaded  should satisfy {
                     size == 1 &&
-                            first().let {
-                                it.title == record.title &&
-                                        !it.createdAt.isNull() &&
-                                        !it.updatedAt.isNull()
-                            }
+                    first().let {
+                        it.title == record.title &&
+                                !it.createdAt.isNull() &&
+                                !it.updatedAt.isNull()
+                    }
                 }
             }
         }

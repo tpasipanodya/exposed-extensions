@@ -1,6 +1,6 @@
 package io.taff.hephaestus.persistence.tables
 
-import io.taff.hephaestus.multitennant.CurrentTenantId
+import io.taff.hephaestus.persistence.CurrentTenantId
 import io.taff.hephaestus.persistence.models.TenantScopedModel
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
@@ -35,6 +35,12 @@ abstract class TenantScopedTable<TI, M : TenantScopedModel<TI>>(override var nam
     /** */
     fun scopedSelect(query: SqlExpressionBuilder.() -> Op<Boolean>) = select { query() and tenantScope() }
 
+    /**
+     *
+     */
+    fun scopedSelect() = select { tenantScope() }
+
     /** */
     fun scopedDelete(where: SqlExpressionBuilder.() -> Op<Boolean>) = deleteWhere { tenantScope() and where(this) }
+
 }
