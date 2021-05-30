@@ -18,6 +18,6 @@ fun <TI : Any> setCurrentTenantId(id: TI) = CurrentTenantId
 /**
  * Unset the current Tenant Id.
  */
-fun unsetCurrentTenantId() = CurrentTenantId
+fun clearCurrentTenantId() = CurrentTenantId
         .get()
-        .also { CurrentTenantId.set(it) }
+        .also { CurrentTenantId.set(null) }
