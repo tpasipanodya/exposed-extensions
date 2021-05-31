@@ -2,23 +2,26 @@ package io.taff.hephaestus.persistence.tables
 
 import com.taff.hephaestustest.expectation.any.satisfy
 import com.taff.hephaestustest.expectation.boolean.beTrue
-import com.taff.hephaestustest.expectation.iterable.beAnOrderedCollectionOf
 import com.taff.hephaestustest.expectation.should
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.helpers.isNull
+import io.taff.hephaestus.persistence.PersistenceError.UnpersistedUpdateError
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import io.taff.hephaestus.persistence.models.Model
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
+import org.junit.jupiter.api.fail
 import java.time.OffsetDateTime
 
+/** Dummy model for testing */
 data class Record(val title: String? = null,
                   override var id: Long? = null,
                   override var createdAt: OffsetDateTime? = null,
                   override var updatedAt: OffsetDateTime? = null) : Model
 
+/** Dummy table for testing */
 val records = object : ModelAwareTable<Record>("records") {
     val title = varchar("title", 50)
     override fun initializeModel(row: ResultRow) = Record(title = row[title])
@@ -36,39 +39,18 @@ object ModelAwareTableSpek  : Spek({
 
     describe("insert") {
         val record by memoized { Record("Soul food") }
+        val persisted by memoized { transaction { records.insert(record).first() } }
+        val reloaded by memoized { transaction { records.selectAll().map(records::toModel) } }
 
-        context("with non iterables") {
-            val persisted by memoized { transaction { records.insert(record) } }
-            val reloaded by memoized { transaction { records.selectAll().map(records::toModel) } }
-
-            it("persists") {
-                persisted should satisfy { this == record && isPersisted()}
-                record.isPersisted() should beTrue()
-                reloaded should satisfy {
-                    size == 1 &&
-                    first().let {
-                        it.title == record.title &&
-                                !it.createdAt.isNull() &&
-                                !it.updatedAt.isNull()
-                    }
-                }
-            }
-        }
-
-        context("with iterables") {
-            val persisted by memoized { transaction { records.insert(listOf(record)) } }
-            val reloaded by memoized { transaction { records.selectAll().map(records::toModel) } }
-
-            it("persists") {
-                persisted should beAnOrderedCollectionOf(record)
-                record.isPersisted() should beTrue()
-                reloaded  should satisfy {
-                    size == 1 &&
-                    first().let {
-                        it.title == record.title &&
-                                !it.createdAt.isNull() &&
-                                !it.updatedAt.isNull()
-                    }
+        it("persists the record") {
+            persisted should satisfy { this == record && isPersisted()}
+            record.isPersisted() should beTrue()
+            reloaded should satisfy {
+                size == 1 &&
+                first().let {
+                    it.title == record.title &&
+                            !it.createdAt.isNull() &&
+                            !it.updatedAt.isNull()
                 }
             }
         }
@@ -76,22 +58,25 @@ object ModelAwareTableSpek  : Spek({
 
     describe("update") {
         val newTitle by memoized { "groovy soul food" }
-        val persisted by memoized { transaction { records.insert(Record("Soul food")) } }
 
-        context("with non-iterables") {
+        context("when already persisted") {
+            val record by memoized {   Record("Soul food") }
+            val persisted by memoized { transaction { records.insert(record) } }
             val updated by memoized {
                 transaction {
-                    records.update(
-                        this,
-                        persisted.copy(title = newTitle)
-                    )
+                    records
+                        .update(this, persisted[0].copy(title = newTitle))
+                        .first()
                 }
             }
             val reloaded by memoized { transaction { records.selectAll().map(records::toModel) } }
 
-            it("updates") {
-                persisted should satisfy { this != updated }
-                updated should satisfy { isPersisted() && title == newTitle }
+            it("modifies the record") {
+                updated should satisfy {
+                    this != persisted[0] &&
+                    isPersisted() &&
+                    title == newTitle
+                }
                 reloaded should satisfy {
                     size == 1 &&
                     first().let {
@@ -103,25 +88,22 @@ object ModelAwareTableSpek  : Spek({
             }
         }
 
-        context("with iterables") {
-            val updateds by memoized {
+        context("When the model hasn't been saved yet") {
+            val record by memoized {   Record("Soul food") }
+            val updated by memoized {
                 transaction {
-                    records.update(
-                        this,
-                        listOf(persisted.copy(title = newTitle))
-                    )
+                    records
+                        .update(this, record.copy(title = newTitle))
+                        .first()
                 }
             }
-            val reloaded by memoized { transaction { records.selectAll().map(records::toModel) } }
 
-            it("updates") {
-                updateds should beAnOrderedCollectionOf(persisted.copy(title = newTitle))
-                reloaded should satisfy {
-                    size == 1 &&
-                    first().let {
-                        it.title == newTitle &&
-                        !it.createdAt.isNull() &&
-                        !it.updatedAt.isNull()
+            it("does not modify the record") {
+                try { updated; fail("Expected an exception to be raised but none was") }
+                catch (e: UnpersistedUpdateError) {
+                    e.message!! should satisfy {
+                        contains("Cannot update") &&
+                        contains(" because it hasn't been persisted yet")
                     }
                 }
             }
@@ -129,35 +111,31 @@ object ModelAwareTableSpek  : Spek({
     }
 
     describe("delete") {
-        val persisted by memoized { transaction { records.insert(Record("Soul food")) } }
-        val reloaded by memoized { transaction { records.selectAll().map(records::toModel) } }
-
-        context("with non-iterables") {
-            it("deletes") {
-                persisted should satisfy { isPersisted() }
-
-                val deleted = transaction { records.delete(persisted) }
-
-                deleted should satisfy {
-                    toList().size == 1 &&
-                    first().title == persisted.title
-                }
-                reloaded should satisfy { isEmpty() }
+        val persisted by memoized {
+            transaction {
+                records
+                    .insert(Record("Soul food"))
+                    .first()
+            }
+        }
+        val reloaded by memoized {
+            transaction {
+                records
+                    .selectAll()
+                    .map(records::toModel)
             }
         }
 
-        context("with iterables") {
-            it("deletes") {
-                persisted should satisfy { isPersisted() }
+        it("hard deletes the record") {
+            persisted should satisfy { isPersisted() }
 
-                val deleted = transaction { records.delete(listOf(persisted)) }
+            val deleted = transaction { records.delete(persisted) }
 
-                deleted should satisfy {
-                    toList().size == 1 &&
-                    first().title == persisted.title
-                }
-                reloaded should satisfy { isEmpty() }
+            deleted should satisfy {
+                toList().size == 1 &&
+                first().title == persisted.title
             }
+            reloaded should satisfy { isEmpty() }
         }
     }
 })

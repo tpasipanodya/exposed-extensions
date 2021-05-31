@@ -1,9 +1,9 @@
 package io.taff.hephaestus.persistence
 
 import com.taff.hephaestustest.expectation.any.satisfy
-import com.taff.hephaestustest.expectation.iterable.beAnOrderedCollectionOf
 import com.taff.hephaestustest.expectation.iterable.beAnUnOrderedCollectionOf
 import com.taff.hephaestustest.expectation.should
+import com.taff.hephaestustest.expectation.shouldNot
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.helpers.isNull
 import io.taff.hephaestus.persistence.models.TenantScopedModel
@@ -47,12 +47,24 @@ object TenantScopedTableSpek : Spek({
     afterEachTest { clearCurrentTenantId() }
 
     describe("insert") {
+        val reloaded by memoized {
+            transaction {
+                tenantScopedRecords
+                    .selectAll()
+                    .map(tenantScopedRecords::toModel)
+            }
+        }
 
-        beforeEachTest { setCurrentTenantId(tenantId) }
+        context("with tenant id set") {
+            beforeEachTest { setCurrentTenantId(tenantId) }
 
-        context("with non iterables") {
-            val persisted by memoized { transaction { tenantScopedRecords.insert(record) } }
-            val reloaded by memoized { transaction { tenantScopedRecords.selectAll().map(tenantScopedRecords::toModel) } }
+            val persisted by memoized {
+                transaction {
+                    tenantScopedRecords
+                        .insert(record)
+                        .first()
+                }
+            }
 
             it("persists") {
                 persisted should satisfy {
@@ -73,27 +85,21 @@ object TenantScopedTableSpek : Spek({
             }
         }
 
-        context("with iterables") {
-            val persisted by memoized { transaction { tenantScopedRecords.insert(listOf(record)) } }
-            val reloaded by memoized { transaction { tenantScopedRecords.selectAll().map(tenantScopedRecords::toModel) } }
+        context("when tenantId not set") {
+            val persisted by memoized {
+                transaction {
+                    clearCurrentTenantId()
+                    tenantScopedRecords
+                        .insert(record)
+                        .first()
+                }
+            }
 
-            it("persists") {
-                persisted should beAnOrderedCollectionOf(record)
-                    persisted should satisfy {
-                    toList().size == 1 &&
-                    first().isPersisted() &&
-                    first().tenantId == tenantId
-                }
-                record should satisfy { isPersisted() }
-                reloaded should satisfy {
-                    size == 1 &&
-                    first().let {
-                        it.title == record.title &&
-                        it.tenantId == tenantId &&
-                        !it.createdAt.isNull() &&
-                        !it.updatedAt.isNull()
-                    }
-                }
+            it("doesn't persist") {
+                try { persisted; fail("Expected an error to be raised but non was") }
+                catch (e: TenantError) { e should satisfy { message == "Model ${record.id} can't be persisted because There's no current tenant Id set." } }
+                record shouldNot satisfy { isPersisted() }
+                reloaded should satisfy { isEmpty() }
             }
         }
     }
@@ -103,22 +109,27 @@ object TenantScopedTableSpek : Spek({
         val newTitle by memoized { "groovy soul food" }
         val persisted by memoized {
             setCurrentTenantId(tenantId)
-            transaction { tenantScopedRecords.insert(TenantScopedRecord("Soul food")) }
+            transaction {
+                tenantScopedRecords
+                    .insert(TenantScopedRecord("Soul food"))
+                    .first()
+            }
+        }
+        val reloaded by memoized {
+            transaction {
+                tenantScopedRecords
+                    .selectAll()
+                    .map(tenantScopedRecords::toModel)
+            }
         }
 
-        context("with non-iterables") {
+        context("with tenantId correctly set") {
             val updated by memoized {
                 transaction {
                     setCurrentTenantId(tenantId)
                     tenantScopedRecords
                         .update(this, persisted.copy(title = newTitle))
-                }
-            }
-            val reloaded by memoized {
-                transaction {
-                    tenantScopedRecords
-                        .selectAll()
-                        .map(tenantScopedRecords::toModel)
+                        .first()
                 }
             }
 
@@ -126,8 +137,8 @@ object TenantScopedTableSpek : Spek({
                 persisted should satisfy { title == record.title }
                 updated should satisfy {
                     isPersisted() &&
-                    title == newTitle &&
-                    this.tenantId == tenantId
+                        title == newTitle &&
+                        this.tenantId == tenantId
                 }
                 reloaded should satisfy {
                     size == 1 &&
@@ -136,149 +147,63 @@ object TenantScopedTableSpek : Spek({
                         !it.createdAt.isNull() &&
                         !it.updatedAt.isNull() &&
                         it.tenantId == tenantId
-                    }
-                }
-            }
-
-            context("attempting to update another tenant's records") {
-                val updated by memoized {
-                    setCurrentTenantId(otherTenantId)
-                    transaction {
-                        tenantScopedRecords
-                          .update(this, persisted.copy(title = newTitle))
-                    }
-                }
-
-                it("updates") {
-                    persisted should satisfy { title == record.title }
-                    try { updated; fail("Expcted a tenant error but non was raised.")
-                    } catch (e:  TenantError) { e.message should satisfy { this == "Model ${persisted.id} can't be persisted because it doesn't belong to the current tenant." } }
-                    reloaded should satisfy {
-                        size == 1 &&
-                        first().let {
-                            it.title == persisted.title &&
-                            !it.createdAt.isNull() &&
-                            !it.updatedAt.isNull() &&
-                            it.tenantId == tenantId
-                        }
-                    }
-                }
-            }
-
-            context("No tenant id set") {
-                val updated by memoized {
-                    clearCurrentTenantId()
-                    transaction {
-                        tenantScopedRecords
-                          .update(this, persisted.copy(title = newTitle))
-                    }
-                }
-
-                it("updates") {
-                    persisted should satisfy { title == record.title }
-                    try { updated; fail("Expected an error but non was raised.")
-                    } catch (e:  Exception) { e.message should satisfy { this == "Model ${persisted.id} can't be persisted because There's no current tenant Id set." } }
-                    reloaded should satisfy {
-                        size == 1 &&
-                          first().let {
-                            it.title == persisted.title &&
-                            !it.createdAt.isNull() &&
-                            !it.updatedAt.isNull() &&
-                            it.tenantId == tenantId
-                          }
                     }
                 }
             }
         }
 
-        context("with an iterable") {
+        context("attempting to update another tenant's records") {
             val updated by memoized {
-                transaction {
-                    setCurrentTenantId(tenantId)
-                    tenantScopedRecords
-                      .update(this, listOf(persisted.copy(title = newTitle)))
-                }
-            }
-            val reloaded by memoized {
+                setCurrentTenantId(otherTenantId)
                 transaction {
                     tenantScopedRecords
-                      .selectAll()
-                      .map(tenantScopedRecords::toModel)
+                      .update(this, persisted.copy(title = newTitle))
                 }
             }
 
             it("updates") {
-                persisted should satisfy { this.title == record.title }
-                updated should satisfy {
-                    toList().size == 1 &&
-                    first().isPersisted() &&
-                    first().title == newTitle &&
-                    first().tenantId == tenantId
-                }
+                persisted should satisfy { title == record.title }
+                try { updated; fail("Expcted a tenant error but non was raised.")
+                } catch (e:  TenantError) { e.message should satisfy { this == "Model ${persisted.id} can't be persisted because it doesn't belong to the current tenant." } }
                 reloaded should satisfy {
                     size == 1 &&
                     first().let {
-                        it.title == newTitle &&
+                        it.title == persisted.title &&
                         !it.createdAt.isNull() &&
                         !it.updatedAt.isNull() &&
                         it.tenantId == tenantId
                     }
                 }
             }
+        }
 
-            context("attempting to update another tenant's records") {
-                val updated by memoized {
-                    setCurrentTenantId(otherTenantId)
-                    transaction {
-                        tenantScopedRecords
-                          .update(this, listOf(persisted.copy(title = newTitle)))
-                    }
-                }
-
-                it("updates") {
-                    persisted should satisfy { title == record.title }
-                    try { updated; fail("Expcted a tenant error but non was raised.")
-                    } catch (e:  TenantError) { e.message should satisfy { this == "Model ${persisted.id} can't be persisted because it doesn't belong to the current tenant." } }
-                    reloaded should satisfy {
-                        size == 1 &&
-                          first().let {
-                              it.title == persisted.title &&
-                                !it.createdAt.isNull() &&
-                                !it.updatedAt.isNull() &&
-                                it.tenantId == tenantId
-                          }
-                    }
+        context("No tenant id set") {
+            val updated by memoized {
+                clearCurrentTenantId()
+                transaction {
+                    tenantScopedRecords
+                      .update(this, persisted.copy(title = newTitle))
                 }
             }
 
-            context("No tenant id set") {
-                val updated by memoized {
-                    clearCurrentTenantId()
-                    transaction {
-                        tenantScopedRecords
-                          .update(this, listOf(persisted.copy(title = newTitle)))
-                    }
-                }
-
-                it("updates") {
-                    persisted should satisfy { title == record.title }
-                    try { updated; fail("Expected an error but non was raised.")
-                    } catch (e:  Exception) { e.message should satisfy { this == "Model ${persisted.id} can't be persisted because There's no current tenant Id set." } }
-                    reloaded should satisfy {
-                        size == 1 &&
-                          first().let {
-                              it.title == persisted.title &&
-                              !it.createdAt.isNull() &&
-                              !it.updatedAt.isNull() &&
-                              it.tenantId == tenantId
-                          }
-                    }
+            it("updates") {
+                persisted should satisfy { title == record.title }
+                try { updated; fail("Expected an error but non was raised.")
+                } catch (e:  Exception) { e.message should satisfy { this == "Model ${persisted.id} can't be persisted because There's no current tenant Id set." } }
+                reloaded should satisfy {
+                    size == 1 &&
+                      first().let {
+                        it.title == persisted.title &&
+                        !it.createdAt.isNull() &&
+                        !it.updatedAt.isNull() &&
+                        it.tenantId == tenantId
+                      }
                 }
             }
         }
     }
 
-    describe("scopedDelete") {
+    describe("scopedDelete (models)") {
         val otherTenantId by memoized { 1000L }
         val persisted by memoized {
             transaction {
@@ -286,9 +211,79 @@ object TenantScopedTableSpek : Spek({
                 tenantScopedRecords.insert(TenantScopedRecord("Super Smooth Soul food"))
                 setCurrentTenantId(otherTenantId)
                 tenantScopedRecords.insert(TenantScopedRecord("Soul food"))
-                tenantScopedRecords.insert(TenantScopedRecord("Groovy soul food"))
+                tenantScopedRecords.insert(TenantScopedRecord("Groovy soul food")).first()
+            }
+        }
+        val remaining by memoized {
+            transaction {
+                tenantScopedRecords
+                        .selectAll()
+                        .orderBy(tenantScopedRecords.id, SortOrder.ASC)
+                        .map(tenantScopedRecords::toModel)
+            }
+        }
 
+        context("tenant Id set and deleting the tenant's records") {
+            val deleted by memoized {
+                setCurrentTenantId(otherTenantId)
+                transaction { tenantScopedRecords.scopedDelete(persisted) }
+            }
 
+            it("deletes the records") {
+                deleted should satisfy { size == 1 }
+                remaining should satisfy {
+                    size == 2 &&
+                    get(0).title == "Super Smooth Soul food" &&
+                    get(1).title == "Soul food"
+                }
+            }
+        }
+
+        context("tenant Id set and attempting to delete another tenant's records") {
+            val deleted by memoized {
+                transaction {
+                    setCurrentTenantId(tenantId)
+                    tenantScopedRecords.scopedDelete(persisted)
+                }
+            }
+
+            it("deletes the records") {
+                persisted should satisfy { !isNull() }
+                try { deleted; fail("Expected an error to be raised but non was") }
+                catch(e: TenantError) { e.message should satisfy { this == "Cannot destroy models because they belong to a different tenant." } }
+                remaining should satisfy {
+                    size == 3 &&
+                    get(0).title == "Super Smooth Soul food" &&
+                    get(1).title == "Soul food" &&
+                    get(2).title == "Groovy soul food"
+                }
+            }
+        }
+
+        context("With no tenant id set") {
+            val deleted by memoized {
+                clearCurrentTenantId()
+                transaction { tenantScopedRecords.scopedDelete(persisted) }
+            }
+
+            it("doesn't delete the records") {
+                persisted should satisfy { !isNull() }
+                try { deleted; fail("Expected an error to be raised but non was") }
+                catch(e: TenantError) { e.message should satisfy { this == "Cannot destroy models because there is no CurrentTenantId." } }
+                remaining should satisfy { size == 3 }
+            }
+        }
+    }
+
+    describe("scopedDelete (where clause)") {
+        val otherTenantId by memoized { 1000L }
+        val persisted by memoized {
+            transaction {
+                setCurrentTenantId(tenantId)
+                tenantScopedRecords.insert(TenantScopedRecord("Super Smooth Soul food"))
+                setCurrentTenantId(otherTenantId)
+                tenantScopedRecords.insert(TenantScopedRecord("Soul food"))
+                tenantScopedRecords.insert(TenantScopedRecord("Groovy soul food")).first()
             }
         }
         val remaining by memoized {
@@ -365,7 +360,9 @@ object TenantScopedTableSpek : Spek({
                 tenantScopedRecords.insert(TenantScopedRecord("Super Smooth Soul food"))
                 setCurrentTenantId(otherTenantId)
                 tenantScopedRecords.insert(TenantScopedRecord("Soul food"))
-                tenantScopedRecords.insert(TenantScopedRecord("Groovy soul food"))
+                tenantScopedRecords
+                    .insert(TenantScopedRecord("Groovy soul food"))
+                    .first()
             }
         }
         val tenant1Records by memoized {

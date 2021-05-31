@@ -1,5 +1,6 @@
 package io.taff.hephaestus.persistence.models
 
+import io.taff.hephaestus.helpers.isNull
 import java.time.OffsetDateTime
 
 interface DestroyableModel : Model {
@@ -9,4 +10,6 @@ interface DestroyableModel : Model {
     fun markAsDestroyed() {
         destroyedAt = OffsetDateTime.now()
     }
+
+    fun isDestroyed() = !destroyedAt.isNull()
 }
