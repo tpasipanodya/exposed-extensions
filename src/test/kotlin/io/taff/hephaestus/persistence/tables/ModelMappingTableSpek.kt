@@ -14,15 +14,16 @@ import io.taff.hephaestus.persistence.models.Model
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.junit.jupiter.api.fail
 import java.time.OffsetDateTime
+import java.util.UUID
 
 /** Dummy model for testing */
 data class Record(val title: String? = null,
-                  override var id: Long? = null,
+                  override var id: UUID? = null,
                   override var createdAt: OffsetDateTime? = null,
                   override var updatedAt: OffsetDateTime? = null) : Model
 
 /** Dummy table for testing */
-val records = object : ModelAwareTable<Record>("records") {
+val records = object : ModelMappingTable<Record>("records") {
     val title = varchar("title", 50)
     override fun initializeModel(row: ResultRow) = Record(title = row[title])
     override fun fillStatement(stmt: UpdateBuilder<Int>, model: Record) {
@@ -44,7 +45,9 @@ object ModelAwareTableSpek  : Spek({
 
         it("persists the record") {
             persisted should satisfy { this == record && isPersisted()}
+
             record.isPersisted() should beTrue()
+
             reloaded should satisfy {
                 size == 1 &&
                 first().let {
@@ -77,6 +80,7 @@ object ModelAwareTableSpek  : Spek({
                     isPersisted() &&
                     title == newTitle
                 }
+
                 reloaded should satisfy {
                     size == 1 &&
                     first().let {
@@ -92,15 +96,16 @@ object ModelAwareTableSpek  : Spek({
             val record by memoized {   Record("Soul food") }
             val updated by memoized {
                 transaction {
-                    records
-                        .update(this, record.copy(title = newTitle))
+                    records.update(this, record.copy(title = newTitle))
                         .first()
                 }
             }
 
             it("does not modify the record") {
-                try { updated; fail("Expected an exception to be raised but none was") }
-                catch (e: UnpersistedUpdateError) {
+                try {
+                    updated
+                    fail("Expected an exception to be raised but none was")
+                } catch (e: UnpersistedUpdateError) {
                     e.message!! should satisfy {
                         contains("Cannot update") &&
                         contains(" because it hasn't been persisted yet")

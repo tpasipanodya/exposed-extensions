@@ -4,23 +4,23 @@ import org.jfrog.gradle.plugin.artifactory.dsl.ResolverConfig
 import groovy.lang.GroovyObject
 
 plugins {
-	kotlin("jvm") version "1.4.32"
-	id("com.jfrog.artifactory") version "4.21.0"
-	id("org.jetbrains.dokka") version "1.4.30"
-	`maven-publish`
+	kotlin("jvm") version "1.5.31"
+	id("com.jfrog.artifactory") version "4.24.21"
+	id("org.jetbrains.dokka") version "1.5.31"
+	id("maven-publish")
 	idea
 }
 
 group = "io.taff"
 version = "0.1.0${ if (isReleaseBuild()) "" else "-SNAPSHOT" }"
-java.sourceCompatibility = JavaVersion.VERSION_14
+java.sourceCompatibility = JavaVersion.VERSION_16
 
 repositories {
 	jcenter()
 	maven("https://jitpack.io")
 	maven {
 		name = "JFrog"
-		url = uri("https://pasitaf.jfrog.io/artifactory/releases")
+		url = uri("https://tmpasipanodya.jfrog.io/artifactory/releases")
 		credentials {
 			username = System.getenv("ARTIFACTORY_USER")
 			password = System.getenv("ARTIFACTORY_PASSWORD")
@@ -31,26 +31,27 @@ repositories {
 dependencies {
 	runtimeOnly("org.jetbrains.kotlin:kotlin-reflect")
 	runtimeOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-	api("io.github.microutils:kotlin-logging-jvm:2.0.6")
+	api("io.github.microutils:kotlin-logging-jvm:2.0.11")
 	api("com.github.kittinunf.fuel:fuel:2.3.1")
 	api("com.github.kittinunf.fuel:fuel-coroutines:2.3.1")
-	api("org.slf4j:slf4j-simple:1.7.30")
-	api("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.2")
-	api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.2")
-	api("org.jetbrains.exposed:exposed-dao:0.30.2")
-	api("org.jetbrains.exposed:exposed-core:0.30.2")
-	api("org.jetbrains.exposed:exposed-jdbc:0.30.2")
-	api("org.jetbrains.exposed:exposed-java-time:0.30.2")
-	implementation("org.postgresql:postgresql:42.2.14")
-	testImplementation("com.apurebase:kgraphql:0.17.4")
+	api("org.slf4j:slf4j-simple:1.7.32")
+	api("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.0")
+	api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.0")
+	api("org.jetbrains.exposed:exposed-dao:0.36.1")
+	api("org.jetbrains.exposed:exposed-core:0.36.1")
+	api("org.jetbrains.exposed:exposed-jdbc:0.36.1")
+	api("org.jetbrains.exposed:exposed-java-time:0.36.1")
+	implementation("org.postgresql:postgresql:42.3.1")
+	testImplementation("com.apurebase:kgraphql:0.17.14")
 	testImplementation("com.taff:hephaestus-test:0.1.0")
-	testImplementation("io.javalin:javalin:3.13.5")
+	testImplementation("io.javalin:javalin:4.1.1")
+	testImplementation(enforcedPlatform("org.junit:junit-bom:5.8.1"))
 }
 
 tasks.withType<KotlinCompile> {
 	kotlinOptions {
 		freeCompilerArgs = listOf("-Xjsr305=strict")
-		jvmTarget = "14"
+		jvmTarget = "16"
 	}
 }
 
@@ -118,7 +119,7 @@ publishing {
 
 
 artifactory {
-	setContextUrl("https://pasitaf.jfrog.io/artifactory/")
+	setContextUrl("https://tmpasipanodya.jfrog.io/artifactory/")
 
 	publish(delegateClosureOf<PublisherConfig> {
 

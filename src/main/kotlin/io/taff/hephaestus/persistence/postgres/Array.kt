@@ -69,6 +69,11 @@ class LongArray(override var nullable: Boolean = false,
     override var dataType = "bigint"
 }
 
+class BoolAarray(override var nullable: Boolean = false,
+                 override val parser: (json: String) -> Any) : Array(nullable, parser) {
+    override var dataType = "boolean"
+}
+
 /**
  * String Arrays.
  */
@@ -77,10 +82,17 @@ class StringArray(override var nullable: Boolean = false, override val parser: (
 }
 
 /**
+ * Boolean Arrays.
+ */
+fun org.jetbrains.exposed.sql.Table.boolArray(name: String) : Column<List<Boolean>> = registerColumn(
+        name,
+        BoolAarray(parser = String::toBoolean)
+)
+
+/**
  * Create an integer array column.
  */
-fun org.jetbrains.exposed.sql.Table.intArray(name: String):
-        Column<List<Int>> = registerColumn(
+fun org.jetbrains.exposed.sql.Table.intArray(name: String) : Column<List<Int>> = registerColumn(
         name,
         IntArray(parser = String::toInt)
 )
@@ -88,8 +100,7 @@ fun org.jetbrains.exposed.sql.Table.intArray(name: String):
 /**
  * Create a long array column.
  */
-fun org.jetbrains.exposed.sql.Table.longArray(name: String):
-        Column<List<Long>> = registerColumn(
+fun org.jetbrains.exposed.sql.Table.longArray(name: String) : Column<List<Long>> = registerColumn(
         name,
         LongArray(parser = String::toLong)
 )
@@ -97,8 +108,7 @@ fun org.jetbrains.exposed.sql.Table.longArray(name: String):
 /**
  * Create a String array column.
  */
-fun org.jetbrains.exposed.sql.Table.stringArray(name: String):
-        Column<List<String>> = registerColumn(
+fun org.jetbrains.exposed.sql.Table.stringArray(name: String) : Column<List<String>> = registerColumn(
         name,
         StringArray { value -> value }
 )

@@ -39,8 +39,8 @@ object QuerySpek : Spek({
                 }
 
                 it("successfully loads") {
-
                     result should satisfy { size == 2 }
+
                     result should beAMapOf(
                         "name" to writer.name,
                         "publications" to writer.publications.map { publication ->
@@ -80,6 +80,7 @@ object QuerySpek : Spek({
                                 )
                             }
                         )
+
                         otherResult should beAMapOf(
                             "name" to otherWriter.name,
                             "publications" to otherWriter.publications.map { publication ->
@@ -111,6 +112,7 @@ object QuerySpek : Spek({
 
             it("successfully loads") {
                 result should satisfy { size == 2 }
+
                 result should beAnOrderedCollectionOf(
                     *remoteService1.writers.map { writer ->
                         mapOf(
@@ -158,6 +160,7 @@ object QuerySpek : Spek({
                             }
                         )
                     )
+
                     otherRsult should satisfy { size == 1 }
                     otherRsult should beAnOrderedCollectionOf(
                         mapOf(

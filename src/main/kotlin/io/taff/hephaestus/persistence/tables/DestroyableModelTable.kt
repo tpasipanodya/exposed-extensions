@@ -1,26 +1,24 @@
 package io.taff.hephaestus.persistence.tablestenantId
 
-import io.taff.hephaestus.persistence.CurrentTenantId
 import io.taff.hephaestus.persistence.postgres.moment
-import io.taff.hephaestus.persistence.tables.ModelAwareTable
+import io.taff.hephaestus.persistence.tables.ModelMappingTable
 import io.taff.hephaestus.persistence.models.DestroyableModel
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import java.time.OffsetDateTime
 
 /**
  * A table that supports soft-deletes by setting the `destroyed_at` column on destruction.
  */
-abstract class DestroyableModelTable<M : DestroyableModel>(override val name: String) : ModelAwareTable<M>(name) {
+abstract class DestroyableModelTable<M : DestroyableModel>(override val name: String) : ModelMappingTable<M>(name) {
 
     /** The destroyed_at column */
     val destroyedAt = moment("destroyed_at").nullable()
 
     /** Set tenant Id on models loaded frm the DB */
-    override fun fill(row: ResultRow, model: M) = model.also {
+    override fun fillModel(row: ResultRow, model: M) = model.also {
         it.destroyedAt = row[destroyedAt]
-        super.fill(row, model)
+        super.fillModel(row, model)
     }
 
     /** populate the insert/update statements */
@@ -28,12 +26,6 @@ abstract class DestroyableModelTable<M : DestroyableModel>(override val name: St
         model.destroyedAt?.let { stmt[destroyedAt] = it }
         super.fillStatement(stmt, model)
     }
-
-    /** Select records belonging to the current tenant */
-    fun scopedSelect(query: SqlExpressionBuilder.() -> Op<Boolean>) = select { query() and destroyedAt.isNull() }
-
-    /** Select records belonging to the current tenant */
-    fun scopedSelect() = select { destroyedAt.isNull() }
 
     /** Soft delete */
     fun destroy(where: SqlExpressionBuilder.() -> Op<Boolean>) = update({

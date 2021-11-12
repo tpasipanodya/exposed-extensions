@@ -1,28 +1,30 @@
 package io.taff.hephaestus.persistence.models
 
-import io.taff.hephaestus.persistence.CurrentTenantId
 import io.taff.hephaestus.persistence.TenantError
+import io.taff.hephaestus.persistence.noTenantSetError
 import io.taff.hephaestus.persistence.setCurrentTenantId
+import java.util.*
 
-interface TenantScopedModel<TI> : Model {
+interface TenantScopedModel : Model {
 
-    var tenantId: TI?
+    var tenantId: UUID?
 
-    fun <T> asCurrent(fxn: () -> T) = tenantId?.let {
-        setCurrentTenantId(it)
-            .also { prevTenantId ->
-                fxn()
-                setCurrentTenantId(prevTenantId)
-            }
-    } ?: throw TenantError("Cannot set an unpersisted tenant as current")
+    /**
+     * Perform an action as the tenant who owns this model.
+     */
+    fun <T> asTenant(fxn: () -> T) = tenantId?.let { safeTenantId ->
+        val previousTenantId = setCurrentTenantId(safeTenantId)
+        fxn().also { previousTenantId?.let { setCurrentTenantId(it) } }
+    } ?: throw noTenantSetError
 
-    fun <T> asCurrent(fxn: () -> Nothing) {
-        tenantId?.let {
-            setCurrentTenantId(it)
-                .also { prevTenantId ->
-                    fxn()
-                    setCurrentTenantId(prevTenantId)
-                }
-        } ?: throw TenantError("Cannot set an unpersisted tenant as current")
+    /**
+     * Perform an action as the tenant who owns this model.
+     */
+    fun asTenant(fxn: () -> Unit) {
+        tenantId?.let { safeTenantId ->
+            val previousTenantId = setCurrentTenantId(safeTenantId)
+            fxn()
+            previousTenantId?.let { setCurrentTenantId(it) }
+        } ?: throw noTenantSetError
     }
 }

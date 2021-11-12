@@ -9,7 +9,7 @@ GRANT ALL PRIVILEGES ON DATABASE hephaestus TO hephaestus;
 # Start postgres
 echo "Starting Postgres..."
 docker pull postgres:latest
-POSTGRES_SHA=$(docker ps | grep postgres | cut -d ' ' -f 1)
+POSTGRES_SHA=$(docker ps | grep postgres | cut -d ' ' -f 1) > /dev/null 2>&1
 
 if [ -z "$POSTGRES_SHA" ]
 then

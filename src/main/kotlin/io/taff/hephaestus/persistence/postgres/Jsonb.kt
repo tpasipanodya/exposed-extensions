@@ -18,7 +18,7 @@ class Jsonb(override var nullable: Boolean = false, val parser: (json: String) -
     override fun notNullValueToDB(value: Any): String = Config.objectMapper.writeValueAsString(value)
 
     override fun valueFromDB(value: Any) = when (value) {
-        is PGobject -> { parser(value.value) }
+        is PGobject -> { parser(value.value!!) }
         else -> value
     }
 

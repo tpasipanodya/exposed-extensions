@@ -4,17 +4,18 @@ import io.taff.hephaestus.persistence.PersistenceError.UnpersistedUpdateError
 import io.taff.hephaestus.persistence.models.Model
 import io.taff.hephaestus.persistence.postgres.moment
 import org.jetbrains.exposed.dao.id.EntityIDFunctionProvider.createEntityID
-import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.BatchUpdateStatement
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.OffsetDateTime.now
+import java.util.*
 
 /**
  * A table that provides basic model mapping functionality.
  */
-abstract class ModelAwareTable<M : Model>(open val name: String) : LongIdTable(name) {
+abstract class ModelMappingTable<M : Model>(open val name: String) : UUIDTable(name) {
 
     /** The created_at column */
     val createdAt = moment("created_at").clientDefault { now() }
@@ -23,16 +24,16 @@ abstract class ModelAwareTable<M : Model>(open val name: String) : LongIdTable(n
     val updatedAt = moment("updated_at").clientDefault { now() }
 
     /** create an entity id from an id */
-    private fun entityId(id: Long) = createEntityID(id, this)
+    private fun entityId(id: UUID) = createEntityID(id, this)
 
     /** map a result row to a model */
-    fun toModel(row: ResultRow) = fill(row, initializeModel(row))
+    fun toModel(row: ResultRow) = fillModel(row, initializeModel(row))
 
     /** Initialize a model */
     abstract fun initializeModel(row: ResultRow) : M
 
     /** populate model from result row */
-    protected open fun fill(row: ResultRow, model: M) = model.also {
+    internal open fun fillModel(row: ResultRow, model: M) = model.also {
         it.id = row[id].value
         it.createdAt = row[createdAt]
         it.updatedAt = row[updatedAt]
