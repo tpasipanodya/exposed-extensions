@@ -24,7 +24,7 @@ data class DestroyableUuidRecord(var title: String? = null,
                                  override var destroyedAt: OffsetDateTime? = null) : Model<UUID>, DestroyableModel<UUID>
 
 
-val destroyableUuidTable = object : DestroyableUuidTable<DestroyableUuidRecord>("destroyable_uuid_records") {
+val destroyableUuidTable = object : DestroyableUuidTable<DestroyableUuidRecord>("destroyable_uuid_recogrds") {
     val title = varchar("title", 50)
     override fun initializeModel(row: ResultRow) = DestroyableUuidRecord(title = row[title])
     override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: DestroyableUuidRecord) {
