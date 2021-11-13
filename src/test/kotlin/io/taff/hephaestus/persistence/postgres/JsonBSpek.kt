@@ -7,7 +7,7 @@ import io.taff.hephaestus.Config
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.helpers.isNull
 import io.taff.hephaestus.persistence.models.Model
-import io.taff.hephaestus.persistence.tables.uuid.ModelMappingTable
+import io.taff.hephaestus.persistence.tables.uuid.ModelMappingUuidTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -24,7 +24,7 @@ data class ModelWithJson(
 ) : Model<UUID>
 
 
-val modelsWithJson = object : ModelMappingTable<ModelWithJson>("models_with_json") {
+val modelsWithJson = object : ModelMappingUuidTable<ModelWithJson>("models_with_json") {
     val json = jsonb("strings") {
         Config.objectMapper.readValue(
             it,

@@ -5,7 +5,7 @@ import com.taff.hephaestustest.expectation.should
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.helpers.isNull
 import io.taff.hephaestus.persistence.models.Model
-import io.taff.hephaestus.persistence.tables.uuid.ModelMappingTable
+import io.taff.hephaestus.persistence.tables.uuid.ModelMappingUuidTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -26,7 +26,7 @@ data class ModelWithArrays(
 ) : Model<UUID>
 
 
-val modelsWithArrays = object : ModelMappingTable<ModelWithArrays>("models_with_arrays") {
+val modelsWithArrays = object : ModelMappingUuidTable<ModelWithArrays>("models_with_arrays") {
     val strings = stringArray("strings")
     val ints = intArray("ints")
     val longs = longArray("longs")

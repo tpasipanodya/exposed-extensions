@@ -13,7 +13,7 @@ import java.time.OffsetDateTime
  * @param M The model.
  * @param T The underlying exposed table concrete type.
  */
-interface DestroyableModelTableTrait<ID : Comparable<ID>, M : DestroyableModel<ID>, T : IdTable<ID>>
+interface DestroyableTableTrait<ID : Comparable<ID>, M : DestroyableModel<ID>, T : IdTable<ID>>
     : ModelMappingTableTrait<ID, M, T> {
 
     val destroyedAt: Column<OffsetDateTime?>

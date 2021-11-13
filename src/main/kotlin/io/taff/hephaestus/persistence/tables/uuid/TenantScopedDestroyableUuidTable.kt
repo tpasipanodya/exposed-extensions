@@ -3,7 +3,7 @@ package io.taff.hephaestus.persistence.tables.uuid
 import io.taff.hephaestus.persistence.models.DestroyableModel
 import io.taff.hephaestus.persistence.models.TenantScopedModel
 import io.taff.hephaestus.persistence.postgres.moment
-import io.taff.hephaestus.persistence.tables.traits.TenantScopedDestroyableModelTableTrait
+import io.taff.hephaestus.persistence.tables.traits.TenantScopedDestroyableTableTrait
 import org.jetbrains.exposed.dao.id.UUIDTable
 import java.time.OffsetDateTime
 import java.util.*
@@ -15,9 +15,9 @@ import java.util.*
  * @param TID The concrete tenantId type.
  * @param M The concrete model type.
  */
-abstract class TenantScopedDestroyableTable<TID : Comparable<TID>, M>(val name: String, )
+abstract class TenantScopedDestroyableUuidTable<TID : Comparable<TID>, M>(val name: String, )
     : UUIDTable(name),
-    TenantScopedDestroyableModelTableTrait<UUID, TID, M, TenantScopedDestroyableTable<TID, M>>
+    TenantScopedDestroyableTableTrait<UUID, TID, M, TenantScopedDestroyableUuidTable<TID, M>>
         where M : TenantScopedModel<UUID, TID>, M :  DestroyableModel<UUID> {
 
     override val createdAt = moment("created_at").clientDefault { OffsetDateTime.now() }

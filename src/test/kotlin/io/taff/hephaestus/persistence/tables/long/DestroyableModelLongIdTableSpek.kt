@@ -1,13 +1,14 @@
-package io.taff.hephaestus.persistence
+package io.taff.hephaestus.persistence.tables.long
+
 
 import com.taff.hephaestustest.expectation.any.satisfy
 import com.taff.hephaestustest.expectation.boolean.beTrue
 import com.taff.hephaestustest.expectation.should
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.helpers.isNull
+import io.taff.hephaestus.persistence.PersistenceError
 import io.taff.hephaestus.persistence.models.DestroyableModel
 import io.taff.hephaestus.persistence.models.Model
-import io.taff.hephaestus.persistence.tables.uuid.DestroyableModelTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -16,18 +17,19 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.time.OffsetDateTime
 import java.util.*
+import java.util.stream.Collectors.toList
 
-data class DestroyableRecord(var title: String? = null,
-                             override var id: UUID? = null,
+data class DestroyableLongIdRecord(var title: String? = null,
+                             override var id: Long? = null,
                              override var createdAt: OffsetDateTime? = null,
                              override var updatedAt: OffsetDateTime? = null,
-                             override var destroyedAt: OffsetDateTime? = null) : Model<UUID>, DestroyableModel<UUID>
+                             override var destroyedAt: OffsetDateTime? = null) : Model<Long>, DestroyableModel<Long>
 
 
-val destroyableRecords = object : DestroyableModelTable<DestroyableRecord>("destroyable_records") {
+val destroyableLongIdRecords = object : DestroyableModelLongTable<DestroyableLongIdRecord>("destroyable_long_id_records") {
     val title = varchar("title", 50)
-    override fun initializeModel(row: ResultRow) = DestroyableRecord(title = row[title])
-    override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: DestroyableRecord) {
+    override fun initializeModel(row: ResultRow) = DestroyableLongIdRecord(title = row[title])
+    override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: DestroyableLongIdRecord) {
         model.title?.let { stmt[title] = it }
     }
 }
@@ -35,30 +37,30 @@ val destroyableRecords = object : DestroyableModelTable<DestroyableRecord>("dest
 object DestroyableModelTableSpek  :Spek({
 
     Database.connect(env<String>("DB_URL"))
-    transaction { SchemaUtils.create(destroyableRecords) }
+    transaction { SchemaUtils.create(destroyableLongIdRecords) }
 
-    beforeEachTest { transaction { destroyableRecords.deleteAll() } }
+    beforeEachTest { transaction { destroyableLongIdRecords.deleteAll() } }
 
     describe("insert") {
-        val record by memoized { DestroyableRecord("Soul food") }
-        val persisted by memoized { transaction { destroyableRecords.insert(record).first() } }
-        val reloaded by memoized { transaction { destroyableRecords.selectAll().map(destroyableRecords::toModel) } }
+        val record by memoized { DestroyableLongIdRecord("Soul food") }
+        val persisted by memoized { transaction { destroyableLongIdRecords.insert(record).first() } }
+        val reloaded by memoized { transaction { destroyableLongIdRecords.selectAll().map(destroyableLongIdRecords::toModel) } }
 
         it("persists the record") {
             persisted should satisfy {
                 this.title == record.title &&
-                isPersisted()
+                        isPersisted()
             }
 
             record.isPersisted() should beTrue()
 
             reloaded should satisfy {
                 size == 1 &&
-                        first().let {
-                            it.title == record.title &&
-                            !it.createdAt.isNull() &&
-                            !it.updatedAt.isNull()
-                        }
+                first().let {
+                    it.title == record.title &&
+                    !it.createdAt.isNull() &&
+                    !it.updatedAt.isNull()
+                }
             }
         }
     }
@@ -67,20 +69,20 @@ object DestroyableModelTableSpek  :Spek({
         val newTitle by memoized { "groovy soul food" }
 
         context("when already persisted") {
-            val record by memoized {   DestroyableRecord("Soul food") }
-            val persisted by memoized { transaction { destroyableRecords.insert(record) } }
+            val record by memoized {   DestroyableLongIdRecord("Soul food") }
+            val persisted by memoized { transaction { destroyableLongIdRecords.insert(record) } }
             val updated by memoized {
                 transaction {
-                    destroyableRecords
+                    destroyableLongIdRecords
                         .update(this, persisted[0].copy(title = newTitle))
                         .first()
                 }
             }
             val reloaded by memoized {
                 transaction {
-                    destroyableRecords
+                    destroyableLongIdRecords
                         .selectAll()
-                        .map(destroyableRecords::toModel)
+                        .map(destroyableLongIdRecords::toModel)
                 }
             }
 
@@ -103,10 +105,10 @@ object DestroyableModelTableSpek  :Spek({
         }
 
         context("When the model hasn't been saved yet") {
-            val record by memoized { DestroyableRecord("Soul food") }
+            val record by memoized { DestroyableLongIdRecord("Soul food") }
             val updated by memoized {
                 transaction {
-                    destroyableRecords
+                    destroyableLongIdRecords
                         .update(this, record.copy(title = newTitle))
                         .first()
                 }
@@ -129,63 +131,63 @@ object DestroyableModelTableSpek  :Spek({
     describe("delete") {
         val persisted by memoized {
             transaction {
-                destroyableRecords
-                    .insert(DestroyableRecord("Soul food"))
+                destroyableLongIdRecords
+                    .insert(DestroyableLongIdRecord("Soul food"))
                     .first()
             }
         }
         val reloaded by memoized {
             transaction {
-                destroyableRecords
+                destroyableLongIdRecords
                     .selectAll()
-                    .map(destroyableRecords::toModel)
+                    .map(destroyableLongIdRecords::toModel)
             }
         }
 
         it("hard deletes the record") {
             persisted should satisfy { isPersisted() }
 
-            val deleted = transaction { destroyableRecords.delete(persisted) }
+            val deleted = transaction { destroyableLongIdRecords.delete(persisted) }
 
             deleted should satisfy {
                 toList().size == 1 &&
-                        first().title == persisted.title &&
-                        !first().destroyedAt.isNull()
+                first().title == persisted.title &&
+                !first().destroyedAt.isNull()
             }
             reloaded should satisfy { isEmpty() }
         }
     }
 
-     describe("destroy") {
-         val persisted by memoized {
-             transaction {
-                 destroyableRecords
-                     .insert(DestroyableRecord("Soul food"))
-                     .first()
-             }
-         }
-         val reloaded by memoized {
-             transaction {
-                 destroyableRecords
-                     .selectAll()
-                     .map(destroyableRecords::toModel)
-             }
-         }
+    describe("destroy") {
+        val persisted by memoized {
+            transaction {
+                destroyableLongIdRecords
+                    .insert(DestroyableLongIdRecord("Soul food"))
+                    .first()
+            }
+        }
+        val reloaded by memoized {
+            transaction {
+                destroyableLongIdRecords
+                    .selectAll()
+                    .map(destroyableLongIdRecords::toModel)
+            }
+        }
 
-         it("soft deletes the record") {
-             persisted should satisfy { isPersisted() }
+        it("soft deletes the record") {
+            persisted should satisfy { isPersisted() }
 
-             val destroyed = transaction { destroyableRecords.destroy(this, persisted) }
-             destroyed should satisfy {
-                 size == 1 &&
-                 first().title == persisted.title &&
-                 !first().destroyedAt.isNull()
-             }
+            val destroyed = transaction { destroyableLongIdRecords.destroy(this, persisted) }
+            destroyed should satisfy {
+                size == 1 &&
+                first().title == persisted.title &&
+                !first().destroyedAt.isNull()
+            }
 
-             reloaded should satisfy {
-                 size == 1 &&
-                 first().title == persisted.title &&
-                 !first().destroyedAt.isNull() }
-         }
-     }
+            reloaded should satisfy {
+                size == 1 &&
+                first().title == persisted.title &&
+                !first().destroyedAt.isNull() }
+        }
+    }
 })

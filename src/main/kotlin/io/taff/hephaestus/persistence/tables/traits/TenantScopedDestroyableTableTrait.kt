@@ -15,9 +15,9 @@ import org.jetbrains.exposed.sql.statements.UpdateBuilder
  * @param M The concrete model type.
  * @param T The underlying exposed table's concrete type.
  */
-interface TenantScopedDestroyableModelTableTrait<ID : Comparable<ID>, TID: Comparable<TID>, M, T : IdTable<ID>>
+interface TenantScopedDestroyableTableTrait<ID : Comparable<ID>, TID: Comparable<TID>, M, T : IdTable<ID>>
     :TenantScopedTableTrait<ID, TID, M, T>,
-    DestroyableModelTableTrait<ID, M, T>
+    DestroyableTableTrait<ID, M, T>
         where M : TenantScopedModel<ID, TID>,
               M : DestroyableModel<ID> {
 
@@ -29,7 +29,7 @@ interface TenantScopedDestroyableModelTableTrait<ID : Comparable<ID>, TID: Compa
     /** populate insert/update statements */
     override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M) {
         super<TenantScopedTableTrait>.appendBaseStatementValues(stmt, model)
-        super<DestroyableModelTableTrait>.appendBaseStatementValues(stmt, model)
+        super<DestroyableTableTrait>.appendBaseStatementValues(stmt, model)
     }
 
     override fun delete(vararg models: M) = super<TenantScopedTableTrait>.delete(*models)

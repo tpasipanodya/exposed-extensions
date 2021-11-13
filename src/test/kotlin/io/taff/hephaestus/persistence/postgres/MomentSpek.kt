@@ -5,7 +5,7 @@ import com.taff.hephaestustest.expectation.should
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.helpers.isNull
 import io.taff.hephaestus.persistence.models.Model
-import io.taff.hephaestus.persistence.tables.uuid.ModelMappingTable
+import io.taff.hephaestus.persistence.tables.uuid.ModelMappingUuidTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -22,7 +22,7 @@ data class ModelWithMoment(
 ) : Model<UUID>
 
 
-val modelsWithAMoment = object : ModelMappingTable<ModelWithMoment>("models_with_a_moment") {
+val modelsWithAMoment = object : ModelMappingUuidTable<ModelWithMoment>("models_with_a_moment") {
     val moment = moment("moment")
 
     override fun initializeModel(row: ResultRow) = ModelWithMoment(moment = row[moment])

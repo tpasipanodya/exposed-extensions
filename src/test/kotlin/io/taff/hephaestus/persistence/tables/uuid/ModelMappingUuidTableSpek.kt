@@ -1,4 +1,4 @@
-package io.taff.hephaestus.persistence.tables
+package io.taff.hephaestus.persistence.tables.uuid
 
 import com.taff.hephaestustest.expectation.any.satisfy
 import com.taff.hephaestustest.expectation.boolean.beTrue
@@ -11,14 +11,13 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import io.taff.hephaestus.persistence.models.Model
-import io.taff.hephaestus.persistence.tables.uuid.ModelMappingTable
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.junit.jupiter.api.fail
 import java.time.OffsetDateTime
 import java.util.UUID
 
 /** Dummy model for testing */
-data class Record(
+data class UuidRecord(
     var title: String? = null,
     override var id: UUID? = null,
     override var createdAt: OffsetDateTime? = null,
@@ -26,25 +25,25 @@ data class Record(
 ) : Model<UUID>
 
 /** Dummy table for testing */
-val records = object : ModelMappingTable<Record>("records") {
+val uuidRecords = object : ModelMappingUuidTable<UuidRecord>("uuid_records") {
     val title = varchar("title", 50)
-    override fun initializeModel(row: ResultRow) = Record(title = row[title])
-    override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: Record) {
+    override fun initializeModel(row: ResultRow) = UuidRecord(title = row[title])
+    override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: UuidRecord) {
         model.title?.let { stmt[title] = it }
     }
 }
 
-object ModelMappingTableSpek  : Spek({
+object ModelMappingUuidTableSpek  : Spek({
 
     Database.connect(env<String>("DB_URL"))
-    transaction { SchemaUtils.create(records) }
+    transaction { SchemaUtils.create(uuidRecords) }
 
-    beforeEachTest { transaction { records.deleteAll() } }
+    beforeEachTest { transaction { uuidRecords.deleteAll() } }
 
     describe("insert") {
-        val record by memoized { Record("Soul food") }
-        val persisted by memoized { transaction { records.insert(record).first() } }
-        val reloaded by memoized { transaction { records.selectAll().map(records::toModel) } }
+        val record by memoized { UuidRecord("Soul food") }
+        val persisted by memoized { transaction { uuidRecords.insert(record).first() } }
+        val reloaded by memoized { transaction { uuidRecords.selectAll().map(uuidRecords::toModel) } }
 
         it("persists the record") {
             persisted should satisfy {
@@ -69,16 +68,16 @@ object ModelMappingTableSpek  : Spek({
         val newTitle by memoized { "groovy soul food" }
 
         context("when already persisted") {
-            val record by memoized {   Record("Soul food") }
-            val persisted by memoized { transaction { records.insert(record) } }
+            val record by memoized {   UuidRecord("Soul food") }
+            val persisted by memoized { transaction { uuidRecords.insert(record) } }
             val updated by memoized {
                 transaction {
-                    records
+                    uuidRecords
                         .update(this, persisted[0].copy(title = newTitle))
                         .first()
                 }
             }
-            val reloaded by memoized { transaction { records.selectAll().map(records::toModel) } }
+            val reloaded by memoized { transaction { uuidRecords.selectAll().map(uuidRecords::toModel) } }
 
             it("modifies the record") {
                 updated should satisfy {
@@ -99,10 +98,10 @@ object ModelMappingTableSpek  : Spek({
         }
 
         context("When the model hasn't been saved yet") {
-            val record by memoized {   Record("Soul food") }
+            val record by memoized {   UuidRecord("Soul food") }
             val updated by memoized {
                 transaction {
-                    records.update(this, record.copy(title = newTitle))
+                    uuidRecords.update(this, record.copy(title = newTitle))
                         .first()
                 }
             }
@@ -124,23 +123,23 @@ object ModelMappingTableSpek  : Spek({
     describe("delete") {
         val persisted by memoized {
             transaction {
-                records
-                    .insert(Record("Soul food"))
+                uuidRecords
+                    .insert(UuidRecord("Soul food"))
                     .first()
             }
         }
         val reloaded by memoized {
             transaction {
-                records
+                uuidRecords
                     .selectAll()
-                    .map(records::toModel)
+                    .map(uuidRecords::toModel)
             }
         }
 
         it("hard deletes the record") {
             persisted should satisfy { isPersisted() }
 
-            val deleted = transaction { records.delete(persisted) }
+            val deleted = transaction { uuidRecords.delete(persisted) }
 
             deleted should satisfy {
                 toList().size == 1 &&

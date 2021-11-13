@@ -13,8 +13,8 @@ import java.util.*
  * @param TID The concrete tenantId type.
  * @param M The concrete model type.
  */
-abstract class TenantScopedTable<TID : Comparable<TID>, M : TenantScopedModel<UUID, TID>>(val name: String)
-    :UUIDTable(name = name), TenantScopedTableTrait<UUID, TID, M, TenantScopedTable<TID, M>> {
+abstract class TenantScopedUuidTable<TID : Comparable<TID>, M : TenantScopedModel<UUID, TID>>(val name: String)
+    :UUIDTable(name = name), TenantScopedTableTrait<UUID, TID, M, TenantScopedUuidTable<TID, M>> {
 
     override val createdAt = moment("created_at").clientDefault { OffsetDateTime.now() }
     override val updatedAt = moment("updated_at").clientDefault { OffsetDateTime.now() }

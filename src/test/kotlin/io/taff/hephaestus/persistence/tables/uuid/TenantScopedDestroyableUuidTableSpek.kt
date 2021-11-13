@@ -1,4 +1,4 @@
-package io.taff.hephaestus.persistence.tables
+package io.taff.hephaestus.persistence.tables.uuid
 
 import com.taff.hephaestustest.expectation.any.satisfy
 import com.taff.hephaestustest.expectation.should
@@ -10,7 +10,7 @@ import io.taff.hephaestus.persistence.clearCurrentTenantId
 import io.taff.hephaestus.persistence.models.DestroyableModel
 import io.taff.hephaestus.persistence.models.TenantScopedModel
 import io.taff.hephaestus.persistence.setCurrentTenantId
-import io.taff.hephaestus.persistence.tables.uuid.TenantScopedDestroyableTable
+import io.taff.hephaestus.persistence.tables.uuid.TenantScopedDestroyableUuidTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SortOrder.ASC
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
@@ -32,7 +32,7 @@ data class TenantScopedDestroyableRecord(
 ) : TenantScopedModel<UUID, UUID>, DestroyableModel<UUID>
 
 /** Dummy tenant scoped t able for testing */
-val tenantScopedDestroyableRecords = object : TenantScopedDestroyableTable<UUID, TenantScopedDestroyableRecord>("tenant_scoped_destroyable_records") {
+val tenantScopedDestroyableRecords = object : TenantScopedDestroyableUuidTable<UUID, TenantScopedDestroyableRecord>("tenant_scoped_destroyable_records") {
     val title = varchar("title", 50)
     override val tenantId: Column<UUID> = uuid("tenant_id")
     override fun initializeModel(row: ResultRow) = TenantScopedDestroyableRecord(title = row[title])
