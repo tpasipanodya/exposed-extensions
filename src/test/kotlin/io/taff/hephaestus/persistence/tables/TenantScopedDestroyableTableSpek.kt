@@ -29,11 +29,12 @@ data class TenantScopedDestroyableRecord(
     override var createdAt: OffsetDateTime? = null,
     override var updatedAt: OffsetDateTime? = null,
      override var destroyedAt: OffsetDateTime? = null
-) : TenantScopedModel, DestroyableModel
+) : TenantScopedModel<UUID, UUID>, DestroyableModel<UUID>
 
 /** Dummy tenant scoped t able for testing */
-val tenantScopedDestroyableRecords = object : TenantScopedDestroyableTable<TenantScopedDestroyableRecord>("tenant_scoped_destroyable_records") {
+val tenantScopedDestroyableRecords = object : TenantScopedDestroyableTable<UUID, TenantScopedDestroyableRecord>("tenant_scoped_destroyable_records") {
     val title = varchar("title", 50)
+    override val tenantId: Column<UUID> = uuid("tenant_id")
     override fun initializeModel(row: ResultRow) = TenantScopedDestroyableRecord(title = row[title])
     override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: TenantScopedDestroyableRecord) {
         model.title?.let { stmt[title] = it }
@@ -118,7 +119,7 @@ object TenantScopedDestroyableTableSpek : Spek({
         context("when tenantId not set") {
             val persisted by memoized {
                 transaction {
-                    clearCurrentTenantId()
+                    clearCurrentTenantId<UUID>()
                     tenantScopedDestroyableRecords
                         .insert(tenant1Record1)
                         .first()
@@ -235,7 +236,7 @@ object TenantScopedDestroyableTableSpek : Spek({
 
         context("No tenant id set") {
             val updated by memoized {
-                clearCurrentTenantId()
+                clearCurrentTenantId<UUID>()
                 transaction {
                     tenantScopedDestroyableRecords
                         .update(this, persisted.copy(title = newTitle))

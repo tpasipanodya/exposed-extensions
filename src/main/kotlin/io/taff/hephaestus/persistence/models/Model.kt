@@ -2,11 +2,15 @@ package io.taff.hephaestus.persistence.models
 
 import io.taff.hephaestus.helpers.isNull
 import java.time.OffsetDateTime
-import java.util.*
 
-interface Model {
+/**
+ * Models that have an Id.
+ *
+ * @param ID the id type.
+ */
+interface Model<ID : Comparable<ID>> {
 
-    var id: UUID?
+    var id: ID?
     var createdAt: OffsetDateTime?
     var updatedAt: OffsetDateTime?
 

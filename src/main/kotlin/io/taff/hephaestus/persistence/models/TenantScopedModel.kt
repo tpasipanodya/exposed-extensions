@@ -1,13 +1,17 @@
 package io.taff.hephaestus.persistence.models
 
-import io.taff.hephaestus.persistence.TenantError
 import io.taff.hephaestus.persistence.noTenantSetError
 import io.taff.hephaestus.persistence.setCurrentTenantId
-import java.util.*
 
-interface TenantScopedModel : Model {
+/**
+ * Models that belong to a tenant
+ *
+ * @param ID the id type.
+ * @param TID the id type.
+ */
+interface TenantScopedModel<ID : Comparable<ID>, TID : Comparable<TID>> : Model<ID> {
 
-    var tenantId: UUID?
+    var tenantId: TID?
 
     /**
      * Perform an action as the tenant who owns this model.

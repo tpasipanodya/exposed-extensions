@@ -18,10 +18,12 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 /** Dummy model for testing */
-data class Record(var title: String? = null,
-                  override var id: UUID? = null,
-                  override var createdAt: OffsetDateTime? = null,
-                  override var updatedAt: OffsetDateTime? = null) : Model
+data class Record(
+    var title: String? = null,
+    override var id: UUID? = null,
+    override var createdAt: OffsetDateTime? = null,
+    override var updatedAt: OffsetDateTime? = null
+) : Model<UUID>
 
 /** Dummy table for testing */
 val records = object : ModelMappingTable<Record>("records") {

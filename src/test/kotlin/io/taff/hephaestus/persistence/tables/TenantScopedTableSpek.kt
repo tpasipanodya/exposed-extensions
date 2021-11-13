@@ -24,11 +24,12 @@ data class TenantScopedRecord(val title: String? = null,
                               override var tenantId: UUID? = null,
                               override var id: UUID? = null,
                               override var createdAt: OffsetDateTime? = null,
-                              override var updatedAt: OffsetDateTime? = null) : TenantScopedModel
+                              override var updatedAt: OffsetDateTime? = null) : TenantScopedModel<UUID, UUID>
 
 /** Dummy tenant scoped t able for testing */
-val tenantScopedRecords = object : TenantScopedTable<TenantScopedRecord>("tenant_scoped_records") {
+val tenantScopedRecords = object : TenantScopedTable<UUID, TenantScopedRecord>("tenant_scoped_records") {
     val title = varchar("title", 50)
+    override val tenantId: Column<UUID> = uuid("tenant_id")
     override fun initializeModel(row: ResultRow) = TenantScopedRecord(title = row[title])
     override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: TenantScopedRecord) {
         model.title?.let { stmt[title] = it }
@@ -91,7 +92,7 @@ object TenantScopedTableSpek : Spek({
         context("when tenantId not set") {
             val persisted by memoized {
                 transaction {
-                    clearCurrentTenantId()
+                    clearCurrentTenantId<UUID>()
                     tenantScopedRecords
                         .insert(record)
                         .first()
@@ -187,7 +188,7 @@ object TenantScopedTableSpek : Spek({
 
         context("No tenant id set") {
             val updated by memoized {
-                clearCurrentTenantId()
+                clearCurrentTenantId<UUID>()
                 transaction {
                     tenantScopedRecords
                       .update(this, persisted.copy(title = newTitle))
@@ -275,7 +276,7 @@ object TenantScopedTableSpek : Spek({
 
         context("With no tenant id set") {
             val deleted by memoized {
-                clearCurrentTenantId()
+                clearCurrentTenantId<UUID>()
                 transaction { tenantScopedRecords.delete(persisted) }
             }
 

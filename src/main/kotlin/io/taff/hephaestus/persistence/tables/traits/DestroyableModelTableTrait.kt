@@ -1,13 +1,20 @@
 package io.taff.hephaestus.persistence.tables.traits
 
 import io.taff.hephaestus.persistence.models.DestroyableModel
-import org.jetbrains.exposed.dao.id.UUIDTable
+import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import java.time.OffsetDateTime
 
-interface DestroyableModelTableTrait<M : DestroyableModel, T : UUIDTable>
-    : ModelMappingTableTrait<M, T> {
+/**
+ * Soft delete behavior applicable to tables.
+ *
+ * @param ID The model id type.
+ * @param M The model.
+ * @param T The underlying exposed table concrete type.
+ */
+interface DestroyableModelTableTrait<ID : Comparable<ID>, M : DestroyableModel<ID>, T : IdTable<ID>>
+    : ModelMappingTableTrait<ID, M, T> {
 
     val destroyedAt: Column<OffsetDateTime?>
 

@@ -14,7 +14,7 @@ data class MyTenantScopedModel(
     override var tenantId: UUID?,
     override var createdAt: OffsetDateTime? = null,
     override var updatedAt: OffsetDateTime? = null
-) : TenantScopedModel
+) : TenantScopedModel<UUID, UUID>
 
 object TenantScopedModelSpek : Spek({
 
@@ -38,7 +38,7 @@ object TenantScopedModelSpek : Spek({
             var currentTenant : UUID? = null
 
             model.asTenant<String> {
-                currentTenant = CurrentTenantId.get()
+                currentTenant = CurrentTenantId.get() as UUID
                 "foo"
             } should satisfy  { this == "foo" }
 
@@ -50,7 +50,7 @@ object TenantScopedModelSpek : Spek({
         it("sets tenant id and returns the lambda's result") {
             var currentTenant : UUID? = null
 
-            model.asTenant { currentTenant = CurrentTenantId.get() }
+            model.asTenant { currentTenant = CurrentTenantId.get() as UUID }
 
             currentTenant should satisfy { this == tenantId }
         }

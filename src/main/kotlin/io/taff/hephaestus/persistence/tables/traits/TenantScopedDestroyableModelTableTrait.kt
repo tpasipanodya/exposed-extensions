@@ -2,14 +2,24 @@ package io.taff.hephaestus.persistence.tables.traits
 
 import io.taff.hephaestus.persistence.models.DestroyableModel
 import io.taff.hephaestus.persistence.models.TenantScopedModel
-import org.jetbrains.exposed.dao.id.UUIDTable
+import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 
-
-interface TenantScopedDestroyableModelTableTrait<M, T : UUIDTable>
-    : TenantScopedTableTrait<M, T>, DestroyableModelTableTrait<M, T> where M : TenantScopedModel, M : DestroyableModel {
+/**
+ * Tenant Isolation + soft delete behavior applicable to tables.
+ *
+ * @param ID The model's concrete id type.
+ * @param TID The concrete tenantId type.
+ * @param M The concrete model type.
+ * @param T The underlying exposed table's concrete type.
+ */
+interface TenantScopedDestroyableModelTableTrait<ID : Comparable<ID>, TID: Comparable<TID>, M, T : IdTable<ID>>
+    :TenantScopedTableTrait<ID, TID, M, T>,
+    DestroyableModelTableTrait<ID, M, T>
+        where M : TenantScopedModel<ID, TID>,
+              M : DestroyableModel<ID> {
 
     /** populate the model from a result row */
     override fun toModel(row: ResultRow) = super<TenantScopedTableTrait>

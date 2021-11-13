@@ -14,10 +14,12 @@ import org.spekframework.spek2.style.specification.describe
 import java.time.OffsetDateTime
 import java.util.*
 
-data class ModelWithMoment(override var id: UUID? = null,
-                         var moment: OffsetDateTime = OffsetDateTime.now(),
-                         override var createdAt: OffsetDateTime? = null,
-                         override var updatedAt: OffsetDateTime? = null) : Model
+data class ModelWithMoment(
+    override var id: UUID? = null,
+    var moment: OffsetDateTime = OffsetDateTime.now(),
+    override var createdAt: OffsetDateTime? = null,
+    override var updatedAt: OffsetDateTime? = null
+) : Model<UUID>
 
 
 val modelsWithAMoment = object : ModelMappingTable<ModelWithMoment>("models_with_a_moment") {

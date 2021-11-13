@@ -4,24 +4,33 @@ import io.taff.hephaestus.persistence.PersistenceError
 import io.taff.hephaestus.persistence.models.Model
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.EntityIDFunctionProvider.createEntityID
-import org.jetbrains.exposed.dao.id.UUIDTable
+import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.BatchUpdateStatement
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.OffsetDateTime
-import java.util.*
 
-interface ModelMappingTableTrait<M : Model, T : UUIDTable> :  MappingTrait<M> {
+/**
+ * Model mapping behavior applicable to tables.
+ *
+ * @param ID The model's concrete id type.
+ * @param M The model's conrete type.
+ */
+interface ModelMappingTableTrait<ID : Comparable<ID>, M : Model<ID>, T : IdTable<ID>> {
 
-    val id: Column<EntityID<UUID>>
+    val id: Column<EntityID<ID>>
     val createdAt: Column<OffsetDateTime>
     val updatedAt: Column<OffsetDateTime>
     fun self() : T
 
+    fun initializeModel(row: ResultRow) : M
+
+    fun appendStatementValues(stmt: UpdateBuilder<Int>, model: M)
+
     /**
      * Transform a ResultRow to a fully initialized model with all attributes
-     * from the result row set. This merges the model mapping logic you specified
+     * from the xresult row set. This merges the model mapping logic you specified
      * with the table-specific base attribute mapping Hephaestus performs inside appendModelAttributes.
      *
      * Use this to transform your result rows into models.

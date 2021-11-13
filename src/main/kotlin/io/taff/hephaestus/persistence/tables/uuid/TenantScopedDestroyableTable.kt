@@ -3,27 +3,23 @@ package io.taff.hephaestus.persistence.tables.uuid
 import io.taff.hephaestus.persistence.models.DestroyableModel
 import io.taff.hephaestus.persistence.models.TenantScopedModel
 import io.taff.hephaestus.persistence.postgres.moment
-import io.taff.hephaestus.persistence.tables.traits.DestroyableModelTableTrait
 import io.taff.hephaestus.persistence.tables.traits.TenantScopedDestroyableModelTableTrait
-import io.taff.hephaestus.persistence.tables.traits.TenantScopedTableTrait
 import org.jetbrains.exposed.dao.id.UUIDTable
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import java.time.OffsetDateTime
 import java.util.*
 
 /**
- * A table that provides tenant isolation via query methods prefixed with `scoped`. Also supports soft deletes by setting the
- * `destroyed_at` column on destruction
+ * A table that enforces tenant isolation unless explicitly requested not to.
+ * Also supports soft deletes by setting the`destroyed_at` column on destruction.
+ *
+ * @param TID The concrete tenantId type.
+ * @param M The concrete model type.
  */
-abstract class TenantScopedDestroyableTable<M>(
-    val name: String,
-    tenantIdColumnName: String = "tenant_id"
-) : UUIDTable(name),
-    TenantScopedDestroyableModelTableTrait<M, TenantScopedDestroyableTable<M>>
-        where M : TenantScopedModel, M :  DestroyableModel {
+abstract class TenantScopedDestroyableTable<TID : Comparable<TID>, M>(val name: String, )
+    : UUIDTable(name),
+    TenantScopedDestroyableModelTableTrait<UUID, TID, M, TenantScopedDestroyableTable<TID, M>>
+        where M : TenantScopedModel<UUID, TID>, M :  DestroyableModel<UUID> {
 
-    override val tenantId: Column<UUID> = uuid(tenantIdColumnName)
     override val createdAt = moment("created_at").clientDefault { OffsetDateTime.now() }
     override val updatedAt = moment("updated_at").clientDefault { OffsetDateTime.now() }
     override val destroyedAt = moment("destroyed_at").nullable()

@@ -14,7 +14,7 @@ data class MyDestroyableModel(
     override var destroyedAt: OffsetDateTime?,
     override var createdAt: OffsetDateTime? = null,
     override var updatedAt: OffsetDateTime? = null
-) : DestroyableModel
+) : DestroyableModel<UUID>
 
 object DestroyableModelSpek : Spek ({
 

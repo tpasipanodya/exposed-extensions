@@ -16,10 +16,12 @@ import org.spekframework.spek2.style.specification.describe
 import java.time.OffsetDateTime
 import java.util.*
 
-data class ModelWithJson(override var id: UUID? = null,
-                           var json: Map<String, Any> = mapOf(),
-                           override var createdAt: OffsetDateTime? = null,
-                           override var updatedAt: OffsetDateTime? = null) : Model
+data class ModelWithJson(
+    override var id: UUID? = null,
+    var json: Map<String, Any> = mapOf(),
+    override var createdAt: OffsetDateTime? = null,
+    override var updatedAt: OffsetDateTime? = null
+) : Model<UUID>
 
 
 val modelsWithJson = object : ModelMappingTable<ModelWithJson>("models_with_json") {

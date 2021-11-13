@@ -14,14 +14,16 @@ import org.spekframework.spek2.style.specification.describe
 import java.time.OffsetDateTime
 import java.util.*
 
-data class ModelWithArrays(override var id: UUID? = null,
-                           var strings: List<String> = listOf(),
-                           var longs: List<Long> = listOf(),
-                           var ints: List<Int> = listOf(),
-                           var bools: List<Boolean> = listOf(),
-                           var doubles: List<Double> = listOf(),
-                           override var createdAt: OffsetDateTime? = null,
-                           override var updatedAt: OffsetDateTime? = null) : Model
+data class ModelWithArrays(
+    override var id: UUID? = null,
+    var strings: List<String> = listOf(),
+    var longs: List<Long> = listOf(),
+    var ints: List<Int> = listOf(),
+    var bools: List<Boolean> = listOf(),
+    var doubles: List<Double> = listOf(),
+    override var createdAt: OffsetDateTime? = null,
+    override var updatedAt: OffsetDateTime? = null
+) : Model<UUID>
 
 
 val modelsWithArrays = object : ModelMappingTable<ModelWithArrays>("models_with_arrays") {

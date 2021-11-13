@@ -8,7 +8,7 @@ data class MyModel(
     override var id: UUID?,
     override var createdAt: OffsetDateTime? = null,
     override var updatedAt: OffsetDateTime? = null
-) : Model
+) : Model<UUID>
 
 object ModelSpek : Spek({
 

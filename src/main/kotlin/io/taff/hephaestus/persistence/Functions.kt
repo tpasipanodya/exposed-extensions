@@ -1,16 +1,14 @@
 package io.taff.hephaestus.persistence
 
 import kotlinx.coroutines.asContextElement
-import java.util.*
 
 /** The current tenant's id */
-internal var CurrentTenantId = ThreadLocal<UUID>()
+internal var CurrentTenantId = ThreadLocal<Any>()
 
 /**
  * Set the current Tenant Id.
  */
-fun setCurrentTenantId(id: UUID) = CurrentTenantId
-        .get()
+fun <ID> setCurrentTenantId(id: ID) = (CurrentTenantId.get() as ID)
         .also {
             CurrentTenantId.set(id)
             CurrentTenantId.asContextElement()
@@ -19,6 +17,5 @@ fun setCurrentTenantId(id: UUID) = CurrentTenantId
 /**
  * Unset the current Tenant Id.
  */
-fun clearCurrentTenantId() = CurrentTenantId
-        .get()
+fun <ID> clearCurrentTenantId() = (CurrentTenantId.get() as ID)
         .also { CurrentTenantId.set(null) }
