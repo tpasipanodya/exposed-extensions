@@ -26,6 +26,13 @@ object TenantScopedModelSpek : Spek({
         )
     }
 
+    includeModelSpeks {
+        MyTenantScopedModel(
+            id = it,
+            tenantId = tenantId
+        )
+    }
+
     describe("asCurrent (returning T)") {
         it("sets tenant id and returns the lambda's result") {
             var currentTenant : UUID? = null

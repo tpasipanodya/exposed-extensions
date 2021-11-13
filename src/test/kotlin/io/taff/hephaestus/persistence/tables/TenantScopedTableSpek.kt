@@ -6,7 +6,7 @@ import com.taff.hephaestustest.expectation.shouldNot
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.helpers.isNull
 import io.taff.hephaestus.persistence.models.TenantScopedModel
-import io.taff.hephaestus.persistence.tables.TenantScopedTable
+import io.taff.hephaestus.persistence.tables.uuid.TenantScopedTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -26,11 +26,9 @@ data class TenantScopedRecord(val title: String? = null,
 /** Dummy tenant scoped t able for testing */
 val tenantScopedRecords = object : TenantScopedTable<TenantScopedRecord>("tenant_scoped_records") {
     val title = varchar("title", 50)
-    override val tenantId = uuid("tenant_id")
     override fun initializeModel(row: ResultRow) = TenantScopedRecord(title = row[title])
-    override fun fillStatement(stmt: UpdateBuilder<Int>, model: TenantScopedRecord) {
+    override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: TenantScopedRecord) {
         model.title?.let { stmt[title] = it }
-        super.fillStatement(stmt, model)
     }
 }
 

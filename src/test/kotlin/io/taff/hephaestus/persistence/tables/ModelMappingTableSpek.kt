@@ -11,6 +11,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import io.taff.hephaestus.persistence.models.Model
+import io.taff.hephaestus.persistence.tables.uuid.ModelMappingTable
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.junit.jupiter.api.fail
 import java.time.OffsetDateTime
@@ -26,12 +27,12 @@ data class Record(val title: String? = null,
 val records = object : ModelMappingTable<Record>("records") {
     val title = varchar("title", 50)
     override fun initializeModel(row: ResultRow) = Record(title = row[title])
-    override fun fillStatement(stmt: UpdateBuilder<Int>, model: Record) {
+    override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: Record) {
         model.title?.let { stmt[title] = it }
     }
 }
 
-object ModelAwareTableSpek  : Spek({
+object ModelMappingTableSpek  : Spek({
 
     Database.connect(env<String>("DB_URL"))
     transaction { SchemaUtils.create(records) }

@@ -5,8 +5,7 @@ import com.taff.hephaestustest.expectation.should
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.helpers.isNull
 import io.taff.hephaestus.persistence.models.Model
-import io.taff.hephaestus.persistence.setCurrentTenantId
-import io.taff.hephaestus.persistence.tables.ModelMappingTable
+import io.taff.hephaestus.persistence.tables.uuid.ModelMappingTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -38,12 +37,11 @@ val modelsWithArrays = object : ModelMappingTable<ModelWithArrays>("models_with_
         bools = row[bools]
     )
 
-    override fun fillStatement(stmt: UpdateBuilder<Int>, model: ModelWithArrays) {
+    override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: ModelWithArrays) {
         stmt[strings] = model.strings
         stmt[longs] = model.longs
         stmt[ints] = model.ints
         stmt[bools] = model.bools
-        super.fillStatement(stmt, model)
     }
 }
 

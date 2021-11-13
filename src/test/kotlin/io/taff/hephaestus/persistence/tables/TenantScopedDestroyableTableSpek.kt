@@ -4,8 +4,9 @@ import com.taff.hephaestustest.expectation.any.satisfy
 import com.taff.hephaestustest.expectation.should
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.helpers.isNull
-import io.taff.hephaestus.persistence.models.TenantScopedDestroyableModel
-import io.taff.hephaestus.persistence.tables.TenantScopedDestroyableTable
+import io.taff.hephaestus.persistence.models.DestroyableModel
+import io.taff.hephaestus.persistence.models.TenantScopedModel
+import io.taff.hephaestus.persistence.tables.uuid.TenantScopedDestroyableTable
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -21,21 +22,21 @@ import java.time.OffsetDateTime
 import java.util.*
 
 /** Dummy tenant scoped model for testing */
-data class TenantScopedDestroyableRecord(val title: String? = null,
-                                         override var tenantId: UUID? = null,
-                                         override var id: UUID? = null,
-                                         override var createdAt: OffsetDateTime? = null,
-                                         override var updatedAt: OffsetDateTime? = null,
-                                         override var destroyedAt: OffsetDateTime? = null) : TenantScopedDestroyableModel<Long>
+data class TenantScopedDestroyableRecord(
+    val title: String? = null,
+    override var tenantId: UUID? = null,
+    override var id: UUID? = null,
+    override var createdAt: OffsetDateTime? = null,
+    override var updatedAt: OffsetDateTime? = null,
+     override var destroyedAt: OffsetDateTime? = null
+) : TenantScopedModel, DestroyableModel
 
 /** Dummy tenant scoped t able for testing */
-val tenantScopedDestroyableRecords = object : TenantScopedDestroyableTable<Long, TenantScopedDestroyableRecord>("tenant_scoped_destroyable_records") {
+val tenantScopedDestroyableRecords = object : TenantScopedDestroyableTable<TenantScopedDestroyableRecord>("tenant_scoped_destroyable_records") {
     val title = varchar("title", 50)
-    override val tenantId = uuid("tenant_id")
     override fun initializeModel(row: ResultRow) = TenantScopedDestroyableRecord(title = row[title])
-    override fun fillStatement(stmt: UpdateBuilder<Int>, model: TenantScopedDestroyableRecord) {
+    override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: TenantScopedDestroyableRecord) {
         model.title?.let { stmt[title] = it }
-        super.fillStatement(stmt, model)
     }
 }
 

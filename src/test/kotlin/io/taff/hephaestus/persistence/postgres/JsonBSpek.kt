@@ -7,7 +7,7 @@ import io.taff.hephaestus.Config
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.helpers.isNull
 import io.taff.hephaestus.persistence.models.Model
-import io.taff.hephaestus.persistence.tables.ModelMappingTable
+import io.taff.hephaestus.persistence.tables.uuid.ModelMappingTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -32,9 +32,8 @@ val modelsWithJson = object : ModelMappingTable<ModelWithJson>("models_with_json
 
     override fun initializeModel(row: ResultRow) = ModelWithJson(json = row[json])
 
-    override fun fillStatement(stmt: UpdateBuilder<Int>, model: ModelWithJson) {
+    override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: ModelWithJson) {
         stmt[json] = model.json
-        super.fillStatement(stmt, model)
     }
 }
 

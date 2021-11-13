@@ -1,13 +1,11 @@
 package io.taff.hephaestus.persistence.postgres
 
-import com.fasterxml.jackson.core.type.TypeReference
 import com.taff.hephaestustest.expectation.any.satisfy
 import com.taff.hephaestustest.expectation.should
-import io.taff.hephaestus.Config
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.helpers.isNull
 import io.taff.hephaestus.persistence.models.Model
-import io.taff.hephaestus.persistence.tables.ModelMappingTable
+import io.taff.hephaestus.persistence.tables.uuid.ModelMappingTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -15,7 +13,6 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.time.OffsetDateTime
 import java.util.*
-import kotlin.time.days
 
 data class ModelWithMoment(override var id: UUID? = null,
                          var moment: OffsetDateTime = OffsetDateTime.now(),
@@ -28,9 +25,8 @@ val modelsWithAMoment = object : ModelMappingTable<ModelWithMoment>("models_with
 
     override fun initializeModel(row: ResultRow) = ModelWithMoment(moment = row[moment])
 
-    override fun fillStatement(stmt: UpdateBuilder<Int>, model: ModelWithMoment) {
+    override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: ModelWithMoment) {
         stmt[moment] = model.moment
-        super.fillStatement(stmt, model)
     }
 }
 

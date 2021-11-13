@@ -5,7 +5,7 @@ import com.taff.hephaestustest.expectation.should
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.helpers.isNull
 import io.taff.hephaestus.persistence.models.DestroyableModel
-import io.taff.hephaestus.persistence.tablestenantId.DestroyableModelTable
+import io.taff.hephaestus.persistence.tables.uuid.DestroyableModelTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -24,9 +24,8 @@ data class DestroyableRecord(val title: String? = null,
 val destroyableRecords = object : DestroyableModelTable<DestroyableRecord>("destroyable_records") {
     val title = varchar("title", 50)
     override fun initializeModel(row: ResultRow) = DestroyableRecord(title = row[title])
-    override fun fillStatement(stmt: UpdateBuilder<Int>, model: DestroyableRecord) {
+    override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: DestroyableRecord) {
         model.title?.let { stmt[title] = it }
-        super.fillStatement(stmt, model)
     }
 }
 
