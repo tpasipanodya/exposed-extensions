@@ -18,7 +18,7 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 /** Dummy model for testing */
-data class Record(val title: String? = null,
+data class Record(var title: String? = null,
                   override var id: UUID? = null,
                   override var createdAt: OffsetDateTime? = null,
                   override var updatedAt: OffsetDateTime? = null) : Model
@@ -45,17 +45,20 @@ object ModelMappingTableSpek  : Spek({
         val reloaded by memoized { transaction { records.selectAll().map(records::toModel) } }
 
         it("persists the record") {
-            persisted should satisfy { this == record && isPersisted()}
+            persisted should satisfy {
+                this.title == record.title &&
+                        isPersisted()
+            }
 
             record.isPersisted() should beTrue()
 
             reloaded should satisfy {
                 size == 1 &&
-                first().let {
-                    it.title == record.title &&
-                            !it.createdAt.isNull() &&
-                            !it.updatedAt.isNull()
-                }
+                        first().let {
+                            it.title == record.title &&
+                                    !it.createdAt.isNull() &&
+                                    !it.updatedAt.isNull()
+                        }
             }
         }
     }

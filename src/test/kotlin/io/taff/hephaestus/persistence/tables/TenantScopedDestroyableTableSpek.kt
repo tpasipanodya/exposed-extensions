@@ -1,18 +1,18 @@
-package io.taff.hephaestus.persistence
+package io.taff.hephaestus.persistence.tables
 
 import com.taff.hephaestustest.expectation.any.satisfy
 import com.taff.hephaestustest.expectation.should
+import com.taff.hephaestustest.expectation.shouldNot
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.helpers.isNull
+import io.taff.hephaestus.persistence.TenantError
+import io.taff.hephaestus.persistence.clearCurrentTenantId
 import io.taff.hephaestus.persistence.models.DestroyableModel
 import io.taff.hephaestus.persistence.models.TenantScopedModel
+import io.taff.hephaestus.persistence.setCurrentTenantId
 import io.taff.hephaestus.persistence.tables.uuid.TenantScopedDestroyableTable
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SortOrder.ASC
-import org.jetbrains.exposed.sql.deleteAll
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.fail
@@ -23,7 +23,7 @@ import java.util.*
 
 /** Dummy tenant scoped model for testing */
 data class TenantScopedDestroyableRecord(
-    val title: String? = null,
+    var title: String? = null,
     override var tenantId: UUID? = null,
     override var id: UUID? = null,
     override var createdAt: OffsetDateTime? = null,
@@ -71,6 +71,193 @@ object TenantScopedDestroyableTableSpek : Spek({
                     .selectAll()
                     .orderBy(tenantScopedDestroyableRecords.createdAt, ASC)
                     .map(tenantScopedDestroyableRecords::toModel)
+        }
+    }
+
+    describe("insert") {
+        val reloaded by memoized {
+            transaction {
+                tenantScopedDestroyableRecords
+                    .selectAll()
+                    .map(tenantScopedDestroyableRecords::toModel)
+            }
+        }
+
+        context("with tenant id set") {
+            beforeEachTest { setCurrentTenantId(tenantId) }
+
+            val persisted by memoized {
+                transaction {
+                    tenantScopedDestroyableRecords
+                        .insert(tenant1Record1)
+                        .first()
+                }
+            }
+
+            it("persists") {
+                persisted should satisfy {
+                    this == tenant1Record1 &&
+                    isPersisted() &&
+                    tenantId == tenantId
+                }
+
+                tenant1Record1 should satisfy { isPersisted() }
+
+                reloaded should satisfy {
+                    size == 1 &&
+                    first().let {
+                        it.title == tenant1Record1.title &&
+                        it.tenantId == tenantId &&
+                        !it.createdAt.isNull() &&
+                        !it.updatedAt.isNull()
+                    }
+                }
+            }
+        }
+
+        context("when tenantId not set") {
+            val persisted by memoized {
+                transaction {
+                    clearCurrentTenantId()
+                    tenantScopedDestroyableRecords
+                        .insert(tenant1Record1)
+                        .first()
+                }
+            }
+
+            it("doesn't persist") {
+                try { persisted; fail("Expected an error to be raised but non was") }
+                catch (e: TenantError) { e should satisfy { message == "Model ${tenant1Record1.id} can't be persisted because There's no current tenant Id set." } }
+
+                tenant1Record1 shouldNot satisfy { isPersisted() }
+                reloaded should satisfy { isEmpty() }
+            }
+        }
+
+        context("attempting to insert another tenant's records") {
+            val persisted by memoized {
+                transaction {
+                    tenant1Record1.tenantId = tenantId
+                    setCurrentTenantId(otherTenantId)
+                    tenantScopedDestroyableRecords
+                        .insert(tenant1Record1)
+                        .first()
+                }
+            }
+
+            it("doesn't persist") {
+                try { persisted; fail("Expected an error to be raised but non was") }
+                catch (e: TenantError) { e should satisfy { message == "Model ${tenant1Record1.id} can't be persisted because it doesn't belong to the current tenant." } }
+
+                tenant1Record1 shouldNot satisfy { isPersisted() }
+                reloaded should satisfy { isEmpty() }
+            }
+        }
+    }
+
+    describe("update") {
+        val otherTenantId by memoized { UUID.randomUUID() }
+        val newTitle by memoized { "groovy soul food" }
+        val persisted by memoized {
+            setCurrentTenantId(tenantId)
+            transaction {
+                tenantScopedDestroyableRecords
+                    .insert(tenant1Record1)
+                    .first()
+            }
+        }
+        val reloaded by memoized {
+            transaction {
+                tenantScopedDestroyableRecords
+                    .selectAll()
+                    .orderBy(tenantScopedDestroyableRecords.createdAt, ASC)
+                    .map(tenantScopedDestroyableRecords::toModel)
+            }
+        }
+
+        context("with tenantId correctly set") {
+            val updated by memoized {
+                transaction {
+                    setCurrentTenantId(tenantId)
+                    tenantScopedDestroyableRecords
+                        .update(this, persisted.copy(title = newTitle))
+                        .first()
+                }
+            }
+
+            it("updates") {
+                persisted should satisfy { title == tenant1Record1.title }
+
+                updated should satisfy {
+                    isPersisted() &&
+                    title == newTitle &&
+                    this.tenantId == tenantId
+                }
+
+                reloaded should satisfy {
+                    size == 1 &&
+                    first().let {
+                        it.title == newTitle &&
+                        !it.createdAt.isNull() &&
+                        !it.updatedAt.isNull() &&
+                        it.tenantId == tenantId
+                    }
+                }
+            }
+        }
+
+        context("attempting to update another tenant's records") {
+            val updated by memoized {
+                setCurrentTenantId(otherTenantId)
+                transaction {
+                    tenantScopedDestroyableRecords
+                        .update(this, persisted.copy(title = newTitle))
+                }
+            }
+
+            it("doesn't update because of tenant isolation") {
+                persisted should satisfy { title == tenant1Record1.title }
+
+                try { updated; fail("Expcted a tenant error but non was raised.")
+                } catch (e:  TenantError) { e.message should satisfy { this == "Model ${persisted.id} can't be persisted because it doesn't belong to the current tenant." } }
+
+                reloaded should satisfy {
+                    size == 1 &&
+                    first().let {
+                        it.title == persisted.title &&
+                        !it.createdAt.isNull() &&
+                        !it.updatedAt.isNull() &&
+                        it.tenantId == tenantId
+                    }
+                }
+            }
+        }
+
+        context("No tenant id set") {
+            val updated by memoized {
+                clearCurrentTenantId()
+                transaction {
+                    tenantScopedDestroyableRecords
+                        .update(this, persisted.copy(title = newTitle))
+                }
+            }
+
+            it("doesn't update because of tenant isolation") {
+                persisted should satisfy { title == tenant1Record1.title }
+
+                try { updated; fail("Expected an error but non was raised.")
+                } catch (e:  Exception) { e.message should satisfy { this == "Model ${persisted.id} can't be persisted because There's no current tenant Id set." } }
+
+                reloaded should satisfy {
+                    size == 1 &&
+                    first().let {
+                        it.title == persisted.title &&
+                        !it.createdAt.isNull() &&
+                        !it.updatedAt.isNull() &&
+                        it.tenantId == tenantId
+                    }
+                }
+            }
         }
     }
 

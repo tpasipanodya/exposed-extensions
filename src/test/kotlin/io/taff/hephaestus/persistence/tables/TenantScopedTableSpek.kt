@@ -1,11 +1,14 @@
-package io.taff.hephaestus.persistence
+package io.taff.hephaestus.persistence.tables
 
 import com.taff.hephaestustest.expectation.any.satisfy
 import com.taff.hephaestustest.expectation.should
 import com.taff.hephaestustest.expectation.shouldNot
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.helpers.isNull
+import io.taff.hephaestus.persistence.TenantError
+import io.taff.hephaestus.persistence.clearCurrentTenantId
 import io.taff.hephaestus.persistence.models.TenantScopedModel
+import io.taff.hephaestus.persistence.setCurrentTenantId
 import io.taff.hephaestus.persistence.tables.uuid.TenantScopedTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
