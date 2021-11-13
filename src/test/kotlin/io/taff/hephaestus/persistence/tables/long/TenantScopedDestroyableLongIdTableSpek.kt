@@ -1,4 +1,4 @@
-package io.taff.hephaestus.persistence.tables.uuid
+package io.taff.hephaestus.persistence.tables.long
 
 import com.taff.hephaestustest.expectation.any.satisfy
 import com.taff.hephaestustest.expectation.should
@@ -11,7 +11,6 @@ import io.taff.hephaestus.persistence.models.DestroyableModel
 import io.taff.hephaestus.persistence.models.TenantScopedModel
 import io.taff.hephaestus.persistence.setCurrentTenantId
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SortOrder.ASC
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.fail
@@ -20,22 +19,23 @@ import org.spekframework.spek2.style.specification.describe
 import java.time.OffsetDateTime
 import java.util.*
 
+
 /** Dummy tenant scoped model for testing */
-data class TenantScopedDestroyableUuidRecord(
+data class TenantScopedDestroyableLongIdRecord(
     var title: String? = null,
-    override var tenantId: UUID? = null,
-    override var id: UUID? = null,
+    override var tenantId: Long? = null,
+    override var id: Long? = null,
     override var createdAt: OffsetDateTime? = null,
     override var updatedAt: OffsetDateTime? = null,
-     override var destroyedAt: OffsetDateTime? = null
-) : TenantScopedModel<UUID, UUID>, DestroyableModel<UUID>
+    override var destroyedAt: OffsetDateTime? = null
+) : TenantScopedModel<Long, Long>, DestroyableModel<Long>
 
 /** Dummy tenant scoped t able for testing */
-val tenantScopedDestroyableUuidRecords = object : TenantScopedDestroyableUuidTable<UUID, TenantScopedDestroyableUuidRecord>("tenant_scoped_destroyable_uuid_records") {
+val tenantScopedDestroyableLongIdRecords = object : TenantScopedDestroyableLongIdTable<Long, TenantScopedDestroyableLongIdRecord>("tenant_scoped_destroyable_long_id_records") {
     val title = varchar("title", 50)
-    override val tenantId: Column<UUID> = uuid("tenant_id")
-    override fun initializeModel(row: ResultRow) = TenantScopedDestroyableUuidRecord(title = row[title])
-    override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: TenantScopedDestroyableUuidRecord) {
+    override val tenantId: Column<Long> = long("tenant_id")
+    override fun initializeModel(row: ResultRow) = TenantScopedDestroyableLongIdRecord(title = row[title])
+    override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: TenantScopedDestroyableLongIdRecord) {
         model.title?.let { stmt[title] = it }
     }
 }
@@ -43,43 +43,43 @@ val tenantScopedDestroyableUuidRecords = object : TenantScopedDestroyableUuidTab
 object TenantScopedDestroyableTableSpek : Spek({
 
     Database.connect(env<String>("DB_URL"))
-    transaction { SchemaUtils.create(tenantScopedDestroyableUuidRecords) }
+    transaction { SchemaUtils.create(tenantScopedDestroyableLongIdRecords) }
 
-    val tenantId by memoized { UUID.randomUUID() }
-    val otherTenantId by memoized { UUID.randomUUID() }
+    val tenantId by memoized { 1L }
+    val otherTenantId by memoized { 2L }
 
-    beforeEachTest { transaction { tenantScopedDestroyableUuidRecords.deleteAll() } }
+    beforeEachTest { transaction { tenantScopedDestroyableLongIdRecords.deleteAll() } }
 
     afterEachTest { clearCurrentTenantId() }
 
-    val tenant1Record1 by memoized { TenantScopedDestroyableUuidRecord("Soul food") }
-    val tenant1Record2 by memoized { TenantScopedDestroyableUuidRecord("Groovy Soul food") }
-    val tenant2Record1 by memoized { TenantScopedDestroyableUuidRecord("Smooth Soul food") }
-    val tenant2Record2 by memoized { TenantScopedDestroyableUuidRecord("Bada-boom Soul food") }
+    val tenant1Record1 by memoized { TenantScopedDestroyableLongIdRecord("Soul food") }
+    val tenant1Record2 by memoized { TenantScopedDestroyableLongIdRecord("Groovy Soul food") }
+    val tenant2Record1 by memoized { TenantScopedDestroyableLongIdRecord("Smooth Soul food") }
+    val tenant2Record2 by memoized { TenantScopedDestroyableLongIdRecord("Bada-boom Soul food") }
     val persisted by memoized {
         transaction {
             setCurrentTenantId(tenantId)
-            tenantScopedDestroyableUuidRecords.insert(tenant1Record1, tenant1Record2)
+            tenantScopedDestroyableLongIdRecords.insert(tenant1Record1, tenant1Record2)
 
             setCurrentTenantId(otherTenantId)
-            tenantScopedDestroyableUuidRecords.insert(tenant2Record1, tenant2Record2)
+            tenantScopedDestroyableLongIdRecords.insert(tenant2Record1, tenant2Record2)
         }
     }
     val reloaded by memoized {
         transaction {
-            tenantScopedDestroyableUuidRecords
-                    .selectAll()
-                    .orderBy(tenantScopedDestroyableUuidRecords.createdAt, ASC)
-                    .map(tenantScopedDestroyableUuidRecords::toModel)
+            tenantScopedDestroyableLongIdRecords
+                .selectAll()
+                .orderBy(tenantScopedDestroyableLongIdRecords.createdAt, SortOrder.ASC)
+                .map(tenantScopedDestroyableLongIdRecords::toModel)
         }
     }
 
     describe("insert") {
         val reloaded by memoized {
             transaction {
-                tenantScopedDestroyableUuidRecords
+                tenantScopedDestroyableLongIdRecords
                     .selectAll()
-                    .map(tenantScopedDestroyableUuidRecords::toModel)
+                    .map(tenantScopedDestroyableLongIdRecords::toModel)
             }
         }
 
@@ -88,7 +88,7 @@ object TenantScopedDestroyableTableSpek : Spek({
 
             val persisted by memoized {
                 transaction {
-                    tenantScopedDestroyableUuidRecords
+                    tenantScopedDestroyableLongIdRecords
                         .insert(tenant1Record1)
                         .first()
                 }
@@ -97,8 +97,8 @@ object TenantScopedDestroyableTableSpek : Spek({
             it("persists") {
                 persisted should satisfy {
                     this == tenant1Record1 &&
-                    isPersisted() &&
-                    tenantId == tenantId
+                            isPersisted() &&
+                            tenantId == tenantId
                 }
 
                 tenant1Record1 should satisfy { isPersisted() }
@@ -118,8 +118,8 @@ object TenantScopedDestroyableTableSpek : Spek({
         context("when tenantId not set") {
             val persisted by memoized {
                 transaction {
-                    clearCurrentTenantId<UUID>()
-                    tenantScopedDestroyableUuidRecords
+                    clearCurrentTenantId<Long>()
+                    tenantScopedDestroyableLongIdRecords
                         .insert(tenant1Record1)
                         .first()
                 }
@@ -139,7 +139,7 @@ object TenantScopedDestroyableTableSpek : Spek({
                 transaction {
                     tenant1Record1.tenantId = tenantId
                     setCurrentTenantId(otherTenantId)
-                    tenantScopedDestroyableUuidRecords
+                    tenantScopedDestroyableLongIdRecords
                         .insert(tenant1Record1)
                         .first()
                 }
@@ -156,22 +156,22 @@ object TenantScopedDestroyableTableSpek : Spek({
     }
 
     describe("update") {
-        val otherTenantId by memoized { UUID.randomUUID() }
+        val otherTenantId by memoized { 20L }
         val newTitle by memoized { "groovy soul food" }
         val persisted by memoized {
             setCurrentTenantId(tenantId)
             transaction {
-                tenantScopedDestroyableUuidRecords
+                tenantScopedDestroyableLongIdRecords
                     .insert(tenant1Record1)
                     .first()
             }
         }
         val reloaded by memoized {
             transaction {
-                tenantScopedDestroyableUuidRecords
+                tenantScopedDestroyableLongIdRecords
                     .selectAll()
-                    .orderBy(tenantScopedDestroyableUuidRecords.createdAt, ASC)
-                    .map(tenantScopedDestroyableUuidRecords::toModel)
+                    .orderBy(tenantScopedDestroyableLongIdRecords.createdAt, SortOrder.ASC)
+                    .map(tenantScopedDestroyableLongIdRecords::toModel)
             }
         }
 
@@ -179,7 +179,7 @@ object TenantScopedDestroyableTableSpek : Spek({
             val updated by memoized {
                 transaction {
                     setCurrentTenantId(tenantId)
-                    tenantScopedDestroyableUuidRecords
+                    tenantScopedDestroyableLongIdRecords
                         .update(this, persisted.copy(title = newTitle))
                         .first()
                 }
@@ -190,8 +190,8 @@ object TenantScopedDestroyableTableSpek : Spek({
 
                 updated should satisfy {
                     isPersisted() &&
-                    title == newTitle &&
-                    this.tenantId == tenantId
+                            title == newTitle &&
+                            this.tenantId == tenantId
                 }
 
                 reloaded should satisfy {
@@ -210,7 +210,7 @@ object TenantScopedDestroyableTableSpek : Spek({
             val updated by memoized {
                 setCurrentTenantId(otherTenantId)
                 transaction {
-                    tenantScopedDestroyableUuidRecords
+                    tenantScopedDestroyableLongIdRecords
                         .update(this, persisted.copy(title = newTitle))
                 }
             }
@@ -219,7 +219,7 @@ object TenantScopedDestroyableTableSpek : Spek({
                 persisted should satisfy { title == tenant1Record1.title }
 
                 try { updated; fail("Expcted a tenant error but non was raised.")
-                } catch (e:  TenantError) { e.message should satisfy { this == "Model ${persisted.id} can't be persisted because it doesn't belong to the current tenant." } }
+                } catch (e: TenantError) { e.message should satisfy { this == "Model ${persisted.id} can't be persisted because it doesn't belong to the current tenant." } }
 
                 reloaded should satisfy {
                     size == 1 &&
@@ -235,9 +235,9 @@ object TenantScopedDestroyableTableSpek : Spek({
 
         context("No tenant id set") {
             val updated by memoized {
-                clearCurrentTenantId<UUID>()
+                clearCurrentTenantId<Long>()
                 transaction {
-                    tenantScopedDestroyableUuidRecords
+                    tenantScopedDestroyableLongIdRecords
                         .update(this, persisted.copy(title = newTitle))
                 }
             }
@@ -265,11 +265,11 @@ object TenantScopedDestroyableTableSpek : Spek({
         it("hard deletes the record") {
             persisted should satisfy { all { it.isPersisted() } }
 
-            val deleted = transaction { tenantScopedDestroyableUuidRecords.delete(tenant2Record2) }
+            val deleted = transaction { tenantScopedDestroyableLongIdRecords.delete(tenant2Record2) }
 
             deleted should satisfy {
                 size == 1 &&
-                this[0].run { title == tenant2Record2.title && !destroyedAt.isNull() }
+                        this[0].run { title == tenant2Record2.title && !destroyedAt.isNull() }
             }
 
             reloaded should satisfy {
@@ -285,7 +285,7 @@ object TenantScopedDestroyableTableSpek : Spek({
         context("attempting to delete another tenant's records") {
             val deleted by memoized {
                 setCurrentTenantId(tenantId)
-                transaction { tenantScopedDestroyableUuidRecords.delete(tenant2Record2) }
+                transaction { tenantScopedDestroyableLongIdRecords.delete(tenant2Record2) }
             }
 
             it("doesn't delete the record because of tenant isolation") {
@@ -317,10 +317,10 @@ object TenantScopedDestroyableTableSpek : Spek({
 
             setCurrentTenantId(otherTenantId)
             transaction {
-                tenantScopedDestroyableUuidRecords.destroy(this, tenant2Record2)
+                tenantScopedDestroyableLongIdRecords.destroy(this, tenant2Record2)
             } should satisfy {
                 size == 1 &&
-                this[0].run { title == tenant2Record2.title && !destroyedAt.isNull() }
+                        this[0].run { title == tenant2Record2.title && !destroyedAt.isNull() }
             }
 
             reloaded should satisfy {
@@ -335,7 +335,7 @@ object TenantScopedDestroyableTableSpek : Spek({
         context("attempting to destroy another tenant's records") {
             val destroyed by memoized {
                 setCurrentTenantId(tenantId)
-                transaction { tenantScopedDestroyableUuidRecords.destroy(this, tenant2Record2) }
+                transaction { tenantScopedDestroyableLongIdRecords.destroy(this, tenant2Record2) }
             }
 
             it("doesn't soft delete the record because of tenant isolation") {
