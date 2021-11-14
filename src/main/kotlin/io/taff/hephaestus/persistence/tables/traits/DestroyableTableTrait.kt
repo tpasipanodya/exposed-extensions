@@ -4,6 +4,7 @@ import io.taff.hephaestus.persistence.models.DestroyableModel
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
+import java.time.Instant
 import java.time.OffsetDateTime
 
 /**
@@ -16,7 +17,7 @@ import java.time.OffsetDateTime
 interface DestroyableTableTrait<ID : Comparable<ID>, M : DestroyableModel<ID>, T : IdTable<ID>>
     : ModelMappingTableTrait<ID, M, T> {
 
-    val destroyedAt: Column<OffsetDateTime?>
+    val destroyedAt: Column<Instant?>
 
     /** populate the insert/update statements */
     override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M) {

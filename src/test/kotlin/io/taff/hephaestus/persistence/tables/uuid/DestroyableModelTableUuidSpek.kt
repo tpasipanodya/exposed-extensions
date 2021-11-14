@@ -14,14 +14,14 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.fail
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import java.time.OffsetDateTime
+import java.time.Instant
 import java.util.*
 
 data class DestroyableUuidRecord(var title: String? = null,
                                  override var id: UUID? = null,
-                                 override var createdAt: OffsetDateTime? = null,
-                                 override var updatedAt: OffsetDateTime? = null,
-                                 override var destroyedAt: OffsetDateTime? = null) : Model<UUID>, DestroyableModel<UUID>
+                                 override var createdAt: Instant? = null,
+                                 override var updatedAt: Instant? = null,
+                                 override var destroyedAt: Instant? = null) : Model<UUID>, DestroyableModel<UUID>
 
 
 val destroyableUuidTable = object : DestroyableUuidTable<DestroyableUuidRecord>("destroyable_uuid_recogrds") {

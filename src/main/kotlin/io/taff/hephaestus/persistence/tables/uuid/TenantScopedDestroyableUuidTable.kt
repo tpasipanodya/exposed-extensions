@@ -2,10 +2,10 @@ package io.taff.hephaestus.persistence.tables.uuid
 
 import io.taff.hephaestus.persistence.models.DestroyableModel
 import io.taff.hephaestus.persistence.models.TenantScopedModel
-import io.taff.hephaestus.persistence.postgres.moment
 import io.taff.hephaestus.persistence.tables.traits.TenantScopedDestroyableTableTrait
 import org.jetbrains.exposed.dao.id.UUIDTable
-import java.time.OffsetDateTime
+import org.jetbrains.exposed.sql.javatime.timestamp
+import java.time.Instant.now
 import java.util.*
 
 /**
@@ -20,9 +20,9 @@ abstract class TenantScopedDestroyableUuidTable<TID : Comparable<TID>, M>(val na
     TenantScopedDestroyableTableTrait<UUID, TID, M, TenantScopedDestroyableUuidTable<TID, M>>
         where M : TenantScopedModel<UUID, TID>, M :  DestroyableModel<UUID> {
 
-    override val createdAt = moment("created_at").clientDefault { OffsetDateTime.now() }
-    override val updatedAt = moment("updated_at").clientDefault { OffsetDateTime.now() }
-    override val destroyedAt = moment("destroyed_at").nullable()
+    override val createdAt = timestamp("created_at").clientDefault { now() }
+    override val updatedAt = timestamp("updated_at").clientDefault { now() }
+    override val destroyedAt = timestamp("destroyed_at").nullable()
 
     override fun self() = this
 }

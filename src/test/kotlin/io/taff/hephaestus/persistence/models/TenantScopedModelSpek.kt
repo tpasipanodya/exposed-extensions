@@ -6,14 +6,15 @@ import io.taff.hephaestus.helpers.isNull
 import io.taff.hephaestus.persistence.CurrentTenantId
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import java.time.Instant
 import java.time.OffsetDateTime
 import java.util.*
 
 data class MyTenantScopedModel(
     override var id: UUID?,
     override var tenantId: UUID?,
-    override var createdAt: OffsetDateTime? = null,
-    override var updatedAt: OffsetDateTime? = null
+    override var createdAt: Instant? = null,
+    override var updatedAt: Instant? = null
 ) : TenantScopedModel<UUID, UUID>
 
 object TenantScopedModelSpek : Spek({

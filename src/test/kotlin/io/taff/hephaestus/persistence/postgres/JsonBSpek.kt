@@ -13,14 +13,14 @@ import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import java.time.OffsetDateTime
+import java.time.Instant
 import java.util.*
 
 data class ModelWithJson(
     override var id: UUID? = null,
     var json: Map<String, Any> = mapOf(),
-    override var createdAt: OffsetDateTime? = null,
-    override var updatedAt: OffsetDateTime? = null
+    override var createdAt: Instant? = null,
+    override var updatedAt: Instant? = null
 ) : Model<UUID>
 
 

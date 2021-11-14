@@ -1,10 +1,10 @@
 package io.taff.hephaestus.persistence.tables.long
 
 import io.taff.hephaestus.persistence.models.Model
-import io.taff.hephaestus.persistence.postgres.moment
 import io.taff.hephaestus.persistence.tables.traits.ModelMappingTableTrait
 import org.jetbrains.exposed.dao.id.LongIdTable
-import java.time.OffsetDateTime.now
+import org.jetbrains.exposed.sql.javatime.timestamp
+import java.time.Instant.now
 
 /**
  * A table that provides basic model mapping functionality.
@@ -13,8 +13,8 @@ import java.time.OffsetDateTime.now
 abstract class ModelMappingLongIdTable<M : Model<Long>>(val name: String)
     :LongIdTable(name), ModelMappingTableTrait<Long, M, ModelMappingLongIdTable<M>> {
 
-    override val createdAt = moment("created_at").clientDefault { now() }
-    override val updatedAt = moment("updated_at").clientDefault { now() }
+    override val createdAt = timestamp("created_at").clientDefault { now() }
+    override val updatedAt = timestamp("updated_at").clientDefault { now() }
 
     override fun self() = this
 }

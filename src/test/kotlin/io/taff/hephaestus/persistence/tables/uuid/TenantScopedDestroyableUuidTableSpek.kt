@@ -17,6 +17,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.fail
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import java.time.Instant
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -25,9 +26,9 @@ data class TenantScopedDestroyableUuidRecord(
     var title: String? = null,
     override var tenantId: UUID? = null,
     override var id: UUID? = null,
-    override var createdAt: OffsetDateTime? = null,
-    override var updatedAt: OffsetDateTime? = null,
-     override var destroyedAt: OffsetDateTime? = null
+    override var createdAt: Instant? = null,
+    override var updatedAt: Instant? = null,
+    override var destroyedAt: Instant? = null
 ) : TenantScopedModel<UUID, UUID>, DestroyableModel<UUID>
 
 /** Dummy tenant scoped t able for testing */

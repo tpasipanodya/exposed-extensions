@@ -11,6 +11,7 @@ import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import java.time.Instant
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -21,8 +22,8 @@ data class ModelWithArrays(
     var ints: List<Int> = listOf(),
     var bools: List<Boolean> = listOf(),
     var doubles: List<Double> = listOf(),
-    override var createdAt: OffsetDateTime? = null,
-    override var updatedAt: OffsetDateTime? = null
+    override var createdAt: Instant? = null,
+    override var updatedAt: Instant? = null
 ) : Model<UUID>
 
 
@@ -98,8 +99,6 @@ object ArraySpek : Spek({
                 updatedAt.isNull()) &&
                 persisted.id == reloaded.id
             }
-
         }
-
     }
 })

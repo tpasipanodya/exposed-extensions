@@ -1,7 +1,7 @@
 package io.taff.hephaestus.persistence.models
 
 import io.taff.hephaestus.helpers.isNull
-import java.time.OffsetDateTime
+import java.time.Instant
 
 /**
  * Models that have an Id.
@@ -11,8 +11,8 @@ import java.time.OffsetDateTime
 interface Model<ID : Comparable<ID>> {
 
     var id: ID?
-    var createdAt: OffsetDateTime?
-    var updatedAt: OffsetDateTime?
+    var createdAt: Instant?
+    var updatedAt: Instant?
 
     fun isPersisted() = !id.isNull()
 }

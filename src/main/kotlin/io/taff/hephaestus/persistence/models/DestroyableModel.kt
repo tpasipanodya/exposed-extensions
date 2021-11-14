@@ -1,7 +1,7 @@
 package io.taff.hephaestus.persistence.models
 
 import io.taff.hephaestus.helpers.isNull
-import java.time.OffsetDateTime
+import java.time.Instant
 
 /**
  * Models that can be soft deleted.
@@ -10,10 +10,10 @@ import java.time.OffsetDateTime
  */
 interface DestroyableModel<ID : Comparable<ID>> : Model<ID> {
 
-    var destroyedAt: OffsetDateTime?
+    var destroyedAt: Instant?
 
     fun markAsDestroyed() {
-        destroyedAt = OffsetDateTime.now()
+        destroyedAt = Instant.now()
     }
 
     fun isDestroyed() = !destroyedAt.isNull()

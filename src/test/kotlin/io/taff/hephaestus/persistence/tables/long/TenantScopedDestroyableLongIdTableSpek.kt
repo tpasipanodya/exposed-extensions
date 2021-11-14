@@ -16,7 +16,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.fail
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import java.time.OffsetDateTime
+import java.time.Instant
 
 
 /** Dummy tenant scoped model for testing */
@@ -24,9 +24,9 @@ data class TenantScopedDestroyableLongIdRecord(
     var title: String? = null,
     override var tenantId: Long? = null,
     override var id: Long? = null,
-    override var createdAt: OffsetDateTime? = null,
-    override var updatedAt: OffsetDateTime? = null,
-    override var destroyedAt: OffsetDateTime? = null
+    override var createdAt: Instant? = null,
+    override var updatedAt: Instant? = null,
+    override var destroyedAt: Instant? = null
 ) : TenantScopedModel<Long, Long>, DestroyableModel<Long>
 
 /** Dummy tenant scoped t able for testing */

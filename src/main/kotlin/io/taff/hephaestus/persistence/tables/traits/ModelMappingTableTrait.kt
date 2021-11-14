@@ -9,7 +9,7 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.BatchUpdateStatement
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.time.OffsetDateTime
+import java.time.Instant
 
 /**
  * Model mapping behavior applicable to tables.
@@ -20,8 +20,8 @@ import java.time.OffsetDateTime
 interface ModelMappingTableTrait<ID : Comparable<ID>, M : Model<ID>, T : IdTable<ID>> {
 
     val id: Column<EntityID<ID>>
-    val createdAt: Column<OffsetDateTime>
-    val updatedAt: Column<OffsetDateTime>
+    val createdAt: Column<Instant>
+    val updatedAt: Column<Instant>
     fun self() : T
 
     fun initializeModel(row: ResultRow) : M

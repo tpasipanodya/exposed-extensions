@@ -1,19 +1,22 @@
 package io.taff.hephaestus.persistence.models
 
+import com.natpryce.hamkrest.describe
 import com.taff.hephaestustest.expectation.any.satisfy
 import com.taff.hephaestustest.expectation.should
 import com.taff.hephaestustest.expectation.shouldNot
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import java.time.Instant
+import java.time.Instant.now
 import java.time.OffsetDateTime
 import java.util.*
 
 
 data class MyDestroyableModel(
     override var id: UUID?,
-    override var destroyedAt: OffsetDateTime?,
-    override var createdAt: OffsetDateTime? = null,
-    override var updatedAt: OffsetDateTime? = null
+    override var destroyedAt: Instant?,
+    override var createdAt: Instant? = null,
+    override var updatedAt: Instant? = null
 ) : DestroyableModel<UUID>
 
 object DestroyableModelSpek : Spek ({
@@ -37,7 +40,7 @@ object DestroyableModelSpek : Spek ({
         }
 
         context("destroyedAt value set") {
-            val destroyedAt by memoized { OffsetDateTime.now() }
+            val destroyedAt by memoized { now() }
             val model by memoized { MyDestroyableModel(id, destroyedAt) }
 
             it("is not destroyed") {

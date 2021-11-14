@@ -1,10 +1,10 @@
 package io.taff.hephaestus.persistence.tables.uuid
 
 import io.taff.hephaestus.persistence.models.TenantScopedModel
-import io.taff.hephaestus.persistence.postgres.moment
 import io.taff.hephaestus.persistence.tables.traits.TenantScopedTableTrait
 import org.jetbrains.exposed.dao.id.UUIDTable
-import java.time.OffsetDateTime
+import org.jetbrains.exposed.sql.javatime.timestamp
+import java.time.Instant.now
 import java.util.*
 
 /**
@@ -16,8 +16,8 @@ import java.util.*
 abstract class TenantScopedUuidTable<TID : Comparable<TID>, M : TenantScopedModel<UUID, TID>>(val name: String)
     :UUIDTable(name = name), TenantScopedTableTrait<UUID, TID, M, TenantScopedUuidTable<TID, M>> {
 
-    override val createdAt = moment("created_at").clientDefault { OffsetDateTime.now() }
-    override val updatedAt = moment("updated_at").clientDefault { OffsetDateTime.now() }
+    override val createdAt = timestamp("created_at").clientDefault { now() }
+    override val updatedAt = timestamp("updated_at").clientDefault { now() }
 
     override fun self() = this
 }

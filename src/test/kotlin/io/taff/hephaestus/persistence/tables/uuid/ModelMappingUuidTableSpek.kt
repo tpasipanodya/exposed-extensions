@@ -13,15 +13,15 @@ import org.spekframework.spek2.style.specification.describe
 import io.taff.hephaestus.persistence.models.Model
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.junit.jupiter.api.fail
-import java.time.OffsetDateTime
+import java.time.Instant
 import java.util.UUID
 
 /** Dummy model for testing */
 data class UuidRecord(
     var title: String? = null,
     override var id: UUID? = null,
-    override var createdAt: OffsetDateTime? = null,
-    override var updatedAt: OffsetDateTime? = null
+    override var createdAt: Instant? = null,
+    override var updatedAt: Instant? = null
 ) : Model<UUID>
 
 /** Dummy table for testing */
