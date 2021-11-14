@@ -6,6 +6,7 @@ build/
 !**/src/test/**/build/
 gradle
 gradlew.bat
+.rungi
 
 ### STS ###
 .apt_generated
