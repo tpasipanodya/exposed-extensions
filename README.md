@@ -71,7 +71,9 @@ would like to store and retrieve from a database.
 // 1. Declare your model.
 data class Author(
   var name: String? = null, 
-  override var id: Long? = null
+  override var id: Long? = null,
+  override var createdAt: Instant? = null,
+  override var updatedAt: Instant? = null
 ) : Model<Long>
 
 // 2. Declare how it is stored
@@ -83,31 +85,28 @@ val authors = object : ModelMappingLongIdTable<Author>("authors") {
   }
 }
 
-// 3. Create your table. For Postgres:
-// CREATE TABLE authors(
-//   id bigserial NOT NULL,
-//   name varchar(50),
-//   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-//   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-//   PRIMARY KEY(id)
-//);
-
-// 4. Connect and query
+// 3. Create your table. e.g:
 Database.connect(env<String>("DB_URL"))
+transaction { SchemaUtils.create(authors) }
+
+// 4. Query
 val author = Author("Zeeya Merali")
-val persistedAuthor = authors.insert(author).first()
 
-// true
-author == persistedAuthor
+transaction {
+  val persistedAuthor = authors.insert(author).first()
 
-// true
-authors.selectAll()
+  // true
+  author == persistedAuthor
+
+  // true
+  authors.selectAll()
     .map(authors::toModel)
     .first()
     .let { reloadedAuthor -> persistedAuthor == reloasedAuthor }
 
-author.name = "Janna Levin"
-authors.update(author)
+  author.name = "Janna Levin"
+  authors.update(author)
+}
 ```
 
 ### Soft Deletes
@@ -117,7 +116,9 @@ authors.update(author)
 // 1. Declare your model.
 data class Author(
   var name: String? = null,
-  override var id: UUID? = null
+  override var id: UUID? = null,
+  override var createdAt: Instant? = null,
+  override var updatedAt: Instant? = null
 ) : DestroyableModel<UUID>
 
 // 2. Declare how it is stored
@@ -129,24 +130,20 @@ val authors = object : DestroyableModelUuidTable<Author>("authors") {
   }
 }
 
-// 3. Create your table. For Postgres:
-// CREATE TABLE authors(
-//   id uuid NOT NULL DEFAULT uuid_generate_v4(),
-//   name varchar(50),
-//   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-//   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-//   destroyed_at TIMESTAMPTZ,
-//   PRIMARY KEY(id)
-//);
-
-// 4. Connect and query
+// 3. Create your table:
 Database.connect(env<String>("DB_URL"))
-val author = Author("Zeeya Merali")
-val persistedAuthor = authors.insert(author).first()
-val destroyedAuthor = authors.destroy(author).first()
+transaction { SchemaUtils.create(authors) }
 
-// false
-destroyedAuthor.destroyedAt.isNull()
+// 4. Query
+val author = Author("Zeeya Merali")
+
+transaction {
+  val persistedAuthor = authors.insert(author).first()
+  val destroyedAuthor = authors.destroy(author).first()
+
+  // false
+  destroyedAuthor.destroyedAt.isNull()
+}
 ```
 
 ### Tenant Isolation
@@ -156,7 +153,9 @@ destroyedAuthor.destroyedAt.isNull()
 data class Author(
   var name: String? = null,
   override var tenantId: UUID? = null,
-  override var id: UUID? = null
+  override var id: UUID? = null,
+  override var createdAt: Instant? = null,
+  override var updatedAt: Instant? = null
 ) : TenanatScopedModel<UUID, UUID>
 
 // 2. Declare how it is stored
@@ -169,31 +168,26 @@ val authors = object : TenantScopedUuidTable<UUID, Author>("authors") {
   }
 }
 
-// 3. Create your table. For Postgres:
-// CREATE TABLE authors(
-//   id bigserial NOT NULL,
-//   tenant_id uuid NOT NULL,
-//   name varchar(50),
-//   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-//   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-//   destroyed_at TIMESTAMPTZ,
-//   PRIMARY KEY(id)
-//);
-
-// 4. Connect and query
+// 3. Create your table:
 Database.connect(env<String>("DB_URL"))
+transaction { SchemaUtils.create(authors) }
+
+// 4. Query
 val author = Author("Zeeya Merali")
-// Fails
-var persistedAuthor = authors.insert(author).first()
 
-// Succeeds
-setCurrentTenantId(myTenantId)
-persistedAuthor = authors.insert(author).first()
+transaction {
+  // Fails
+  var persistedAuthor = authors.insert(author).first()
 
-// Fails
-setCurrentTenantId(otherTenantId)
-author.name = "Frank Herbert"
-val destroyedAuthor = authors.update(author).first()
+  // Succeeds
+  setCurrentTenantId(myTenantId)
+  persistedAuthor = authors.insert(author).first()
+
+  // Fails
+  setCurrentTenantId(otherTenantId)
+  author.name = "Frank Herbert"
+  val destroyedAuthor = authors.update(author).first()
+}
 ```
 
 ### Tenant Isolation & Soft Deletes
@@ -204,16 +198,16 @@ either `TenantScopedDestroyableLongIdTable` or `TenantScopedDestroyableUuidTable
 ### Postgres Columns
 
 ```kotlin
-//1. Declare your data class
+// 1. Declare your data class
 data class MyModel(
     override var id: UUID? = null,
     var strings: List<String> = listOf(),
     var json: Map<String, Any> = mapOf(),
-    override var createdAt: OffsetDateTime? = null,
-    override var updatedAt: OffsetDateTime? = null
+    override var createdAt: Instant? = null,
+    override var updatedAt: Instant? = null
 ) : Model<UUID>
 
-// Define how it will be stored
+// 2. Define how it will be stored
 val myModels = object : ModelMappingUuidTable<MyModel>("my_models") {
 
     val strings = stringArray("strings")
@@ -234,7 +228,10 @@ val myModels = object : ModelMappingUuidTable<MyModel>("my_models") {
     }
 }
 
-// Connect & query
+// 3. Create your table:
+Database.connect(env<String>("DB_URL"))
+
+// Query
 Database.connect(env<String>("DB_URL"))
 val author = MyModel(
   strings = listOf("foo", "bar"),
