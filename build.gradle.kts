@@ -4,7 +4,7 @@ import org.jfrog.gradle.plugin.artifactory.dsl.ResolverConfig
 import groovy.lang.GroovyObject
 
 plugins {
-	kotlin("jvm") version "1.5.31"
+	kotlin("jvm") version "1.6.0"
 	id("com.jfrog.artifactory") version "4.24.21"
 	id("org.jetbrains.dokka") version "1.5.31"
 	id("maven-publish")
@@ -13,7 +13,7 @@ plugins {
 
 group = "io.taff"
 version = "0.1.0${ if (isReleaseBuild()) "" else "-SNAPSHOT" }"
-java.sourceCompatibility = JavaVersion.VERSION_16
+java.sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
 	jcenter()
@@ -43,7 +43,7 @@ dependencies {
 	api("org.jetbrains.exposed:exposed-java-time:0.36.2")
 	implementation("org.postgresql:postgresql:42.3.1")
 	testImplementation("com.apurebase:kgraphql:0.17.14")
-	testImplementation("com.taff:hephaestus-test:0.1.0")
+	testImplementation("com.taff:hephaestus-test:0.2.0")
 	testImplementation("io.javalin:javalin:4.1.1")
 	testImplementation(enforcedPlatform("org.junit:junit-bom:5.8.1"))
 }
@@ -51,7 +51,7 @@ dependencies {
 tasks.withType<KotlinCompile> {
 	kotlinOptions {
 		freeCompilerArgs = listOf("-Xjsr305=strict")
-		jvmTarget = "16"
+		jvmTarget = "17"
 	}
 }
 
