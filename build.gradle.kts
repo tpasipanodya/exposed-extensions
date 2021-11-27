@@ -6,13 +6,13 @@ import groovy.lang.GroovyObject
 plugins {
 	kotlin("jvm") version "1.6.0"
 	id("com.jfrog.artifactory") version "4.24.21"
-	id("org.jetbrains.dokka") version "1.5.31"
+	id("org.jetbrains.dokka") version "1.6.0"
 	id("maven-publish")
 	idea
 }
 
 group = "io.taff"
-version = "0.2.0${ if (isReleaseBuild()) "" else "-SNAPSHOT" }"
+version = "0.3.0${ if (isReleaseBuild()) "" else "-SNAPSHOT" }"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
@@ -31,19 +31,19 @@ repositories {
 dependencies {
 	runtimeOnly("org.jetbrains.kotlin:kotlin-reflect")
 	runtimeOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-	api("io.github.microutils:kotlin-logging-jvm:2.0.11")
+	api("io.github.microutils:kotlin-logging-jvm:2.1.0")
 	api("com.github.kittinunf.fuel:fuel:2.3.1")
 	api("com.github.kittinunf.fuel:fuel-coroutines:2.3.1")
 	api("org.slf4j:slf4j-simple:1.7.32")
 	api("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.0")
 	api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.0")
-	api("org.jetbrains.exposed:exposed-dao:0.36.2")
-	api("org.jetbrains.exposed:exposed-core:0.36.2")
-	api("org.jetbrains.exposed:exposed-jdbc:0.36.2")
-	api("org.jetbrains.exposed:exposed-java-time:0.36.2")
+	api("io.taff:exposed-dao:0.1.0")
+	api("io.taff:exposed-core:0.1.0")
+	api("io.taff:exposed-jdbc:0.1.0")
+	api("io.taff:exposed-java-time:0.1.0")
 	implementation("org.postgresql:postgresql:42.3.1")
 	testImplementation("com.apurebase:kgraphql:0.17.14")
-	testImplementation("com.taff:hephaestus-test:0.2.0")
+	testImplementation("io.taff:hephaestus-test:0.3.0")
 	testImplementation("io.javalin:javalin:4.1.1")
 	testImplementation(enforcedPlatform("org.junit:junit-bom:5.8.1"))
 }
@@ -88,7 +88,7 @@ publishing {
 			artifact(tasks["sourcesJar"])
 
 			pom {
-				name.set("project.name")
+				name.set(project.name)
 				description.set("${project.name} $version - Lightweight utilities for simplifying backend application configuration")
 				url.set("https://github.com/tpasipanodya/hephaestus")
 
