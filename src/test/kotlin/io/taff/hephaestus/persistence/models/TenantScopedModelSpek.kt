@@ -1,13 +1,11 @@
 package io.taff.hephaestus.persistence.models
 
-import com.taff.hephaestustest.expectation.any.satisfy
-import com.taff.hephaestustest.expectation.should
-import io.taff.hephaestus.helpers.isNull
+import io.taff.hephaestustest.expectation.any.satisfy
+import io.taff.hephaestustest.expectation.should
 import io.taff.hephaestus.persistence.CurrentTenantId
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.time.Instant
-import java.time.OffsetDateTime
 import java.util.*
 
 data class MyTenantScopedModel(

@@ -1,8 +1,8 @@
 package io.taff.hephaestus.persistence.postgres
 
 import com.fasterxml.jackson.core.type.TypeReference
-import com.taff.hephaestustest.expectation.any.satisfy
-import com.taff.hephaestustest.expectation.should
+import io.taff.hephaestustest.expectation.any.satisfy
+import io.taff.hephaestustest.expectation.should
 import io.taff.hephaestus.Config
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.helpers.isNull

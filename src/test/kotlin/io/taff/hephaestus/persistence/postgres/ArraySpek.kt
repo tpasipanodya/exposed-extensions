@@ -1,7 +1,7 @@
 package io.taff.hephaestus.persistence.postgres
 
-import com.taff.hephaestustest.expectation.any.satisfy
-import com.taff.hephaestustest.expectation.should
+import io.taff.hephaestustest.expectation.any.satisfy
+import io.taff.hephaestustest.expectation.should
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.helpers.isNull
 import io.taff.hephaestus.persistence.models.Model

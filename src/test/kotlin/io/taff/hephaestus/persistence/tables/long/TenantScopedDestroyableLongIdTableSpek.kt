@@ -1,8 +1,8 @@
 package io.taff.hephaestus.persistence.tables.long
 
-import com.taff.hephaestustest.expectation.any.satisfy
-import com.taff.hephaestustest.expectation.should
-import com.taff.hephaestustest.expectation.shouldNot
+import io.taff.hephaestustest.expectation.any.satisfy
+import io.taff.hephaestustest.expectation.should
+import io.taff.hephaestustest.expectation.shouldNot
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.helpers.isNull
 import io.taff.hephaestus.persistence.TenantError

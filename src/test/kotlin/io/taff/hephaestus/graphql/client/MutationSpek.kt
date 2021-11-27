@@ -1,9 +1,9 @@
 package io.taff.hephaestus.graphql.client
 
 import org.spekframework.spek2.Spek
-import com.taff.hephaestustest.expectation.any.satisfy
-import com.taff.hephaestustest.expectation.iterable.beAnOrderedCollectionOf
-import com.taff.hephaestustest.expectation.should
+import io.taff.hephaestustest.expectation.any.satisfy
+import io.taff.hephaestustest.expectation.iterable.beAnOrderedCollectionOf
+import io.taff.hephaestustest.expectation.should
 import io.taff.hephaestus.configure
 import org.spekframework.spek2.style.specification.describe
 
