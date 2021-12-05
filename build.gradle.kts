@@ -5,7 +5,7 @@ import groovy.lang.GroovyObject
 
 plugins {
 	kotlin("jvm") version "1.6.0"
-	id("com.jfrog.artifactory") version "4.24.21"
+	id("com.jfrog.artifactory") version "4.25.0"
 	id("org.jetbrains.dokka") version "1.6.0"
 	id("maven-publish")
 	idea
@@ -16,7 +16,7 @@ version = "0.3.0${ if (isReleaseBuild()) "" else "-SNAPSHOT" }"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
-	jcenter()
+	mavenCentral()
 	maven("https://jitpack.io")
 	maven {
 		name = "JFrog"
@@ -37,10 +37,10 @@ dependencies {
 	api("org.slf4j:slf4j-simple:1.7.32")
 	api("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.0")
 	api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.0")
-	api("io.taff:exposed-dao:0.1.0")
-	api("io.taff:exposed-core:0.1.0")
-	api("io.taff:exposed-jdbc:0.1.0")
-	api("io.taff:exposed-java-time:0.1.0")
+	api("io.taff.exposed:exposed-dao:0.2.2")
+	api("io.taff.exposed:exposed-core:0.2.2")
+	api("io.taff.exposed:exposed-jdbc:0.2.2")
+	api("io.taff.exposed:exposed-java-time:0.2.2")
 	implementation("org.postgresql:postgresql:42.3.1")
 	testImplementation("com.apurebase:kgraphql:0.17.14")
 	testImplementation("io.taff:hephaestus-test:0.3.0")

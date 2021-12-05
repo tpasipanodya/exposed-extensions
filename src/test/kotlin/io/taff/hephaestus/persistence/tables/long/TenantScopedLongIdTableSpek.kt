@@ -9,6 +9,8 @@ import io.taff.hephaestus.persistence.TenantError
 import io.taff.hephaestus.persistence.clearCurrentTenantId
 import io.taff.hephaestus.persistence.models.TenantScopedModel
 import io.taff.hephaestus.persistence.setCurrentTenantId
+import io.taff.hephaestustest.expectation.any.equal
+import io.taff.hephaestustest.expectation.boolean.beTrue
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -137,20 +139,13 @@ object TenantScopedLongIdTableSpek : Spek({
                 transaction {
                     setCurrentTenantId(tenantId)
                     tenantScopedLongIdRecords
-                        .update(this, persisted.copy(title = newTitle))
-                        .first()
+                        .update(persisted.copy(title = newTitle))
                 }
             }
 
             it("updates") {
                 persisted should satisfy { title == record.title }
-
-                updated should satisfy {
-                    isPersisted() &&
-                            title == newTitle &&
-                            this.tenantId == tenantId
-                }
-
+                updated should beTrue()
                 reloaded should satisfy {
                     size == 1 &&
                     first().let {
@@ -168,7 +163,7 @@ object TenantScopedLongIdTableSpek : Spek({
                 setCurrentTenantId(otherTenantId)
                 transaction {
                     tenantScopedLongIdRecords
-                        .update(this, persisted.copy(title = newTitle))
+                        .update(persisted.copy(title = newTitle))
                 }
             }
 
@@ -198,7 +193,7 @@ object TenantScopedLongIdTableSpek : Spek({
                 clearCurrentTenantId<Long>()
                 transaction {
                     tenantScopedLongIdRecords
-                        .update(this, persisted.copy(title = newTitle))
+                        .update(persisted.copy(title = newTitle))
                 }
             }
 
@@ -251,7 +246,7 @@ object TenantScopedLongIdTableSpek : Spek({
             }
 
             it("deletes the records") {
-                deleted should satisfy { size == 1 }
+                deleted should equal(true)
 
                 remaining should satisfy {
                     size == 2 &&

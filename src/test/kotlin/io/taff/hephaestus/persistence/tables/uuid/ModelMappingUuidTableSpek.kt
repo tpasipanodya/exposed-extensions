@@ -11,6 +11,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import io.taff.hephaestus.persistence.models.Model
+import io.taff.hephaestustest.expectation.any.equal
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.junit.jupiter.api.fail
 import java.time.Instant
@@ -72,20 +73,13 @@ object ModelMappingUuidTableSpek  : Spek({
             val persisted by memoized { transaction { uuidRecords.insert(record) } }
             val updated by memoized {
                 transaction {
-                    uuidRecords
-                        .update(this, persisted[0].copy(title = newTitle))
-                        .first()
+                    uuidRecords.update(persisted[0].copy(title = newTitle))
                 }
             }
             val reloaded by memoized { transaction { uuidRecords.selectAll().map(uuidRecords::toModel) } }
 
             it("modifies the record") {
-                updated should satisfy {
-                    this != persisted[0] &&
-                    isPersisted() &&
-                    title == newTitle
-                }
-
+                updated should beTrue()
                 reloaded should satisfy {
                     size == 1 &&
                     first().let {
@@ -101,8 +95,7 @@ object ModelMappingUuidTableSpek  : Spek({
             val record by memoized {   UuidRecord("Soul food") }
             val updated by memoized {
                 transaction {
-                    uuidRecords.update(this, record.copy(title = newTitle))
-                        .first()
+                    uuidRecords.update(record.copy(title = newTitle))
                 }
             }
 
@@ -141,10 +134,7 @@ object ModelMappingUuidTableSpek  : Spek({
 
             val deleted = transaction { uuidRecords.delete(persisted) }
 
-            deleted should satisfy {
-                toList().size == 1 &&
-                first().title == persisted.title
-            }
+            deleted should equal(true)
             reloaded should satisfy { isEmpty() }
         }
     }

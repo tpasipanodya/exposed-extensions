@@ -11,7 +11,7 @@ import java.util.*
  * A table that provides basic model mapping functionality.
  * @param M The concrete model type.
  */
-abstract class ModelMappingUuidTable<M : Model<UUID>>(val name: String)
+abstract class ModelMappingUuidTable<M : Model<UUID>>(name: String)
     :UUIDTable(name), ModelMappingTableTrait<UUID, M, ModelMappingUuidTable<M>> {
 
     override val createdAt = timestamp("created_at").clientDefault { now() }
