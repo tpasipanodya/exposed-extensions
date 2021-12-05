@@ -10,6 +10,7 @@ import io.taff.hephaestustest.expectation.boolean.beFalse
 import io.taff.hephaestustest.expectation.boolean.beTrue
 import io.taff.hephaestustest.expectation.should
 import org.jetbrains.exposed.dao.id.IdTable
+import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -31,6 +32,10 @@ where T : DestroyableTableTrait<ID, M, T>,
       M : DestroyableModel<ID>,
       M : TitleAware = describe("destroyable model speks") {
 
+    val record by memoized { recordFxn() }
+    val persisted by memoized {
+        transaction { table.insert(record).first() }
+    }
     val reloaded by memoized {
         transaction {
             table.stripDefaultScope()
@@ -40,13 +45,10 @@ where T : DestroyableTableTrait<ID, M, T>,
     }
 
     describe("insert") {
-        val record by memoized { recordFxn() }
-        val persisted by memoized { transaction { table.insert(record).first() } }
-
         it("persists the record") {
             persisted should satisfy {
                 this.title == record.title &&
-                        isPersisted()
+                isPersisted()
             }
             record.isPersisted() should beTrue()
             reloaded should satisfy {
@@ -60,10 +62,88 @@ where T : DestroyableTableTrait<ID, M, T>,
         }
     }
 
+    describe("select") {
+        val otherPersisted by memoized { table.insert(recordFxn()).first() }
+
+        context("default scope") {
+            val selected by memoized {
+                transaction {
+                    otherPersisted
+                    table.destroy(persisted)
+                    table.selectAll().map(table::toModel)
+                }
+            }
+
+            it("doesn't load the record") {
+                selected should satisfy {
+                    size == 1 &&
+                    first().run {
+                        id == otherPersisted.id &&
+                        title == otherPersisted.title &&
+                        !createdAt.isNull() &&
+                        !updatedAt.isNull() &&
+                        destroyedAt.isNull()
+                    }
+                }
+            }
+        }
+
+        context("destroyed scope") {
+            val selected by memoized {
+                transaction {
+                    otherPersisted
+                    table.destroy(persisted)
+                    table.destroyed().selectAll()
+                        .map(table::toModel)
+                }
+            }
+
+            it("doesn't load the record") {
+                selected should satisfy {
+                    size == 1 &&
+                    first().run {
+                        title == persisted.title &&
+                        !createdAt.isNull() &&
+                        !updatedAt.isNull() &&
+                        !destroyedAt.isNull()
+                    }
+                }
+            }
+        }
+
+        context("includingDestroyed scope") {
+            val selected by memoized {
+                transaction {
+                    otherPersisted
+                    table.destroy(persisted)
+                    table.includingDestroyed().selectAll()
+                        .orderBy(table.id, SortOrder.ASC)
+                        .map(table::toModel)
+                }
+            }
+
+            it("doesn't load the record") {
+                selected should satisfy {
+                    size == 2 &&
+                    get(0).run {
+                        id == otherPersisted.id &&
+                        title == otherPersisted.title &&
+                        !createdAt.isNull() &&
+                        !updatedAt.isNull() &&
+                        destroyedAt.isNull()
+                    } && get(1).run {
+                        title == persisted.title &&
+                        !createdAt.isNull() &&
+                        !updatedAt.isNull() &&
+                        !destroyedAt.isNull()
+                    }
+                }
+            }
+        }
+    }
+
     describe("update") {
-        val record by memoized { recordFxn() }
         val newTitle by memoized { "groovy soul food" }
-        val persisted by memoized { transaction { table.insert(record).first() } }
 
         context("when already persisted") {
             val updated by memoized {
@@ -246,12 +326,6 @@ where T : DestroyableTableTrait<ID, M, T>,
     }
 
     describe("delete") {
-        val persisted by memoized {
-            transaction {
-                table.insert(recordFxn()).first()
-            }
-        }
-
         context("with model mapping") {
             val deleted by memoized { transaction { table.delete(persisted) } }
 
@@ -272,24 +346,9 @@ where T : DestroyableTableTrait<ID, M, T>,
                 reloaded should satisfy { isEmpty() }
             }
         }
-
-//        context("deleting directly") {
-//            it("hard deletes the record") {
-//                persisted should satisfy { isPersisted() }
-//
-//                 transaction {
-//                    destroyableUuidTable.deleteWhere {
-//                        destroyableUuidTable.id eq persisted.id
-//                    }
-//                }.let { it should equal(1) }
-//
-//                reloaded should satisfy { isEmpty() }
-//            }
-//        }
     }
 
     describe("destroy") {
-        val persisted by memoized { transaction { table.insert(recordFxn()).first() } }
         val destroyed by memoized { transaction { table.destroy(persisted) } }
 
         it("soft deletes the record") {
