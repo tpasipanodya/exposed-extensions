@@ -18,19 +18,20 @@ import org.junit.jupiter.api.fail
 import org.spekframework.spek2.dsl.Root
 import org.spekframework.spek2.style.specification.describe
 
-enum class Scope {
+enum class DestroyableScope {
     LIVE,
     DELETED,
     ALL
 }
 
-fun <ID : Comparable<ID>, M, T> Root.includeDestroyableModelSpeks(table: T,
-                                                                  recordFxn: () -> M,
-                                                                  directUpdate: (model: M, newTitle: String, scope: Scope) -> Int)
-where T : DestroyableTableTrait<ID, M, T>,
-      T : IdTable<ID>,
-      M : DestroyableModel<ID>,
-      M : TitleAware = describe("destroyable model speks") {
+fun <ID : Comparable<ID>, M, T> Root.includeDestroyableTableSpeks(
+    table: T,
+    recordFxn: () -> M,
+    directUpdate: (model: M, newTitle: String, scope: DestroyableScope) -> Int
+) where T : DestroyableTableTrait<ID, M, T>,
+        T : IdTable<ID>,
+        M : DestroyableModel<ID>,
+        M : TitleAware = describe("destroyable table speks") {
 
     val record by memoized { recordFxn() }
     val persisted by memoized {
@@ -116,7 +117,7 @@ where T : DestroyableTableTrait<ID, M, T>,
                 transaction {
                     otherPersisted
                     table.destroy(persisted)
-                    table.includingDestroyed().selectAll()
+                    table.liveAndDestroyed().selectAll()
                         .orderBy(table.id, SortOrder.ASC)
                         .map(table::toModel)
                 }
@@ -195,7 +196,7 @@ where T : DestroyableTableTrait<ID, M, T>,
                         transaction {
                             persisted
                              table.destroy(persisted)
-                            directUpdate(persisted, newTitle, Scope.LIVE)
+                            directUpdate(persisted, newTitle, DestroyableScope.LIVE)
                         }
                     }
 
@@ -241,7 +242,7 @@ where T : DestroyableTableTrait<ID, M, T>,
                     val updated by memoized {
                         transaction {
                             table.destroy(persisted)
-                            directUpdate(persisted, newTitle, Scope.DELETED)
+                            directUpdate(persisted, newTitle, DestroyableScope.DELETED)
                         }
                     }
 
@@ -265,7 +266,7 @@ where T : DestroyableTableTrait<ID, M, T>,
                         transaction {
                             table.destroy(persisted)
                             persisted.title = newTitle
-                            table.includingDestroyed().update(persisted)
+                            table.liveAndDestroyed().update(persisted)
                         }
                     }
 
@@ -287,7 +288,7 @@ where T : DestroyableTableTrait<ID, M, T>,
                     val updated by memoized {
                         transaction {
                             table.destroy(persisted)
-                            directUpdate(persisted, newTitle, Scope.ALL)
+                            directUpdate(persisted, newTitle, DestroyableScope.ALL)
                         }
                     }
 

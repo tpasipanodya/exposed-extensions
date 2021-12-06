@@ -43,7 +43,11 @@ interface ModelMappingTableTrait<ID : Comparable<ID>, M : Model<ID>, T : IdTable
             it.updatedAt = row[updatedAt]
         }
 
-    /** Insert an ordered list of models */
+    /**
+     * Insert an ordered list of models
+     * On failure, model ids won't be set and an exception may be thrown,
+     * effectively rolling back the transaction.
+     */
     fun insert(vararg models: M) = self().batchInsert(models.toList()) { model ->
         appendStatementValues(this, model)
         appendBaseStatementValues(this, model)

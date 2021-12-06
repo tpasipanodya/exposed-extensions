@@ -1,0 +1,718 @@
+package io.taff.hephaestus.persistence.tables.shared
+
+import io.taff.hephaestus.persistence.TenantError
+import io.taff.hephaestus.persistence.clearCurrentTenantId
+import io.taff.hephaestus.persistence.models.DestroyableModel
+import io.taff.hephaestus.persistence.models.Model
+import io.taff.hephaestus.persistence.models.TenantScopedModel
+import io.taff.hephaestus.persistence.setCurrentTenantId
+import io.taff.hephaestus.persistence.tables.traits.TenantScopedDestroyableTableTrait
+import io.taff.hephaestustest.expectation.any.equal
+import io.taff.hephaestustest.expectation.any.satisfy
+import io.taff.hephaestustest.expectation.boolean.beTrue
+import io.taff.hephaestustest.expectation.iterable.beAnUnOrderedCollectionOf
+import io.taff.hephaestustest.expectation.should
+import io.taff.hephaestustest.expectation.shouldNot
+import org.jetbrains.exposed.dao.id.IdTable
+import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.transaction
+import org.junit.jupiter.api.fail
+import org.spekframework.spek2.dsl.Root
+import org.spekframework.spek2.style.specification.describe
+import java.util.*
+import org.spekframework.spek2.dsl.TestBody
+
+enum class DestroyableTenantScope {
+    LIVE_FOR_TENANT,
+    DELETED_FOR_TENANT,
+    LIVE_AND_DESTROYED_FOR_CURRENT_TENANT,
+    LIVE_FOR_ALL_TENANTS,
+    DELETED_FOR_ALL_TENANTS,
+    LIVE_AND_DESTROYED_FOR_ALL_TENANTS
+}
+
+fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedDestroyableTableSpeks(
+    table: T,
+    tenantIdFunc: () -> TID,
+    otherTenantIdFunc: () -> TID,
+    tenant1RecordsFunc: () -> Array<M>,
+    tenant2RecordsFunc: () -> Array<M>,
+    directUpdateFunc: (record: M, newTitle: String, scope: DestroyableTenantScope) -> Int
+) where T : IdTable<ID>,
+        T : TenantScopedDestroyableTableTrait<ID, TID, M, T>,
+        M : TenantScopedModel<ID, TID>,
+        M : DestroyableModel<ID>,
+        M : TitleAware = describe("tenant scoped destroyable table speks") {
+
+    val tenantId by memoized { tenantIdFunc() }
+    val otherTenantId by memoized { otherTenantIdFunc() }
+    val tenant1records by memoized { tenant1RecordsFunc() }
+    val tenant2Records by memoized { tenant2RecordsFunc() }
+    val tenant1Record1 by memoized { tenant1records[0] }
+    val tenant1Record2 by memoized { tenant1records[1] }
+    val tenant2Record1 by memoized { tenant2Records[0] }
+    val tenant2Record2 by memoized { tenant2Records[1] }
+    val persisted by memoized {
+        transaction {
+            setCurrentTenantId(tenantId)
+            val persistedTenant1Records = table.insert(tenant1Record1, tenant1Record2)
+
+            setCurrentTenantId(otherTenantId)
+            val persistedTenant2Records = table.insert(tenant2Record1, tenant2Record2)
+            listOf(*persistedTenant1Records, *persistedTenant2Records)
+        }
+    }
+    val reloaded by memoized {
+        transaction {
+            table.stripDefaultScope()
+                .selectAll()
+                .orderBy(table.createdAt, SortOrder.ASC)
+                .map(table::toModel)
+        }
+    }
+
+    describe("insert") {
+        context("with tenant id set") {
+            it("persists records and correctly sets their attributes") {
+                persisted should satisfy {
+                    size == 4 &&
+                    get(0).run {
+                        this.let(Model<*>::isPersisted) &&
+                        !isDestroyed() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record1.title
+
+                    } && get(1).run {
+                        this.let(Model<*>::isPersisted) &&
+                        !isDestroyed() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record2.title
+                    } && get(2).run {
+                        this.let(Model<*>::isPersisted) &&
+                        !isDestroyed() &&
+                        this.tenantId == otherTenantId &&
+                        title == tenant2Record1.title
+                    } && get(3).run {
+                        this.let(Model<*>::isPersisted) &&
+                        !isDestroyed() &&
+                        this.tenantId == otherTenantId &&
+                        title == tenant2Record2.title
+                    }
+                }
+                reloaded should beAnUnOrderedCollectionOf(
+                    satisfy<M> {
+                        this.let(Model<*>::isPersisted) &&
+                        !isDestroyed() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record1.title
+                   }, satisfy<M> {
+                        this.let(Model<*>::isPersisted) &&
+                        !isDestroyed() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record2.title
+                    }, satisfy<M> {
+                        this.let(Model<*>::isPersisted) &&
+                        !isDestroyed() &&
+                        this.tenantId == otherTenantId &&
+                        title == tenant2Record1.title
+                    }, satisfy<M> {
+                        this.let(Model<*>::isPersisted) &&
+                        !isDestroyed() &&
+                        this.tenantId == otherTenantId &&
+                        title == tenant2Record2.title
+                    }
+                )
+            }
+        }
+
+        context("when tenantId not set") {
+            val persisted by memoized {
+                transaction {
+                    clearCurrentTenantId<UUID>()
+                    table.insert(tenant1Record1,
+                        tenant1Record2,
+                        tenant2Record1,
+                        tenant2Record2)
+                }
+            }
+
+            it("doesn't persist") {
+                try { persisted; fail("Expected an error to be raised but non was") }
+                catch (e: TenantError) { e should satisfy { message == "Model ${tenant1Record1.id} can't be persisted because There's no current tenant Id set." } }
+
+                tenant1Record1 shouldNot satisfy { isPersisted() }
+                reloaded should satisfy { isEmpty() }
+            }
+        }
+
+        context("attempting to insert another tenant's records") {
+            val persisted by memoized {
+                transaction {
+                    tenant1Record1.tenantId = tenantId
+                    setCurrentTenantId(otherTenantId)
+                    table.insert(tenant1Record1)
+                }
+            }
+
+            it("doesn't persist") {
+                try { persisted; fail("Expected an error to be raised but non was") }
+                catch (e: TenantError) { e should satisfy { message == "Model ${tenant1Record1.id} can't be persisted because it doesn't belong to the current tenant." } }
+
+                tenant1Record1 shouldNot satisfy { isPersisted() }
+                reloaded should satisfy { isEmpty() }
+            }
+        }
+    }
+
+    describe("update") {
+        val newTitle by memoized { "groovy soul food" }
+
+        context("with tenantId correctly set") {
+            val correctlyUpdates: TestBody.(() -> Boolean) -> Unit = { updater ->
+                persisted should satisfy {
+                    size == 4 && first().title == tenant1Record1.title
+                }
+                updater() should beTrue()
+                reloaded should beAnUnOrderedCollectionOf(
+                    satisfy<M> {
+                        this.let(Model<*>::isPersisted) &&
+                                !isDestroyed() &&
+                                this.tenantId == tenantId &&
+                                title == newTitle
+                    }, satisfy<M> {
+                        this.let(Model<*>::isPersisted) &&
+                                !isDestroyed() &&
+                                this.tenantId == tenantId &&
+                                title == tenant1Record2.title
+                    }, satisfy<M> {
+                        this.let(Model<*>::isPersisted) &&
+                                !isDestroyed() &&
+                                this.tenantId == otherTenantId &&
+                                title == tenant2Record1.title
+                    }, satisfy<M> {
+                        this.let(Model<*>::isPersisted) &&
+                                !isDestroyed() &&
+                                this.tenantId == otherTenantId &&
+                                title == tenant2Record2.title
+                    }
+                )
+            }
+
+            context("when scope = live") {
+                context("updating via model mapping methods") {
+                    val updated by memoized {
+                        transaction {
+                            setCurrentTenantId(tenantId)
+                            tenant1Record1.title = newTitle
+                            table.update(tenant1Record1)
+                        }
+                    }
+
+                    it("updates") {
+                        correctlyUpdates { updated }
+                    }
+                }
+
+                context("updating directly via the sql dsl") {
+                    val updated by memoized {
+                        transaction {
+                            persisted
+                            setCurrentTenantId(tenantId)
+                            directUpdateFunc(
+                                tenant1Record1,
+                                newTitle,
+                                DestroyableTenantScope.LIVE_FOR_TENANT
+                            ) == 1
+                        }
+                    }
+
+                    it("updates") {
+                        correctlyUpdates { updated }
+                    }
+                }
+            }
+
+            context("when scope = destroyed") {
+                context("updating via model mapping methods") {
+                    val updated by memoized {
+                        transaction {
+                            setCurrentTenantId(tenantId)
+                            tenant1Record1.title = newTitle
+                            table.destroyed().update(tenant1Record1)
+                        }
+                    }
+
+                    it("updates") {
+                        persisted should satisfy {
+                            size == 4 && first().title == tenant1Record1.title
+                        }
+                        updated should equal(false)
+                        reloaded should beAnUnOrderedCollectionOf(
+                            satisfy<M> {
+                                this.let(Model<*>::isPersisted) &&
+                                this.let(Model<*>::id) == tenant1Record1.id &&
+                                !isDestroyed() &&
+                                this.tenantId == tenantId &&
+                                title == tenant1RecordsFunc().first().title
+                            }, satisfy<M> {
+                                this.let(Model<*>::isPersisted) &&
+                                this.let(Model<*>::id) == tenant1Record2.id &&
+                                !isDestroyed() &&
+                                this.tenantId == tenantId &&
+                                title == tenant1Record2.title
+                            }, satisfy<M> {
+                                this.let(Model<*>::isPersisted) &&
+                                this.let(Model<*>::id) == tenant2Record1.id &&
+                                !isDestroyed() &&
+                                this.tenantId == otherTenantId &&
+                                title == tenant2Record1.title
+                            }, satisfy<M> {
+                                this.let(Model<*>::isPersisted) &&
+                                this.let(Model<*>::id) == tenant2Record2.id &&
+                                !isDestroyed() &&
+                                this.tenantId == otherTenantId &&
+                                title == tenant2Record2.title
+                            }
+                        )
+                    }
+                }
+
+                context("updating directly via the sql dsl") {
+                    val updated by memoized {
+                        transaction {
+                            persisted
+                            setCurrentTenantId(tenantId)
+                            directUpdateFunc(
+                                tenant1Record1,
+                                newTitle,
+                                DestroyableTenantScope.DELETED_FOR_TENANT
+                            )
+                        }
+                    }
+
+                    it("updates") {
+                        persisted should satisfy {
+                            size == 4 && first().title == tenant1Record1.title
+                        }
+                        updated should equal(0)
+                        reloaded should beAnUnOrderedCollectionOf(
+                            satisfy<M> {
+                                this.let(Model<*>::isPersisted) &&
+                                this.let(Model<*>::id) == tenant1Record1.id &&
+                                !isDestroyed() &&
+                                this.tenantId == tenantId &&
+                                title == tenant1RecordsFunc().first().title
+                            }, satisfy<M> {
+                                this.let(Model<*>::isPersisted) &&
+                                this.let(Model<*>::id) == tenant1Record2.id &&
+                                !isDestroyed() &&
+                                this.tenantId == tenantId &&
+                                title == tenant1Record2.title
+                            }, satisfy<M> {
+                                this.let(Model<*>::isPersisted) &&
+                                this.let(Model<*>::id) == tenant2Record1.id &&
+                                !isDestroyed() &&
+                                this.tenantId == otherTenantId &&
+                                title == tenant2Record1.title
+                            }, satisfy<M> {
+                                this.let(Model<*>::isPersisted) &&
+                                this.let(Model<*>::id) == tenant2Record2.id &&
+                                !isDestroyed() &&
+                                this.tenantId == otherTenantId &&
+                                title == tenant2Record2.title
+                            }
+                        )
+                    }
+                }
+            }
+
+            context("when scope = liveAndDestroyed") {
+                context("updating via model mapping methods") {
+                    val updated by memoized {
+                        transaction {
+                            setCurrentTenantId(tenantId)
+                            tenant1Record1.title = newTitle
+                            table.liveAndDestroyed().update(tenant1Record1)
+                        }
+                    }
+
+                    it("updates") {
+                        correctlyUpdates { updated }
+                    }
+                }
+
+                context("updating directly via the sql dsl") {
+                    val updated by memoized {
+                        transaction {
+                            persisted
+                            setCurrentTenantId(tenantId)
+                            directUpdateFunc(
+                                tenant1Record1,
+                                newTitle,
+                                DestroyableTenantScope.LIVE_AND_DESTROYED_FOR_CURRENT_TENANT
+                            )
+                        }
+                    }
+
+                    it("updates") {
+                        correctlyUpdates { updated == 1 }
+                    }
+                }
+            }
+
+            context("when scope = liveForAllTenants") {
+                context("updating via model mapping methods") {
+                    val updated by memoized {
+                        transaction {
+                            setCurrentTenantId(tenantId)
+                            tenant1Record1.title = newTitle
+                            table.liveForAllTenants().update(tenant1Record1)
+                        }
+                    }
+
+                    it("updates") {
+                        correctlyUpdates { updated }
+                    }
+                }
+
+                context("updating directly via the sql dsl") {
+                    val updated by memoized {
+                        transaction {
+                            persisted
+                            setCurrentTenantId(tenantId)
+                            directUpdateFunc(
+                                tenant1Record1,
+                                newTitle,
+                                DestroyableTenantScope.LIVE_FOR_ALL_TENANTS
+                            )
+                        }
+                    }
+
+                    it("updates") {
+                        correctlyUpdates { updated == 1 }
+                    }
+                }
+            }
+
+            context("when all scopes have been striped") {
+                context("updating via model mapping methods") {
+                    val updated by memoized {
+                        transaction {
+                            setCurrentTenantId(tenantId)
+                            tenant1Record1.title = newTitle
+                            table.liveAndDestroyedForAllTenants()
+                                .update(tenant1Record1)
+                        }
+                    }
+
+                    it("updates") {
+                        correctlyUpdates { updated }
+                    }
+                }
+
+                context("updating directly via the sql dsl") {
+                    val updated by memoized {
+                        transaction {
+                            persisted
+                            setCurrentTenantId(tenantId)
+                            directUpdateFunc(
+                                tenant1Record1,
+                                newTitle,
+                                DestroyableTenantScope.LIVE_AND_DESTROYED_FOR_ALL_TENANTS
+                            )
+                        }
+                    }
+
+                    it("updates") {
+                        correctlyUpdates { updated == 1 }
+                    }
+                }
+            }
+
+            context("when scope = destroyedForAllTenants") {
+                context("updating via model mapping methods") {
+                    val updated by memoized {
+                        transaction {
+                            setCurrentTenantId(tenantId)
+                            tenant1Record1.title = newTitle
+                            table.destroyedForAllTenants().update(tenant1Record1)
+                        }
+                    }
+
+                    it("updates") {
+                        persisted should satisfy {
+                            size == 4 && first().title == tenant1Record1.title
+                        }
+                        updated should equal(false)
+                        reloaded should beAnUnOrderedCollectionOf(
+                            satisfy<M> {
+                                this.let(Model<*>::isPersisted) &&
+                                this.let(Model<*>::id) == tenant1Record1.id &&
+                                !isDestroyed() &&
+                                this.tenantId == tenantId &&
+                                title == tenant1RecordsFunc().first().title
+                            }, satisfy<M> {
+                                this.let(Model<*>::isPersisted) &&
+                                this.let(Model<*>::id) == tenant1Record2.id &&
+                                !isDestroyed() &&
+                                this.tenantId == tenantId &&
+                                title == tenant1Record2.title
+                            }, satisfy<M> {
+                                this.let(Model<*>::isPersisted) &&
+                                this.let(Model<*>::id) == tenant2Record1.id &&
+                                !isDestroyed() &&
+                                this.tenantId == otherTenantId &&
+                                title == tenant2Record1.title
+                            }, satisfy<M> {
+                                this.let(Model<*>::isPersisted) &&
+                                this.let(Model<*>::id) == tenant2Record2.id &&
+                                !isDestroyed() &&
+                                this.tenantId == otherTenantId &&
+                                title == tenant2Record2.title
+                            }
+                        )
+                    }
+                }
+
+                context("updating directly via the sql dsl") {
+                    val updated by memoized {
+                        transaction {
+                            persisted
+                            setCurrentTenantId(tenantId)
+                            directUpdateFunc(
+                                tenant1Record1,
+                                newTitle,
+                                DestroyableTenantScope.DELETED_FOR_ALL_TENANTS
+                            )
+                        }
+                    }
+
+                    it("updates") {
+                        persisted should satisfy {
+                            size == 4 && first().title == tenant1Record1.title
+                        }
+                        updated should equal(0)
+                        reloaded should beAnUnOrderedCollectionOf(
+                            satisfy<M> {
+                                this.let(Model<*>::isPersisted) &&
+                                this.let(Model<*>::id) == tenant1Record1.id &&
+                                !isDestroyed() &&
+                                this.tenantId == tenantId &&
+                                title == tenant1RecordsFunc().first().title
+                            }, satisfy<M> {
+                                this.let(Model<*>::isPersisted) &&
+                                this.let(Model<*>::id) == tenant1Record2.id &&
+                                !isDestroyed() &&
+                                this.tenantId == tenantId &&
+                                title == tenant1Record2.title
+                            }, satisfy<M> {
+                                this.let(Model<*>::isPersisted) &&
+                                this.let(Model<*>::id) == tenant2Record1.id &&
+                                !isDestroyed() &&
+                                this.tenantId == otherTenantId &&
+                                title == tenant2Record1.title
+                            }, satisfy<M> {
+                                this.let(Model<*>::isPersisted) &&
+                                this.let(Model<*>::id) == tenant2Record2.id &&
+                                !isDestroyed() &&
+                                this.tenantId == otherTenantId &&
+                                title == tenant2Record2.title
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+        context("attempting to update another tenant's records") {
+            context("updating via model mapping methods") {
+                val updated by memoized {
+                    setCurrentTenantId(otherTenantId)
+                    tenant1Record1.title = newTitle
+                    transaction { table.update(tenant1Record1) }
+                }
+
+                it("doesn't update because of tenant isolation") {
+                    persisted should satisfy {
+                        size == 4 && first().title == tenant1Record1.title
+                    }
+
+                    try {
+                        updated; fail("Expected a tenant error but non was raised.")
+                    } catch (e: TenantError) {
+                        e.message should satisfy { this == "Model ${tenant1Record1.id} can't be persisted because it doesn't belong to the current tenant." }
+                    }
+
+                    reloaded should beAnUnOrderedCollectionOf(
+                        satisfy<M> {
+                            this.let(Model<*>::isPersisted) &&
+                            this.let(Model<*>::id) == tenant1Record1.id &&
+                            !isDestroyed() &&
+                            this.tenantId == tenantId &&
+                            title == tenant1RecordsFunc().first().title
+                        }, satisfy<M> {
+                            this.let(Model<*>::isPersisted) &&
+                            this.let(Model<*>::id) == tenant1Record2.id &&
+                            !isDestroyed() &&
+                            this.tenantId == tenantId &&
+                            title == tenant1Record2.title
+                        }, satisfy<M> {
+                            this.let(Model<*>::isPersisted) &&
+                            this.let(Model<*>::id) == tenant2Record1.id &&
+                            !isDestroyed() &&
+                            this.tenantId == otherTenantId &&
+                            title == tenant2Record1.title
+                        }, satisfy<M> {
+                            this.let(Model<*>::isPersisted) &&
+                            this.let(Model<*>::id) == tenant2Record2.id &&
+                            !isDestroyed() &&
+                            this.tenantId == otherTenantId &&
+                            title == tenant2Record2.title
+                        }
+                    )
+                }
+            }
+
+
+            context("updating directly via the sql DSL") {
+                val updated by memoized {
+                    transaction {
+                        setCurrentTenantId(otherTenantId)
+                        directUpdateFunc(
+                            tenant1Record1,
+                            newTitle,
+                            DestroyableTenantScope.LIVE_FOR_TENANT
+                        )
+                    }
+                }
+
+                it("doesn't update because of tenant isolation") {
+                    persisted should satisfy {
+                        size == 4 && first().title == tenant1Record1.title
+                    }
+                    updated should equal(0)
+                    reloaded should beAnUnOrderedCollectionOf(
+                        satisfy<M> {
+                            this.let(Model<*>::isPersisted) &&
+                            this.let(Model<*>::id) == tenant1Record1.id &&
+                            !isDestroyed() &&
+                            this.tenantId == tenantId &&
+                            title == tenant1RecordsFunc().first().title
+                        }, satisfy<M> {
+                            this.let(Model<*>::isPersisted) &&
+                            this.let(Model<*>::id) == tenant1Record2.id &&
+                            !isDestroyed() &&
+                            this.tenantId == tenantId &&
+                            title == tenant1Record2.title
+                        }, satisfy<M> {
+                            this.let(Model<*>::isPersisted) &&
+                            this.let(Model<*>::id) == tenant2Record1.id &&
+                            !isDestroyed() &&
+                            this.tenantId == otherTenantId &&
+                            title == tenant2Record1.title
+                        }, satisfy<M> {
+                            this.let(Model<*>::isPersisted) &&
+                            this.let(Model<*>::id) == tenant2Record2.id &&
+                            !isDestroyed() &&
+                            this.tenantId == otherTenantId &&
+                            title == tenant2Record2.title
+                        }
+                    )
+                }
+            }
+        }
+
+        context("No tenant id set") {
+            context("updating via model mapping methods") {
+                val updated by memoized {
+                    clearCurrentTenantId<UUID>()
+                    transaction {
+                        tenant1Record1.title = newTitle
+                        table.update(tenant1Record1)
+                    }
+                }
+
+                it("doesn't update because of tenant isolation") {
+                    persisted should satisfy {
+                        size == 4 && first().title == tenant1Record1.title
+                    }
+
+                    try { updated; fail("Expected an error but non was raised.") }
+                    catch (e: Exception) { e.message should satisfy { this == "Model ${tenant1Record1.id} can't be persisted because There's no current tenant Id set." } }
+
+                    reloaded should beAnUnOrderedCollectionOf(
+                        satisfy<M> {
+                            this.let(Model<*>::isPersisted) &&
+                            this.let(Model<*>::id) == tenant1Record1.id &&
+                            !isDestroyed() &&
+                            this.tenantId == tenantId &&
+                            title == tenant1RecordsFunc().first().title
+                        }, satisfy<M> {
+                            this.let(Model<*>::isPersisted) &&
+                            this.let(Model<*>::id) == tenant1Record2.id &&
+                            !isDestroyed() &&
+                            this.tenantId == tenantId &&
+                            title == tenant1Record2.title
+                        }, satisfy<M> {
+                            this.let(Model<*>::isPersisted) &&
+                            this.let(Model<*>::id) == tenant2Record1.id &&
+                            !isDestroyed() &&
+                            this.tenantId == otherTenantId &&
+                            title == tenant2Record1.title
+                        }, satisfy<M> {
+                            this.let(Model<*>::isPersisted) &&
+                            this.let(Model<*>::id) == tenant2Record2.id &&
+                            !isDestroyed() &&
+                            this.tenantId == otherTenantId &&
+                            title == tenant2Record2.title
+                        }
+                    )
+                }
+            }
+
+            context("updating via the sql DSL") {
+                val updated by memoized {
+                    clearCurrentTenantId<UUID>()
+                    transaction {
+                        directUpdateFunc(tenant1Record1, newTitle, DestroyableTenantScope.LIVE_FOR_TENANT)
+                    }
+                }
+
+                it("doesn't update because of tenant isolation") {
+                    persisted should satisfy {
+                        size == 4 && first().title == tenant1Record1.title
+                    }
+                    updated should equal(0)
+                    reloaded should beAnUnOrderedCollectionOf(
+                        satisfy<M> {
+                            this.let(Model<*>::isPersisted) &&
+                            this.let(Model<*>::id) == tenant1Record1.id &&
+                            !isDestroyed() &&
+                            this.tenantId == tenantId &&
+                                    title == tenant1RecordsFunc().first().title
+                        }, satisfy<M> {
+                            this.let(Model<*>::isPersisted) &&
+                            this.let(Model<*>::id) == tenant1Record2.id &&
+                            !isDestroyed() &&
+                            this.tenantId == tenantId &&
+                            title == tenant1Record2.title
+                        }, satisfy<M> {
+                            this.let(Model<*>::isPersisted) &&
+                            this.let(Model<*>::id) == tenant2Record1.id &&
+                            !isDestroyed() &&
+                            this.tenantId == otherTenantId &&
+                            title == tenant2Record1.title
+                        }, satisfy<M> {
+                            this.let(Model<*>::isPersisted) &&
+                            this.let(Model<*>::id) == tenant2Record2.id &&
+                            !isDestroyed() &&
+                            this.tenantId == otherTenantId &&
+                            title == tenant2Record2.title
+                        }
+                    )
+                }
+            }
+        }
+    }
+}

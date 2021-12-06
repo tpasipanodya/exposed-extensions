@@ -8,6 +8,7 @@ import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 
 /**
@@ -46,11 +47,9 @@ interface TenantScopedTableTrait<ID : Comparable<ID>, TID: Comparable<TID>, M : 
         .let { super.delete(*models) }
 
     /** Where clause for tenant isolation */
-    fun currentTenantScope() = Op.build {
-        (CurrentTenantId.get() as TID?)
-            ?.let { safeTenantId -> tenantId eq safeTenantId }
-            ?: tenantId.isNull()
-    }
+    fun SqlExpressionBuilder.currentTenantScope() = (CurrentTenantId.get() as TID?)
+        ?.let { safeTenantId -> tenantId eq safeTenantId }
+        ?: tenantId.isNull()
 
     /** verify that a delete/destroy won't violate tenant isolation */
     fun validateDestruction(models: Array<out M>) = models.also {

@@ -29,7 +29,7 @@ abstract class DestroyableUuidTable<M : DestroyableModel<UUID>>(name: String)
 
     override fun destroyed() = View(this) { Op.build { destroyedAt.isNotNull() } }
 
-    override fun includingDestroyed() = View(this) {
+    override fun liveAndDestroyed() = View(this) {
         Op.build { destroyedAt.isNull() or destroyedAt.isNotNull() }
     }
 

@@ -22,6 +22,28 @@ interface TenantScopedDestroyableTableTrait<ID : Comparable<ID>, TID: Comparable
               T : IdTable<ID>,
               T:  DestroyableTableTrait<ID, M, T> {
 
+    /**
+     * Returns a version of this table that's scoped to destroyed entities for all tenants.
+     *
+     * i.e negates the soft delete scope and strips the current tenant scope.
+     */
+    fun destroyedForAllTenants() : T
+
+    /**
+     * Returns a version of this table that's scoped to both live and destroyed records for all tenants.
+     *
+     * i.e strips all scopes.
+     */
+    fun liveAndDestroyedForAllTenants() : T
+
+    /**
+     * returns a version of this table that's scoped to live records for all tenants.
+     *
+     * i.e strips the soft delete scope and leaves the current tenant scope intact.
+     *
+     */
+    fun liveForAllTenants() : T
+
     /** populate the model from a result row */
     override fun toModel(row: ResultRow) = super<TenantScopedTableTrait>
         .toModel(row)

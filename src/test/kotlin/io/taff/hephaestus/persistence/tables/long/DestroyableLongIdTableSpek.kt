@@ -4,12 +4,10 @@ package io.taff.hephaestus.persistence.tables.long
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.persistence.models.DestroyableModel
 import io.taff.hephaestus.persistence.models.Model
-import io.taff.hephaestus.persistence.tables.shared.Scope
+import io.taff.hephaestus.persistence.tables.shared.DestroyableScope
 import io.taff.hephaestus.persistence.tables.shared.TitleAware
-import io.taff.hephaestus.persistence.tables.shared.includeDestroyableModelSpeks
-import io.taff.hephaestus.persistence.tables.uuid.destroyableUuidTable
+import io.taff.hephaestus.persistence.tables.shared.includeDestroyableTableSpeks
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.spekframework.spek2.Spek
@@ -19,7 +17,8 @@ data class DestroyableLongIdRecord(override var title: String? = null,
                                    override var id: Long? = null,
                                    override var createdAt: Instant? = null,
                                    override var updatedAt: Instant? = null,
-                                   override var destroyedAt: Instant? = null) : TitleAware, Model<Long>, DestroyableModel<Long>
+                                   override var destroyedAt: Instant? = null)
+    : TitleAware, Model<Long>, DestroyableModel<Long>
 
 var titleColumn: Column<String>? = null
 val destroyableLongIdRecords = object : DestroyableLongIdTable<DestroyableLongIdRecord>("destroyable_long_id_records") {
@@ -40,15 +39,13 @@ object DestroyableLongIdTableSpek  :Spek({
 
     beforeEachTest { transaction { destroyableLongIdRecords.stripDefaultScope().deleteAll() } }
 
-    includeDestroyableModelSpeks(destroyableLongIdRecords,
+    includeDestroyableTableSpeks(destroyableLongIdRecords,
         recordFxn = { DestroyableLongIdRecord("Soul food") },
         directUpdate = { record, newTitle, scope ->
             when(scope) {
-                Scope.LIVE -> destroyableLongIdRecords
-                Scope.DELETED -> destroyableLongIdRecords.destroyed()
-                Scope.ALL -> destroyableLongIdRecords.includingDestroyed()
-            }.update({ destroyableLongIdRecords.id eq record.id }) {
-                it[titleColumn!!] = newTitle
-            }
+                DestroyableScope.LIVE -> destroyableLongIdRecords
+                DestroyableScope.DELETED -> destroyableLongIdRecords.destroyed()
+                DestroyableScope.ALL -> destroyableLongIdRecords.liveAndDestroyed()
+            }.update({ destroyableLongIdRecords.id eq record.id }) { it[titleColumn!!] = newTitle }
         })
 })

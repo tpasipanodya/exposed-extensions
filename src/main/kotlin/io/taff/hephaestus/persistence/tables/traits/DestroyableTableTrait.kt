@@ -14,20 +14,24 @@ import java.time.OffsetDateTime
  * @param M The model.
  * @param T The underlying exposed table concrete type.
  */
-interface DestroyableTableTrait<ID : Comparable<ID>, M : DestroyableModel<ID>, T >
+interface DestroyableTableTrait<ID : Comparable<ID>, M : DestroyableModel<ID>, T>
     : ModelMappingTableTrait<ID, M, T> where T : IdTable<ID>, T : ModelMappingTableTrait<ID, M, T>  {
 
     val destroyedAt: Column<Instant?>
 
     /**
      * Returns a copy of this table scoped to destroyed records only.
+     *
+     * i.e negates the soft delete scope.
      */
     fun destroyed() : T
 
     /**
      * Returns a copy of this table scoped to both live and destroyed records.
+     *
+     * i.e strips the soft delete scope.
      */
-    fun includingDestroyed() : T
+    fun liveAndDestroyed() : T
 
     /** populate the insert/update statements */
     override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M) {

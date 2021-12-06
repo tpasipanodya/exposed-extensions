@@ -10,6 +10,7 @@ import io.taff.hephaestus.persistence.clearCurrentTenantId
 import io.taff.hephaestus.persistence.models.DestroyableModel
 import io.taff.hephaestus.persistence.models.TenantScopedModel
 import io.taff.hephaestus.persistence.setCurrentTenantId
+import io.taff.hephaestus.persistence.tables.shared.includeTenantScopedDestroyableTableSpeks
 import io.taff.hephaestustest.expectation.any.equal
 import io.taff.hephaestustest.expectation.boolean.beTrue
 import org.jetbrains.exposed.sql.*
@@ -38,14 +39,6 @@ val tenantScopedDestroyableLongIdRecords = object : TenantScopedDestroyableLongI
     override fun initializeModel(row: ResultRow) = TenantScopedDestroyableLongIdRecord(title = row[title])
     override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: TenantScopedDestroyableLongIdRecord) {
         model.title?.let { stmt[title] = it }
-    }
-
-    override fun destroyed(): TenantScopedDestroyableLongIdTable<Long, TenantScopedDestroyableLongIdRecord> {
-        TODO("Not yet implemented")
-    }
-
-    override fun includingDestroyed(): TenantScopedDestroyableLongIdTable<Long, TenantScopedDestroyableLongIdRecord> {
-        TODO("Not yet implemented")
     }
 }
 
