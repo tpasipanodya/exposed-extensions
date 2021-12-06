@@ -196,7 +196,7 @@ where T : DestroyableTableTrait<ID, M, T>,
                             persisted
                              table.destroy(persisted)
                             directUpdate(persisted, newTitle, Scope.LIVE)
-                        }gi
+                        }
                     }
 
                     it("does not modify the record") {
