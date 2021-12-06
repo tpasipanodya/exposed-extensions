@@ -14,7 +14,7 @@ import java.time.Instant.now
  * @param TID The concrete tenantId type.
  * @param M The concrete model type.
  */
-abstract class TenantScopedDestroyableLongIdTable<TID : Comparable<TID>, M>(val name: String, )
+abstract class TenantScopedDestroyableLongIdTable<TID : Comparable<TID>, M>(name: String, )
     : LongIdTable(name),
     TenantScopedDestroyableTableTrait<Long, TID, M, TenantScopedDestroyableLongIdTable<TID, M>>
         where M : TenantScopedModel<Long, TID>, M : DestroyableModel<Long> {

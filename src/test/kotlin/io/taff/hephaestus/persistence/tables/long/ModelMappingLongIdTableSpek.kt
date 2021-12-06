@@ -7,6 +7,7 @@ import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.helpers.isNull
 import io.taff.hephaestus.persistence.PersistenceError
 import io.taff.hephaestus.persistence.models.Model
+import io.taff.hephaestustest.expectation.any.equal
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -71,20 +72,13 @@ object ModelMappingLongIdTableSpek  : Spek({
             val persisted by memoized { transaction { longIdRecords.insert(record) } }
             val updated by memoized {
                 transaction {
-                    longIdRecords
-                        .update(this, persisted[0].copy(title = newTitle))
-                        .first()
+                    longIdRecords.update(persisted[0].copy(title = newTitle))
                 }
             }
             val reloaded by memoized { transaction { longIdRecords.selectAll().map(longIdRecords::toModel) } }
 
             it("modifies the record") {
-                updated should satisfy {
-                    this != persisted[0] &&
-                    isPersisted() &&
-                    title == newTitle
-                }
-
+                updated should beTrue()
                 reloaded should satisfy {
                     size == 1 &&
                     first().let {
@@ -100,9 +94,7 @@ object ModelMappingLongIdTableSpek  : Spek({
             val record by memoized { LongIdRecord("Soul food") }
             val updated by memoized {
                 transaction {
-                    longIdRecords
-                        .update(this, record.copy(title = newTitle))
-                        .first()
+                    longIdRecords.update(record.copy(title = newTitle))
                 }
             }
 
@@ -141,10 +133,7 @@ object ModelMappingLongIdTableSpek  : Spek({
 
             val deleted = transaction { longIdRecords.delete(persisted) }
 
-            deleted should satisfy {
-                toList().size == 1 &&
-                first().title == persisted.title
-            }
+            deleted should equal(true)
             reloaded should satisfy { isEmpty() }
         }
     }

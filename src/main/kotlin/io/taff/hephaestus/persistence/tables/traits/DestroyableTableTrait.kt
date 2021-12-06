@@ -14,10 +14,20 @@ import java.time.OffsetDateTime
  * @param M The model.
  * @param T The underlying exposed table concrete type.
  */
-interface DestroyableTableTrait<ID : Comparable<ID>, M : DestroyableModel<ID>, T : IdTable<ID>>
-    : ModelMappingTableTrait<ID, M, T> {
+interface DestroyableTableTrait<ID : Comparable<ID>, M : DestroyableModel<ID>, T >
+    : ModelMappingTableTrait<ID, M, T> where T : IdTable<ID>, T : ModelMappingTableTrait<ID, M, T>  {
 
     val destroyedAt: Column<Instant?>
+
+    /**
+     * Returns a copy of this table scoped to destroyed records only.
+     */
+    fun destroyed() : T
+
+    /**
+     * Returns a copy of this table scoped to both live and destroyed records.
+     */
+    fun includingDestroyed() : T
 
     /** populate the insert/update statements */
     override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M) {
@@ -30,12 +40,12 @@ interface DestroyableTableTrait<ID : Comparable<ID>, M : DestroyableModel<ID>, T
         .also { it.destroyedAt = row[destroyedAt] }
 
     /** Hard delete */
-    override fun delete(vararg models: M) = super
-        .delete(*models)
-        .onEach { it.markAsDestroyed() }
+    override fun delete(vararg models: M) = models.onEach { it.markAsDestroyed() }
+        .let { super.delete(*models) }
+
 
     /** Soft delete */
-    fun destroy(transaction: Transaction, vararg models: M) = models
+    fun destroy(vararg models: M) = models
         .onEach { it.markAsDestroyed() }
-        .let { update(transaction, *it) }
+        .let { update(*it) }
 }

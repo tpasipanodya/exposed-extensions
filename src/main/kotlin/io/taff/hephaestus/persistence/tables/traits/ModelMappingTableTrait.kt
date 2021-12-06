@@ -8,6 +8,7 @@ import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.BatchUpdateStatement
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
+import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
 
@@ -30,7 +31,7 @@ interface ModelMappingTableTrait<ID : Comparable<ID>, M : Model<ID>, T : IdTable
 
     /**
      * Transform a ResultRow to a fully initialized model with all attributes
-     * from the xresult row set. This merges the model mapping logic you specified
+     * from the result row set. This merges the model mapping logic you specified
      * with the table-specific base attribute mapping Hephaestus performs inside appendModelAttributes.
      *
      * Use this to transform your result rows into models.
@@ -52,18 +53,21 @@ interface ModelMappingTableTrait<ID : Comparable<ID>, M : Model<ID>, T : IdTable
 
     /**
      * Update an ordered list of models.
+     *
+     * Returns true when all models are updated, otherwise false.
      */
-    fun update(transaction: Transaction, vararg models: M) = models.also {
-        BatchUpdateStatement(self()).apply {
-            models.forEach { model ->
-                model.id?.let { modelId ->
-                    addBatch(createEntityID(modelId, self()))
-                    appendStatementValues(this, model)
-                    appendBaseStatementValues(this, model)
-                    model.id?.let { safeId -> this[id] = createEntityID(safeId, self()) }
-                } ?: throw PersistenceError.UnpersistedUpdateError(model)
+    fun update(vararg models: M) = models.let {
+        self().batchUpdate(
+            models.toList(),
+            id = { model ->
+                model.id?.let { createEntityID(it, self()) }
+                    ?: throw PersistenceError.UnpersistedUpdateError(it)
+            },
+            body = { model ->
+                appendStatementValues(this, model)
+                appendBaseStatementValues(this, model)
             }
-        }.execute(transaction)
+        ) == models.size
     }
 
     fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M) {
@@ -71,11 +75,11 @@ interface ModelMappingTableTrait<ID : Comparable<ID>, M : Model<ID>, T : IdTable
     }
 
     /** Delete a list of models */
-    fun delete(vararg models: M) = models.also {
-        val ids = models.mapNotNull { it.id }
-        val idColumn = id
-        transaction { self().deleteWhere { idColumn inList ids } }
-    }
-
-    /** populate insert/update statements */
+    fun delete(vararg models: M) = models.mapNotNull { it.id }
+        .let { ids ->
+            val idColumn = id
+            transaction {
+                self().deleteWhere { idColumn inList ids }
+            } == models.size
+        }
 }

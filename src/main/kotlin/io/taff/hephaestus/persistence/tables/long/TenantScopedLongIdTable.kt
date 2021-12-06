@@ -12,7 +12,7 @@ import java.time.Instant.now
  * @param TID The concrete tenantId type.
  * @param M The concrete model type.
  */
-abstract class TenantScopedLongIdTable<TID : Comparable<TID>, M : TenantScopedModel<Long, TID>>(val name: String)
+abstract class TenantScopedLongIdTable<TID : Comparable<TID>, M : TenantScopedModel<Long, TID>>(name: String)
     :LongIdTable(name = name), TenantScopedTableTrait<Long, TID, M, TenantScopedLongIdTable<TID, M>> {
 
     override val createdAt = timestamp("created_at").clientDefault { now() }

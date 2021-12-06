@@ -42,8 +42,7 @@ interface TenantScopedTableTrait<ID : Comparable<ID>, TID: Comparable<TID>, M : 
     }
 
     /** Hard delete the provided records and raise a TenantError if they don't belong to the current tenant */
-    override fun delete(vararg models: M) = models
-        .also { validateDestruction(it) }
+    override fun delete(vararg models: M) = validateDestruction(models)
         .let { super.delete(*models) }
 
     /** Where clause for tenant isolation */

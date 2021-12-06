@@ -13,7 +13,7 @@ import java.util.*
  * @param TID The concrete tenantId type.
  * @param M The concrete model type.
  */
-abstract class TenantScopedUuidTable<TID : Comparable<TID>, M : TenantScopedModel<UUID, TID>>(val name: String)
+abstract class TenantScopedUuidTable<TID : Comparable<TID>, M : TenantScopedModel<UUID, TID>>(name: String)
     :UUIDTable(name = name), TenantScopedTableTrait<UUID, TID, M, TenantScopedUuidTable<TID, M>> {
 
     override val createdAt = timestamp("created_at").clientDefault { now() }

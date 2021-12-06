@@ -4,9 +4,10 @@ import io.taff.hephaestus.persistence.models.DestroyableModel
 import io.taff.hephaestus.persistence.models.TenantScopedModel
 import io.taff.hephaestus.persistence.tables.traits.TenantScopedDestroyableTableTrait
 import org.jetbrains.exposed.dao.id.UUIDTable
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.javatime.timestamp
 import java.time.Instant.now
-import java.util.*
+import java.util.UUID
 
 /**
  * A table that enforces tenant isolation unless explicitly requested not to.
@@ -15,7 +16,7 @@ import java.util.*
  * @param TID The concrete tenantId type.
  * @param M The concrete model type.
  */
-abstract class TenantScopedDestroyableUuidTable<TID : Comparable<TID>, M>(val name: String, )
+abstract class TenantScopedDestroyableUuidTable<TID : Comparable<TID>, M>(name: String, )
     : UUIDTable(name),
     TenantScopedDestroyableTableTrait<UUID, TID, M, TenantScopedDestroyableUuidTable<TID, M>>
         where M : TenantScopedModel<UUID, TID>, M :  DestroyableModel<UUID> {
@@ -23,6 +24,7 @@ abstract class TenantScopedDestroyableUuidTable<TID : Comparable<TID>, M>(val na
     override val createdAt = timestamp("created_at").clientDefault { now() }
     override val updatedAt = timestamp("updated_at").clientDefault { now() }
     override val destroyedAt = timestamp("destroyed_at").nullable()
+    override val defaultScope = { Op.build { destroyedAt.isNull() } }
 
     override fun self() = this
 }

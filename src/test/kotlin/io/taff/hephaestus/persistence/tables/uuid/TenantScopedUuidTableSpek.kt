@@ -9,6 +9,8 @@ import io.taff.hephaestus.persistence.TenantError
 import io.taff.hephaestus.persistence.clearCurrentTenantId
 import io.taff.hephaestus.persistence.models.TenantScopedModel
 import io.taff.hephaestus.persistence.setCurrentTenantId
+import io.taff.hephaestustest.expectation.any.equal
+import io.taff.hephaestustest.expectation.boolean.beTrue
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -135,20 +137,13 @@ object TenantScopedUuidTableSpek : Spek({
                 transaction {
                     setCurrentTenantId(tenantId)
                     tenantScopedUuidRecords
-                        .update(this, persisted.copy(title = newTitle))
-                        .first()
+                        .update(persisted.copy(title = newTitle))
                 }
             }
 
             it("updates") {
                 persisted should satisfy { title == record.title }
-
-                updated should satisfy {
-                    isPersisted() &&
-                        title == newTitle &&
-                        this.tenantId == tenantId
-                }
-
+                updated should beTrue()
                 reloaded should satisfy {
                     size == 1 &&
                     first().let {
@@ -166,7 +161,7 @@ object TenantScopedUuidTableSpek : Spek({
                 setCurrentTenantId(otherTenantId)
                 transaction {
                     tenantScopedUuidRecords
-                      .update(this, persisted.copy(title = newTitle))
+                      .update(persisted.copy(title = newTitle))
                 }
             }
 
@@ -193,7 +188,7 @@ object TenantScopedUuidTableSpek : Spek({
                 clearCurrentTenantId<UUID>()
                 transaction {
                     tenantScopedUuidRecords
-                      .update(this, persisted.copy(title = newTitle))
+                      .update(persisted.copy(title = newTitle))
                 }
             }
 
@@ -243,7 +238,7 @@ object TenantScopedUuidTableSpek : Spek({
             }
 
             it("deletes the records") {
-                deleted should satisfy { size == 1 }
+                deleted should equal(true)
 
                 remaining should satisfy {
                     size == 2 &&
