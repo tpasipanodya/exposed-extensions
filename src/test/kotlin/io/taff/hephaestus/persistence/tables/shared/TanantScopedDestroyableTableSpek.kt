@@ -1,5 +1,6 @@
 package io.taff.hephaestus.persistence.tables.shared
 
+import io.taff.hephaestus.helpers.isNull
 import io.taff.hephaestus.persistence.TenantError
 import io.taff.hephaestus.persistence.clearCurrentTenantId
 import io.taff.hephaestus.persistence.models.DestroyableModel
@@ -710,6 +711,218 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedD
                             this.tenantId == otherTenantId &&
                             title == tenant2Record2.title
                         }
+                    )
+                }
+            }
+        }
+    }
+
+    describe("delete") {
+        context("when scope = live") {
+            context("with tenant id correctly set") {
+                val deleted by memoized {
+                    transaction {
+                        setCurrentTenantId(tenantId)
+                        table.delete(tenant1Record1)
+                    }
+                }
+
+                it("hard deletes the record") {
+                    persisted should satisfy { all(Model<ID>::isPersisted) }
+                    deleted should equal(true)
+                    reloaded should beAnUnOrderedCollectionOf(
+                        satisfy<M> { title == tenant1Record2.title },
+                        satisfy<M> { title == tenant2Record1.title },
+                        satisfy<M> { title == tenant2Record2.title }
+                    )
+                    tenant1Record1 should satisfy { !destroyedAt.isNull() }
+                }
+            }
+
+            context("attempting to delete another tenant's records") {
+                val deleted by memoized {
+                    setCurrentTenantId(otherTenantId)
+                    transaction { table.delete(tenant1Record1) }
+                }
+
+                it("doesn't delete the record because of tenant isolation") {
+                    persisted should satisfy { all(Model<ID>::isPersisted) }
+
+                    try {
+                        deleted; fail("Expected an exception to be raised but none was")
+                    } catch (e: TenantError) {
+                        e.message should satisfy { this == "Cannot destroy models because they belong to a different tenant." }
+                    }
+
+                    reloaded should beAnUnOrderedCollectionOf(
+                        satisfy<M> { title == tenant1Record1.title && destroyedAt.isNull() },
+                        satisfy<M> { title == tenant1Record2.title && destroyedAt.isNull() },
+                        satisfy<M> { title == tenant2Record1.title && destroyedAt.isNull() },
+                        satisfy<M> { title == tenant2Record2.title && destroyedAt.isNull() }
+                    )
+                }
+            }
+        }
+
+        context("when scope = destroyed") {
+            context("with tenant id correctly set") {
+                val deleted by memoized {
+                    transaction {
+                        setCurrentTenantId(tenantId)
+                        table.destroyed().delete(tenant1Record1)
+                    }
+                }
+
+                it("hard deletes the record") {
+                    persisted should satisfy { all(Model<ID>::isPersisted) }
+                    deleted should equal(false)
+                    reloaded should beAnUnOrderedCollectionOf(
+                        satisfy<M> { title == tenant1Record2.title },
+                        satisfy<M> { title == tenant2Record1.title },
+                        satisfy<M> { title == tenant2Record2.title }
+                    )
+                    tenant1Record1 should satisfy { destroyedAt.isNull() }
+                }
+            }
+
+            context("attempting to delete another tenant's records") {
+                val deleted by memoized {
+                    setCurrentTenantId(otherTenantId)
+                    transaction { table.destroyed().delete(tenant1Record1) }
+                }
+
+                it("doesn't delete the record because of tenant isolation") {
+                    persisted should satisfy { all(Model<ID>::isPersisted) }
+
+                    try { deleted; fail("Expected an exception to be raised but none was") }
+                    catch (e: TenantError) { e.message should satisfy { this == "Cannot destroy models because they belong to a different tenant." } }
+
+                    reloaded should beAnUnOrderedCollectionOf(
+                        satisfy<M> { title == tenant1Record1.title && destroyedAt.isNull() },
+                        satisfy<M> { title == tenant1Record2.title && destroyedAt.isNull() },
+                        satisfy<M> { title == tenant2Record1.title && destroyedAt.isNull() },
+                        satisfy<M> { title == tenant2Record2.title && destroyedAt.isNull() }
+                    )
+                }
+            }
+        }
+
+        context("when scope = destroyedForAllTenants") {
+            context("with tenant id correctly set") {
+                val deleted by memoized {
+                    transaction {
+                        setCurrentTenantId(tenantId)
+                        table.destroyedForAllTenants().delete(tenant1Record1)
+                    }
+                }
+
+                it("hard deletes the record") {
+                    persisted should satisfy { all(Model<ID>::isPersisted) }
+                    deleted should equal(false)
+                    reloaded should beAnUnOrderedCollectionOf(
+                        satisfy<M> { title == tenant1Record2.title && destroyedAt.isNull() },
+                        satisfy<M> { title == tenant2Record1.title && destroyedAt.isNull() },
+                        satisfy<M> { title == tenant2Record2.title && destroyedAt.isNull() }
+                    )
+                    tenant1Record1 should satisfy { destroyedAt.isNull() }
+                }
+            }
+
+            context("attempting to delete another tenant's records") {
+                val deleted by memoized {
+                    setCurrentTenantId(otherTenantId)
+                    transaction { table.destroyedForAllTenants().delete(tenant1Record1) }
+                }
+
+                it("doesn't delete the record because of tenant isolation") {
+                    persisted should satisfy { all(Model<ID>::isPersisted) }
+                    deleted should equal(true)
+                    reloaded should beAnUnOrderedCollectionOf(
+                        satisfy<M> { title == tenant1Record2.title && destroyedAt.isNull() },
+                        satisfy<M> { title == tenant2Record1.title && destroyedAt.isNull() },
+                        satisfy<M> { title == tenant2Record2.title && destroyedAt.isNull() }
+                    )
+                }
+            }
+        }
+
+        context("when scope = liveAndDestroyed") {
+            context("with tenant id correctly set") {
+                val deleted by memoized {
+                    transaction {
+                        setCurrentTenantId(tenantId)
+                        table.liveAndDestroyed().delete(tenant1Record1)
+                    }
+                }
+
+                it("hard deletes the record") {
+                    persisted should satisfy { all(Model<ID>::isPersisted) }
+                    deleted should equal(true)
+                    reloaded should beAnUnOrderedCollectionOf(
+                        satisfy<M> { title == tenant1Record2.title && destroyedAt.isNull() },
+                        satisfy<M> { title == tenant2Record1.title && destroyedAt.isNull() },
+                        satisfy<M> { title == tenant2Record2.title && destroyedAt.isNull() }
+                    )
+                    tenant1Record1 should satisfy { !destroyedAt.isNull() }
+                }
+            }
+
+            context("attempting to delete another tenant's records") {
+                val deleted by memoized {
+                    setCurrentTenantId(otherTenantId)
+                    transaction { table.liveAndDestroyed().delete(tenant1Record1) }
+                }
+
+                it("doesn't delete the record because of tenant isolation") {
+                    persisted should satisfy { all(Model<ID>::isPersisted) }
+
+                    try { deleted; fail("Expected an exception to be raised but none was") }
+                    catch (e: TenantError) { e.message should satisfy { this == "Cannot destroy models because they belong to a different tenant." } }
+
+                    reloaded should beAnUnOrderedCollectionOf(
+                        satisfy<M> { title == tenant1Record1.title && destroyedAt.isNull() },
+                        satisfy<M> { title == tenant1Record2.title && destroyedAt.isNull() },
+                        satisfy<M> { title == tenant2Record1.title && destroyedAt.isNull() },
+                        satisfy<M> { title == tenant2Record2.title && destroyedAt.isNull() }
+                    )
+                }
+            }
+        }
+
+        context("when scope = liveForAllTenants") {
+            context("with tenant id correctly set") {
+                val deleted by memoized {
+                    transaction {
+                        setCurrentTenantId(tenantId)
+                        table.liveForAllTenants().delete(tenant1Record1)
+                    }
+                }
+
+                it("hard deletes the record") {
+                    persisted should satisfy { all(Model<ID>::isPersisted) }
+                    deleted should equal(true)
+                    reloaded should beAnUnOrderedCollectionOf(
+                        satisfy<M> { title == tenant1Record2.title && destroyedAt.isNull() },
+                        satisfy<M> { title == tenant2Record1.title && destroyedAt.isNull()},
+                        satisfy<M> { title == tenant2Record2.title && destroyedAt.isNull() }
+                    )
+                    tenant1Record1 should satisfy { !destroyedAt.isNull() }
+                }
+            }
+
+            context("attempting to delete another tenant's records") {
+                val deleted by memoized {
+                    setCurrentTenantId(otherTenantId)
+                    transaction { table.liveAndDestroyedForAllTenants().delete(tenant1Record1) }
+                }
+
+                it("doesn't delete the record because of tenant isolation") {
+                    persisted should satisfy { all(Model<ID>::isPersisted) }
+                    deleted should equal(true)
+                    reloaded should beAnUnOrderedCollectionOf(
+                        satisfy<M> { title == tenant1Record2.title && destroyedAt.isNull() },
+                        satisfy<M> { title == tenant2Record1.title && destroyedAt.isNull() },
+                        satisfy<M> { title == tenant2Record2.title && destroyedAt.isNull() }
                     )
                 }
             }

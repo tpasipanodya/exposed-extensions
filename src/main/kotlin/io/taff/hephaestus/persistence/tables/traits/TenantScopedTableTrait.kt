@@ -31,15 +31,17 @@ interface TenantScopedTableTrait<ID : Comparable<ID>, TID: Comparable<TID>, M : 
 
 
     /** Set tenant Id on insert/update statements */
-    override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M) {
-        (CurrentTenantId.get() as TID?)
-            ?.let { safeTenantId ->
-                if (model.tenantId.isNull() || model.tenantId == safeTenantId) {
-                    stmt[tenantId] = safeTenantId
-                    model.tenantId = safeTenantId
-                } else throw TenantError("Model ${model.id} can't be persisted because it doesn't belong to the current tenant.")
-            } ?: throw TenantError("Model ${model.id} can't be persisted because There's no current tenant Id set.")
-        super.appendBaseStatementValues(stmt, model)
+    override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M, vararg skip: Column<*>) {
+        if (tenantId !in skip) {
+            (CurrentTenantId.get() as TID?)
+                ?.let { safeTenantId ->
+                    if (model.tenantId.isNull() || model.tenantId == safeTenantId) {
+                        stmt[tenantId] = safeTenantId
+                        model.tenantId = safeTenantId
+                    } else throw TenantError("Model ${model.id} can't be persisted because it doesn't belong to the current tenant.")
+                } ?: throw TenantError("Model ${model.id} can't be persisted because There's no current tenant Id set.")
+        }
+        super.appendBaseStatementValues(stmt, model, *skip)
     }
 
     /** Hard delete the provided records and raise a TenantError if they don't belong to the current tenant */

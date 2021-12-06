@@ -74,8 +74,10 @@ interface ModelMappingTableTrait<ID : Comparable<ID>, M : Model<ID>, T : IdTable
         ) == models.size
     }
 
-    fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M) {
-        model.id?.let { safeId -> stmt[id] = createEntityID(safeId, self()) }
+    fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M, vararg skip: Column<*>) {
+        if (self().id !in skip) {
+            model.id?.let { safeId -> stmt[id] = createEntityID(safeId, self()) }
+        }
     }
 
     /** Delete a list of models */

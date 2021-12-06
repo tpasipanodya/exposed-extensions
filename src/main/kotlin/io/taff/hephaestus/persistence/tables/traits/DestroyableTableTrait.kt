@@ -15,7 +15,7 @@ import java.time.OffsetDateTime
  * @param T The underlying exposed table concrete type.
  */
 interface DestroyableTableTrait<ID : Comparable<ID>, M : DestroyableModel<ID>, T>
-    : ModelMappingTableTrait<ID, M, T> where T : IdTable<ID>, T : ModelMappingTableTrait<ID, M, T>  {
+    : ModelMappingTableTrait<ID, M, T> where T : IdTable<ID>, T : DestroyableTableTrait<ID, M, T>  {
 
     val destroyedAt: Column<Instant?>
 
@@ -34,9 +34,11 @@ interface DestroyableTableTrait<ID : Comparable<ID>, M : DestroyableModel<ID>, T
     fun liveAndDestroyed() : T
 
     /** populate the insert/update statements */
-    override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M) {
-        model.destroyedAt?.let { stmt[destroyedAt] = it }
-        super.appendBaseStatementValues(stmt, model)
+    override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M, vararg skip: Column<*>) {
+        if (self().destroyedAt !in skip) {
+            model.destroyedAt?.let { stmt[destroyedAt] = it }
+        }
+        super.appendBaseStatementValues(stmt, model, *skip)
     }
 
     /** Set tenant Id on models loaded frm the DB */

@@ -69,54 +69,6 @@ object TenantScopedDestroyableUuidTableSpek : Spek({
         }.update({ Op.build { tenantScopedDestroyableUuidRecords.id eq record.id } }) { it[titleColumn!!] = newTitle }
     })
 
-
-//
-//    xdescribe("delete") {
-//        it("hard deletes the record") {
-//            persisted should satisfy { all { it.isPersisted() } }
-//
-//            val deleted = transaction { tenantScopedDestroyableUuidRecords.delete(tenant2Record2) }
-//
-//            deleted should equal(true)
-//
-//            reloaded should satisfy {
-//                size == 3 &&
-//                this[0].title == tenant1Record1.title &&
-//                this[1].title == tenant1Record2.title &&
-//                this[2].title == tenant2Record1.title
-//            }
-//
-//            tenant2Record2 should satisfy { !destroyedAt.isNull() }
-//        }
-//
-//        context("attempting to delete another tenant's records") {
-//            val deleted by memoized {
-//                setCurrentTenantId(tenantId)
-//                transaction { tenantScopedDestroyableUuidRecords.delete(tenant2Record2) }
-//            }
-//
-//            it("doesn't delete the record because of tenant isolation") {
-//                persisted should satisfy { all { it.isPersisted() } }
-//
-//                try {
-//                    deleted
-//                    fail("Expected an exception to be raised but none was")
-//                } catch(e: TenantError) {
-//                    e.message should satisfy {
-//                        this == "Cannot destroy models because they belong to a different tenant."
-//                    }
-//                }
-//
-//                reloaded should satisfy {
-//                    size == 4 &&
-//                    this[0].run { title == tenant1Record1.title && destroyedAt.isNull() } &&
-//                    this[1].run { title == tenant1Record2.title && destroyedAt.isNull() } &&
-//                    this[2].run { title == tenant2Record1.title && destroyedAt.isNull() } &&
-//                    this[3].run { title == tenant2Record2.title && destroyedAt.isNull() }
-//                }
-//            }
-//        }
-//    }
 //
 //    xdescribe("destroy") {
 //        val recordsFor = { tenantId: UUID ->

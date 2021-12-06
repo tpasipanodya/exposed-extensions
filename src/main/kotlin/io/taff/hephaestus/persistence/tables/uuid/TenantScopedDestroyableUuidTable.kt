@@ -37,19 +37,19 @@ abstract class TenantScopedDestroyableUuidTable<TID : Comparable<TID>, M>(name: 
         Op.build { currentTenantScope() }
     }
 
-    override fun destroyedForAllTenants() = View(this) {
+    override fun destroyedForAllTenants() = VIewWithTenantScopeStriped(this) {
         Op.build { destroyedAt.isNotNull() }
     }
 
-    override fun liveAndDestroyedForAllTenants() = View(this) {
+    override fun liveAndDestroyedForAllTenants() = VIewWithTenantScopeStriped(this) {
         Op.build { destroyedAt.isNull() or destroyedAt.isNotNull() }
     }
 
-    override fun liveForAllTenants() = View(this) {
+    override fun liveForAllTenants() = VIewWithTenantScopeStriped(this) {
         Op.build { destroyedAt.isNull() }
     }
 
-    class View<TID : Comparable<TID>, M>(private val actual: TenantScopedDestroyableUuidTable<TID, M>,
+    open class View<TID : Comparable<TID>, M>(private val actual: TenantScopedDestroyableUuidTable<TID, M>,
                                          override val defaultScope: () -> Op<Boolean>)
         : TenantScopedDestroyableUuidTable<TID, M>(actual.tableName),
         TenantScopedDestroyableTableTrait<UUID, TID, M, TenantScopedDestroyableUuidTable<TID, M>>
@@ -67,5 +67,14 @@ abstract class TenantScopedDestroyableUuidTable<TID : Comparable<TID>, M>(name: 
         override fun describe(s: Transaction, queryBuilder: QueryBuilder) = actual.describe(s, queryBuilder)
 
         override fun self() = this
+    }
+
+    class VIewWithTenantScopeStriped<TID : Comparable<TID>, M>(actual: TenantScopedDestroyableUuidTable<TID, M>,
+        override val defaultScope: () -> Op<Boolean>) : View<TID, M>(actual, defaultScope)
+            where M : TenantScopedModel<UUID, TID>, M :  DestroyableModel<UUID> {
+        override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M, vararg skip: Column<*>) {
+          super.appendBaseStatementValues(stmt, model, tenantId, *skip)
+        }
+        override  fun validateDestruction(models: Array<out M>) = models
     }
 }
