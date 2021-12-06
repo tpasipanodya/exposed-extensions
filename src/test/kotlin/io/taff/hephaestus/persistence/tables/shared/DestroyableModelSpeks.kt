@@ -194,9 +194,9 @@ where T : DestroyableTableTrait<ID, M, T>,
                     val updated by memoized {
                         transaction {
                             persisted
-                            table.destroy(persisted)
+                             table.destroy(persisted)
                             directUpdate(persisted, newTitle, Scope.LIVE)
-                        }
+                        }gi
                     }
 
                     it("does not modify the record") {
