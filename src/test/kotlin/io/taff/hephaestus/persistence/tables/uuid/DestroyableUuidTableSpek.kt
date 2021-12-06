@@ -6,7 +6,6 @@ import io.taff.hephaestus.persistence.models.Model
 import io.taff.hephaestus.persistence.tables.shared.Scope
 import io.taff.hephaestus.persistence.tables.shared.TitleAware
 import io.taff.hephaestus.persistence.tables.shared.includeDestroyableModelSpeks
-//import io.taff.hephaestus.persistence.tables.shared.includeDestroyableModelSpeks
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
