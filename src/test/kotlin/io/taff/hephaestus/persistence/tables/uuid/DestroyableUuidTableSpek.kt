@@ -40,15 +40,15 @@ object DestroyableUuidTableSpek  : Spek({
     beforeEachTest { transaction { destroyableUuidTable.stripDefaultScope().deleteAll() } }
 
 
-    includeDestroyableModelSpeks(destroyableUuidTable,
-        recordFxn = { DestroyableUuidRecord(title = "Soul Food") },
-        directUpdate = { record, newTitle, scope ->
-            when(scope) {
-                Scope.LIVE -> destroyableUuidTable
-                Scope.DELETED -> destroyableUuidTable.destroyed()
-                Scope.ALL -> destroyableUuidTable.includingDestroyed()
-            }.update({ destroyableUuidTable.id eq record.id }) {
-                it[titleColumn!!] = newTitle
-            }
-        })
+//    includeDestroyableModelSpeks(destroyableUuidTable,
+//        recordFxn = { DestroyableUuidRecord(title = "Soul Food") },
+//        directUpdate = { record, newTitle, scope ->
+//            when(scope) {
+//                Scope.LIVE -> destroyableUuidTable
+//                Scope.DELETED -> destroyableUuidTable.destroyed()
+//                Scope.ALL -> destroyableUuidTable.includingDestroyed()
+//            }.update({ destroyableUuidTable.id eq record.id }) {
+//                it[titleColumn!!] = newTitle
+//            }
+//        })
 })

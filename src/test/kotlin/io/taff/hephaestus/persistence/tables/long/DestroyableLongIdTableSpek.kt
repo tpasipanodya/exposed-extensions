@@ -24,6 +24,9 @@ data class DestroyableLongIdRecord(override var title: String? = null,
 var titleColumn: Column<String>? = null
 val destroyableLongIdRecords = object : DestroyableLongIdTable<DestroyableLongIdRecord>("destroyable_long_id_records") {
     val title = varchar("title", 50)
+
+    init { titleColumn = title }
+
     override fun initializeModel(row: ResultRow) = DestroyableLongIdRecord(title = row[title])
     override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: DestroyableLongIdRecord) {
         model.title?.let { stmt[title] = it }

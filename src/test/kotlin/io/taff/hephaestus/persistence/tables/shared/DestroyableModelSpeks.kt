@@ -193,6 +193,7 @@ where T : DestroyableTableTrait<ID, M, T>,
                 context("without model mapping") {
                     val updated by memoized {
                         transaction {
+                            persisted
                             table.destroy(persisted)
                             directUpdate(persisted, newTitle, Scope.LIVE)
                         }
