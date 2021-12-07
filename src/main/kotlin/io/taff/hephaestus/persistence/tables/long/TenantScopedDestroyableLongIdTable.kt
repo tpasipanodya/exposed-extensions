@@ -8,6 +8,7 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.timestamp
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import java.time.Instant.now
+import java.util.*
 
 /**
  * A table that enforces tenant isolation unless explicitly requested not to.
@@ -24,6 +25,7 @@ abstract class TenantScopedDestroyableLongIdTable<TID : Comparable<TID>, M>(name
     override val createdAt = timestamp("created_at").clientDefault { now() }
     override val updatedAt = timestamp("updated_at").clientDefault { now() }
     override val destroyedAt = timestamp("destroyed_at").nullable()
+    override val defaultScope = { Op.build { currentTenantScope() and destroyedAt.isNull() } }
 
     override fun self() = this
 
@@ -35,20 +37,20 @@ abstract class TenantScopedDestroyableLongIdTable<TID : Comparable<TID>, M>(name
         Op.build { currentTenantScope() }
     }
 
-    override fun destroyedForAllTenants() = View(this) {
+    override fun destroyedForAllTenants() = VIewWithTenantScopeStriped(this) {
         Op.build { destroyedAt.isNotNull() }
     }
 
-    override fun liveAndDestroyedForAllTenants() = View(this) {
+    override fun liveAndDestroyedForAllTenants() = VIewWithTenantScopeStriped(this) {
         Op.build { destroyedAt.isNull() or destroyedAt.isNotNull() }
     }
 
-    override fun liveForAllTenants() = View(this) {
+    override fun liveForAllTenants() = VIewWithTenantScopeStriped(this) {
         Op.build { destroyedAt.isNull() }
     }
 
-    class View<TID : Comparable<TID>, M>(private val actual: TenantScopedDestroyableLongIdTable<TID, M>,
-                                         override val defaultScope: () -> Op<Boolean>)
+    open class View<TID : Comparable<TID>, M>(private val actual: TenantScopedDestroyableLongIdTable<TID, M>,
+        override val defaultScope: () -> Op<Boolean>)
         : TenantScopedDestroyableLongIdTable<TID, M>(actual.tableName),
         TenantScopedDestroyableTableTrait<Long, TID, M, TenantScopedDestroyableLongIdTable<TID, M>>
             where M : TenantScopedModel<Long, TID>, M :  DestroyableModel<Long> {
@@ -65,5 +67,14 @@ abstract class TenantScopedDestroyableLongIdTable<TID : Comparable<TID>, M>(name
         override fun describe(s: Transaction, queryBuilder: QueryBuilder) = actual.describe(s, queryBuilder)
 
         override fun self() = this
+    }
+
+    class VIewWithTenantScopeStriped<TID : Comparable<TID>, M>(actual: TenantScopedDestroyableLongIdTable<TID, M>,
+        override val defaultScope: () -> Op<Boolean>) : View<TID, M>(actual, defaultScope)
+            where M : TenantScopedModel<Long, TID>, M :  DestroyableModel<Long> {
+        override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M, vararg skip: Column<*>) {
+            super.appendBaseStatementValues(stmt, model, tenantId, *skip)
+        }
+        override fun validateDestruction(models: Array<out M>) = models
     }
 }
