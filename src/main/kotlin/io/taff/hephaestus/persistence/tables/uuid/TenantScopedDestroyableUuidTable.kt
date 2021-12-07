@@ -75,6 +75,6 @@ abstract class TenantScopedDestroyableUuidTable<TID : Comparable<TID>, M>(name: 
         override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M, vararg skip: Column<*>) {
           super.appendBaseStatementValues(stmt, model, tenantId, *skip)
         }
-        override  fun validateDestruction(models: Array<out M>) = models
+        override fun validateDestruction(models: Array<out M>) = models
     }
 }

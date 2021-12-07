@@ -16,8 +16,7 @@ import org.jetbrains.exposed.sql.statements.UpdateBuilder
  * @param T The underlying exposed table's concrete type.
  */
 interface TenantScopedDestroyableTableTrait<ID : Comparable<ID>, TID: Comparable<TID>, M, T>
-    :TenantScopedTableTrait<ID, TID, M, T>,
-    DestroyableTableTrait<ID, M, T>
+    :TenantScopedTableTrait<ID, TID, M, T>, DestroyableTableTrait<ID, M, T>
         where M : TenantScopedModel<ID, TID>,
               M : DestroyableModel<ID>,
               T : IdTable<ID>,
@@ -61,6 +60,7 @@ interface TenantScopedDestroyableTableTrait<ID : Comparable<ID>, TID: Comparable
 
 
     override fun destroy(vararg models: M) =  validateDestruction(models)
+        .onEach(DestroyableModel<ID>::markAsDestroyed)
         .let(::update)
-        .also { modelsDestroyed -> if (modelsDestroyed) models.forEach { it.markAsDestroyed() } }
+        .also { modelsDestroyed -> if (!modelsDestroyed) models.forEach(DestroyableModel<ID>::markAsLive) }
 }

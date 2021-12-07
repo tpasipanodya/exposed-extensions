@@ -16,5 +16,9 @@ interface DestroyableModel<ID : Comparable<ID>> : Model<ID> {
         destroyedAt = Instant.now()
     }
 
+    fun markAsLive() {
+        destroyedAt = null
+    }
+
     fun isDestroyed() = !destroyedAt.isNull()
 }
