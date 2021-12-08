@@ -9,7 +9,7 @@ import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import java.time.Instant
 
 /**
- * A table that supports soft-deletes by setting the `destroyed_at` column on destruction.
+ * A table that supports soft-deletes by setting the `soft_deleted_at` column on destruction.
  * @param M The concrete model type.
  */
 abstract class SoftDeletableLongIdTable<M : SoftDeletableModel<Long>>(name: String)
@@ -17,15 +17,15 @@ abstract class SoftDeletableLongIdTable<M : SoftDeletableModel<Long>>(name: Stri
 
     override val createdAt = timestamp("created_at").clientDefault { Instant.now() }
     override val updatedAt = timestamp("updated_at").clientDefault { Instant.now() }
-    override val destroyedAt = timestamp("destroyed_at").nullable()
-    override val defaultScope = { Op.build { destroyedAt.isNull() } }
+    override val softDeletedAt = timestamp("soft_deleted_at").nullable()
+    override val defaultScope = { Op.build { softDeletedAt.isNull() } }
 
     override fun self() = this
 
-    override fun softDeleted() = View(this) { Op.build { destroyedAt.isNotNull() } }
+    override fun softDeleted() = View(this) { Op.build { softDeletedAt.isNotNull() } }
 
     override fun liveAndSoftDeleted() = View(this) {
-        Op.build { destroyedAt.isNull() or destroyedAt.isNotNull() }
+        Op.build { softDeletedAt.isNull() or softDeletedAt.isNotNull() }
     }
 
     class View<M : SoftDeletableModel<Long>>(private val actual: SoftDeletableLongIdTable<M>,

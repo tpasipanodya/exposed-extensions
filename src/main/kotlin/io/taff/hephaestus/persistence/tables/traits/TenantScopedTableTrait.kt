@@ -53,13 +53,13 @@ interface TenantScopedTableTrait<ID : Comparable<ID>, TID: Comparable<TID>, M : 
         ?.let { safeTenantId -> tenantId eq safeTenantId }
         ?: tenantId.isNull()
 
-    /** verify that a delete/destroy won't violate tenant isolation */
+    /** verify that a delete/softDelete won't violate tenant isolation */
     fun validateDestruction(models: Array<out M>) = models.also {
-        if (CurrentTenantId.get().isNull()) throw TenantError("Cannot destroy models because there is no CurrentTenantId.")
+        if (CurrentTenantId.get().isNull()) throw TenantError("Cannot delete models because there is no CurrentTenantId.")
 
         models.any { model -> model.tenantId != CurrentTenantId.get() }
             .also { belongsToOtherTenant ->
-                if (belongsToOtherTenant) throw TenantError("Cannot destroy models because they belong to a different tenant.")
+                if (belongsToOtherTenant) throw TenantError("Cannot delete models because they belong to a different tenant.")
             }
     }
 }

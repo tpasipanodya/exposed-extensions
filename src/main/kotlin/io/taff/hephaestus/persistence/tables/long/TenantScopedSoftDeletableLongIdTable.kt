@@ -11,7 +11,7 @@ import java.time.Instant.now
 
 /**
  * A table that enforces tenant isolation unless explicitly requested not to.
- * Also supports soft deletes by setting the`destroyed_at` column on destruction.
+ * Also supports soft deletes by setting the`soft_deleted_at` column on destruction.
  *
  * @param TID The concrete tenantId type.
  * @param M The concrete model type.
@@ -23,13 +23,13 @@ abstract class TenantScopedSoftDeletableLongIdTable<TID : Comparable<TID>, M>(na
 
     override val createdAt = timestamp("created_at").clientDefault { now() }
     override val updatedAt = timestamp("updated_at").clientDefault { now() }
-    override val destroyedAt = timestamp("destroyed_at").nullable()
-    override val defaultScope = { Op.build { currentTenantScope() and destroyedAt.isNull() } }
+    override val softDeletedAt = timestamp("soft_deleted_at").nullable()
+    override val defaultScope = { Op.build { currentTenantScope() and softDeletedAt.isNull() } }
 
     override fun self() = this
 
     override fun softDeleted() = View(this) {
-        Op.build { currentTenantScope() and destroyedAt.isNotNull() }
+        Op.build { currentTenantScope() and softDeletedAt.isNotNull() }
     }
 
     override fun liveAndSoftDeleted() = View(this) {
@@ -37,15 +37,15 @@ abstract class TenantScopedSoftDeletableLongIdTable<TID : Comparable<TID>, M>(na
     }
 
     override fun softDeletedForAllTenants() = VIewWithTenantScopeStriped(this) {
-        Op.build { destroyedAt.isNotNull() }
+        Op.build { softDeletedAt.isNotNull() }
     }
 
     override fun liveAndSoftDeletedForAllTenants() = VIewWithTenantScopeStriped(this) {
-        Op.build { destroyedAt.isNull() or destroyedAt.isNotNull() }
+        Op.build { softDeletedAt.isNull() or softDeletedAt.isNotNull() }
     }
 
     override fun liveForAllTenants() = VIewWithTenantScopeStriped(this) {
-        Op.build { destroyedAt.isNull() }
+        Op.build { softDeletedAt.isNull() }
     }
 
     open class View<TID : Comparable<TID>, M>(private val actual: TenantScopedSoftDeletableLongIdTable<TID, M>,

@@ -16,17 +16,17 @@ import java.time.Instant
 interface SoftDeletableTableTrait<ID : Comparable<ID>, M : SoftDeletableModel<ID>, T>
     : ModelMappingTableTrait<ID, M, T> where T : IdTable<ID>, T : SoftDeletableTableTrait<ID, M, T>  {
 
-    val destroyedAt: Column<Instant?>
+    val softDeletedAt: Column<Instant?>
 
     /**
-     * Returns a copy of this table scoped to destroyed records only.
+     * Returns a copy of this table scoped to soft deleted records only.
      *
      * i.e negates the soft delete scope.
      */
     fun softDeleted() : T
 
     /**
-     * Returns a copy of this table scoped to both live and destroyed records.
+     * Returns a copy of this table scoped to both live and soft deleted records.
      *
      * i.e strips the soft delete scope.
      */
@@ -34,15 +34,15 @@ interface SoftDeletableTableTrait<ID : Comparable<ID>, M : SoftDeletableModel<ID
 
     /** populate the insert/update statements */
     override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M, vararg skip: Column<*>) {
-        if (self().destroyedAt !in skip) {
-            model.softDeletedAt?.let { stmt[destroyedAt] = it }
+        if (self().softDeletedAt !in skip) {
+            model.softDeletedAt?.let { stmt[softDeletedAt] = it }
         }
         super.appendBaseStatementValues(stmt, model, *skip)
     }
 
     /** Set tenant Id on models loaded frm the DB */
     override fun toModel(row: ResultRow) = super.toModel(row)
-        .also { it.softDeletedAt = row[destroyedAt] }
+        .also { it.softDeletedAt = row[softDeletedAt] }
 
     /** Hard delete */
     override fun delete(vararg models: M) = models.onEach { it.markAsSoftDeleted() }

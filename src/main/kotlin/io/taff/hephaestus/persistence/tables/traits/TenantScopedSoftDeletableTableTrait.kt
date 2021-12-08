@@ -23,14 +23,14 @@ interface TenantScopedSoftDeletableTableTrait<ID : Comparable<ID>, TID: Comparab
               T:  SoftDeletableTableTrait<ID, M, T> {
 
     /**
-     * Returns a version of this table that's scoped to destroyed entities for all tenants.
+     * Returns a version of this table that's scoped to soft deleted entities for all tenants.
      *
      * i.e negates the soft delete scope and strips the current tenant scope.
      */
     fun softDeletedForAllTenants() : T
 
     /**
-     * Returns a version of this table that's scoped to both live and destroyed records for all tenants.
+     * Returns a version of this table that's scoped to both live and soft deleted records for all tenants.
      *
      * i.e strips all scopes.
      */
@@ -47,7 +47,7 @@ interface TenantScopedSoftDeletableTableTrait<ID : Comparable<ID>, TID: Comparab
     /** populate the model from a result row */
     override fun toModel(row: ResultRow) = super<TenantScopedTableTrait>
         .toModel(row)
-        .also { it.softDeletedAt = row[destroyedAt] }
+        .also { it.softDeletedAt = row[softDeletedAt] }
 
     /** populate insert/update statements */
     override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M, vararg skip: Column<*>) {
@@ -62,5 +62,5 @@ interface TenantScopedSoftDeletableTableTrait<ID : Comparable<ID>, TID: Comparab
     override fun softDelete(vararg models: M) =  validateDestruction(models)
         .onEach(SoftDeletableModel<ID>::markAsSoftDeleted)
         .let(::update)
-        .also { modelsDestroyed -> if (!modelsDestroyed) models.forEach(SoftDeletableModel<ID>::markAsLive) }
+        .also { modelisSoftDeleted -> if (!modelisSoftDeleted) models.forEach(SoftDeletableModel<ID>::markAsLive) }
 }
