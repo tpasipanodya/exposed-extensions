@@ -1054,9 +1054,9 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                         persisted should satisfy { all(Model<ID>::isPersisted) }
                         deleted should equal(true)
                         reloaded should beAnUnOrderedCollectionOf(
-                            satisfy<M> { title == tenant1Record2.title },
-                            satisfy<M> { title == tenant2Record1.title },
-                            satisfy<M> { title == tenant2Record2.title }
+                            satisfy<M> { title == tenant1Record2.title && softDeletedAt.isNull() },
+                            satisfy<M> { title == tenant2Record1.title && softDeletedAt.isNull() },
+                            satisfy<M> { title == tenant2Record2.title && softDeletedAt.isNull() }
                         )
                         tenant1Record1 should satisfy { !softDeletedAt.isNull() }
                     }
@@ -1074,9 +1074,9 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                         persisted should satisfy { all(Model<ID>::isPersisted) }
                         deleted should equal(1)
                         reloaded should beAnUnOrderedCollectionOf(
-                            satisfy<M> { title == tenant1Record2.title },
-                            satisfy<M> { title == tenant2Record1.title },
-                            satisfy<M> { title == tenant2Record2.title }
+                            satisfy<M> { title == tenant1Record2.title && softDeletedAt.isNull() },
+                            satisfy<M> { title == tenant2Record1.title && softDeletedAt.isNull() },
+                            satisfy<M> { title == tenant2Record2.title && softDeletedAt.isNull() }
                         )
                     }
                 }
