@@ -1,15 +1,11 @@
 package io.taff.hephaestus.persistence.tables.uuid
 
-import io.taff.hephaestus.persistence.models.DestroyableModel
-import io.taff.hephaestus.persistence.tables.traits.DestroyableTableTrait
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.IdTable
-import org.jetbrains.exposed.dao.id.IdTableWithDefaultScopeStriped
+import io.taff.hephaestus.persistence.models.SoftDeletableModel
+import io.taff.hephaestus.persistence.tables.traits.SoftDeletableTableTrait
 import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.timestamp
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
-import java.time.Instant
 import java.time.Instant.now
 import java.util.*
 
@@ -17,8 +13,8 @@ import java.util.*
  * A table that supports soft-deletes by setting the `destroyed_at` column on destruction.
  * @param M The concrete model type.
  */
-abstract class DestroyableUuidTable<M : DestroyableModel<UUID>>(name: String)
-    : UUIDTable(name), DestroyableTableTrait<UUID, M, DestroyableUuidTable<M>> {
+abstract class SoftDeletableUuidTable<M : SoftDeletableModel<UUID>>(name: String)
+    : UUIDTable(name), SoftDeletableTableTrait<UUID, M, SoftDeletableUuidTable<M>> {
 
     override val createdAt = timestamp("created_at").clientDefault { now() }
     override val updatedAt = timestamp("updated_at").clientDefault { now() }
@@ -27,15 +23,15 @@ abstract class DestroyableUuidTable<M : DestroyableModel<UUID>>(name: String)
 
     override fun self() = this
 
-    override fun destroyed() = View(this) { Op.build { destroyedAt.isNotNull() } }
+    override fun softDeleted() = View(this) { Op.build { destroyedAt.isNotNull() } }
 
-    override fun liveAndDestroyed() = View(this) {
+    override fun liveAndSoftDeleted() = View(this) {
         Op.build { destroyedAt.isNull() or destroyedAt.isNotNull() }
     }
 
-    class View<M : DestroyableModel<UUID>>(private val actual: DestroyableUuidTable<M>,
+    class View<M : SoftDeletableModel<UUID>>(private val actual: SoftDeletableUuidTable<M>,
                                            override val defaultScope: () -> Op<Boolean>)
-        : DestroyableUuidTable<M>(actual.tableName), DestroyableTableTrait<UUID, M, DestroyableUuidTable<M>> {
+        : SoftDeletableUuidTable<M>(actual.tableName), SoftDeletableTableTrait<UUID, M, SoftDeletableUuidTable<M>> {
 
         override val columns: List<Column<*>> = actual.columns
 

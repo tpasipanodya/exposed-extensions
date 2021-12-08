@@ -270,7 +270,7 @@ object TenantScopedLongIdTableSpek : Spek({
                 try {
                     deleted; fail("Expected an error to be raised but non was")
                 } catch (e: TenantError) {
-                    e.message should satisfy { this == "Cannot destroy models because they belong to a different tenant." }
+                    e.message should satisfy { this == "Cannot delete models because they belong to a different tenant." }
                 }
 
                 remaining should satisfy {
@@ -290,11 +290,8 @@ object TenantScopedLongIdTableSpek : Spek({
 
             it("doesn't delete the records") {
                 persisted should satisfy { !isNull() }
-                try {
-                    deleted; fail("Expected an error to be raised but non was")
-                } catch (e: TenantError) {
-                    e.message should satisfy { this == "Cannot destroy models because there is no CurrentTenantId." }
-                }
+                try { deleted; fail("Expected an error to be raised but non was") }
+                catch (e: TenantError) { e.message should satisfy { this == "Cannot delete models because there is no CurrentTenantId." } }
                 remaining should satisfy { size == 3 }
             }
         }

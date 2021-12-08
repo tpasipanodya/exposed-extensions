@@ -2,8 +2,8 @@ package io.taff.hephaestus.persistence.tables.shared
 
 import io.taff.hephaestus.helpers.isNull
 import io.taff.hephaestus.persistence.PersistenceError
-import io.taff.hephaestus.persistence.models.DestroyableModel
-import io.taff.hephaestus.persistence.tables.traits.DestroyableTableTrait
+import io.taff.hephaestus.persistence.models.SoftDeletableModel
+import io.taff.hephaestus.persistence.tables.traits.SoftDeletableTableTrait
 import io.taff.hephaestustest.expectation.any.equal
 import io.taff.hephaestustest.expectation.any.satisfy
 import io.taff.hephaestustest.expectation.boolean.beFalse
@@ -18,20 +18,20 @@ import org.junit.jupiter.api.fail
 import org.spekframework.spek2.dsl.Root
 import org.spekframework.spek2.style.specification.describe
 
-enum class DestroyableScope {
+enum class SoftDeletableScope {
     LIVE,
     DELETED,
     ALL
 }
 
-fun <ID : Comparable<ID>, M, T> Root.includeDestroyableTableSpeks(
+fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
     table: T,
     recordFxn: () -> M,
-    directUpdate: (model: M, newTitle: String, scope: DestroyableScope) -> Int
-) where T : DestroyableTableTrait<ID, M, T>,
+    directUpdate: (model: M, newTitle: String, scope: SoftDeletableScope) -> Int
+) where T : SoftDeletableTableTrait<ID, M, T>,
         T : IdTable<ID>,
-        M : DestroyableModel<ID>,
-        M : TitleAware = describe("destroyable table speks") {
+        M : SoftDeletableModel<ID>,
+        M : TitleAware = describe("soft deletable table speks") {
 
     val record by memoized { recordFxn() }
     val persisted by memoized {
@@ -70,7 +70,7 @@ fun <ID : Comparable<ID>, M, T> Root.includeDestroyableTableSpeks(
             val selected by memoized {
                 transaction {
                     otherPersisted
-                    table.destroy(persisted)
+                    table.softDelete(persisted)
                     table.selectAll().map(table::toModel)
                 }
             }
@@ -83,18 +83,18 @@ fun <ID : Comparable<ID>, M, T> Root.includeDestroyableTableSpeks(
                         title == otherPersisted.title &&
                         !createdAt.isNull() &&
                         !updatedAt.isNull() &&
-                        destroyedAt.isNull()
+                        softDeletedAt.isNull()
                     }
                 }
             }
         }
 
-        context("destroyed scope") {
+        context("softDeleted scope") {
             val selected by memoized {
                 transaction {
                     otherPersisted
-                    table.destroy(persisted)
-                    table.destroyed().selectAll()
+                    table.softDelete(persisted)
+                    table.softDeleted().selectAll()
                         .map(table::toModel)
                 }
             }
@@ -106,18 +106,18 @@ fun <ID : Comparable<ID>, M, T> Root.includeDestroyableTableSpeks(
                         title == persisted.title &&
                         !createdAt.isNull() &&
                         !updatedAt.isNull() &&
-                        !destroyedAt.isNull()
+                        !softDeletedAt.isNull()
                     }
                 }
             }
         }
 
-        context("includingDestroyed scope") {
+        context("liveAndSoftDeleted scope") {
             val selected by memoized {
                 transaction {
                     otherPersisted
-                    table.destroy(persisted)
-                    table.liveAndDestroyed().selectAll()
+                    table.softDelete(persisted)
+                    table.liveAndSoftDeleted().selectAll()
                         .orderBy(table.id, SortOrder.ASC)
                         .map(table::toModel)
                 }
@@ -131,12 +131,12 @@ fun <ID : Comparable<ID>, M, T> Root.includeDestroyableTableSpeks(
                         title == otherPersisted.title &&
                         !createdAt.isNull() &&
                         !updatedAt.isNull() &&
-                        destroyedAt.isNull()
+                        softDeletedAt.isNull()
                     } && get(1).run {
                         title == persisted.title &&
                         !createdAt.isNull() &&
                         !updatedAt.isNull() &&
-                        !destroyedAt.isNull()
+                        !softDeletedAt.isNull()
                     }
                 }
             }
@@ -167,12 +167,12 @@ fun <ID : Comparable<ID>, M, T> Root.includeDestroyableTableSpeks(
             }
         }
 
-        context("when updating a destroyed record") {
+        context("when updating a soft deleted record") {
             context("when using the default scope") {
                 context("with model mapping") {
                     val updated by memoized {
                         transaction {
-                            table.destroy(persisted)
+                            table.softDelete(persisted)
                             persisted.title = newTitle
                             table.update(persisted)
                         }
@@ -195,8 +195,8 @@ fun <ID : Comparable<ID>, M, T> Root.includeDestroyableTableSpeks(
                     val updated by memoized {
                         transaction {
                             persisted
-                             table.destroy(persisted)
-                            directUpdate(persisted, newTitle, DestroyableScope.LIVE)
+                             table.softDelete(persisted)
+                            directUpdate(persisted, newTitle, SoftDeletableScope.LIVE)
                         }
                     }
 
@@ -214,13 +214,13 @@ fun <ID : Comparable<ID>, M, T> Root.includeDestroyableTableSpeks(
                 }
             }
 
-            context("When using the destroyed scope") {
+            context("When using the soft deleted scope") {
                 context("with model mapping") {
                     val updated by memoized {
                         transaction {
-                            table.destroy(persisted)
+                            table.softDelete(persisted)
                             persisted.title = newTitle
-                            table.destroyed().update(persisted)
+                            table.softDeleted().update(persisted)
                         }
                     }
 
@@ -232,7 +232,7 @@ fun <ID : Comparable<ID>, M, T> Root.includeDestroyableTableSpeks(
                                 it.title == newTitle &&
                                 !it.createdAt.isNull() &&
                                 !it.updatedAt.isNull() &&
-                                !it.destroyedAt.isNull()
+                                !it.softDeletedAt.isNull()
                             }
                         }
                     }
@@ -241,8 +241,8 @@ fun <ID : Comparable<ID>, M, T> Root.includeDestroyableTableSpeks(
                 context("without model mapping") {
                     val updated by memoized {
                         transaction {
-                            table.destroy(persisted)
-                            directUpdate(persisted, newTitle, DestroyableScope.DELETED)
+                            table.softDelete(persisted)
+                            directUpdate(persisted, newTitle, SoftDeletableScope.DELETED)
                         }
                     }
 
@@ -260,13 +260,13 @@ fun <ID : Comparable<ID>, M, T> Root.includeDestroyableTableSpeks(
                 }
             }
 
-            context("When using both live and destroyed scopes") {
+            context("When using both live and soft deleted scopes") {
                 context("with model mapping") {
                     val updated by memoized {
                         transaction {
-                            table.destroy(persisted)
+                            table.softDelete(persisted)
                             persisted.title = newTitle
-                            table.liveAndDestroyed().update(persisted)
+                            table.liveAndSoftDeleted().update(persisted)
                         }
                     }
 
@@ -278,7 +278,7 @@ fun <ID : Comparable<ID>, M, T> Root.includeDestroyableTableSpeks(
                                 it.title == newTitle &&
                                 !it.createdAt.isNull() &&
                                 !it.updatedAt.isNull() &&
-                                !it.destroyedAt.isNull()
+                                !it.softDeletedAt.isNull()
                             }
                         }
                     }
@@ -287,8 +287,8 @@ fun <ID : Comparable<ID>, M, T> Root.includeDestroyableTableSpeks(
                 context("without model maping"){
                     val updated by memoized {
                         transaction {
-                            table.destroy(persisted)
-                            directUpdate(persisted, newTitle, DestroyableScope.ALL)
+                            table.softDelete(persisted)
+                            directUpdate(persisted, newTitle, SoftDeletableScope.ALL)
                         }
                     }
 
@@ -350,16 +350,16 @@ fun <ID : Comparable<ID>, M, T> Root.includeDestroyableTableSpeks(
         }
     }
 
-    describe("destroy") {
-        val destroyed by memoized { transaction { table.destroy(persisted) } }
+    describe("softDelete") {
+        val softDeleted by memoized { transaction { table.softDelete(persisted) } }
 
         it("soft deletes the record") {
             persisted should satisfy { isPersisted() }
-            destroyed should beTrue()
+            softDeleted should beTrue()
             reloaded should satisfy {
                 size == 1 &&
                 first().title == persisted.title &&
-                !first().destroyedAt.isNull() }
+                !first().softDeletedAt.isNull() }
         }
     }
 }

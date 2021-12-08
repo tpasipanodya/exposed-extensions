@@ -1,8 +1,8 @@
 package io.taff.hephaestus.persistence.tables.uuid
 
-import io.taff.hephaestus.persistence.models.DestroyableModel
+import io.taff.hephaestus.persistence.models.SoftDeletableModel
 import io.taff.hephaestus.persistence.models.TenantScopedModel
-import io.taff.hephaestus.persistence.tables.traits.TenantScopedDestroyableTableTrait
+import io.taff.hephaestus.persistence.tables.traits.TenantScopedSoftDeletableTableTrait
 import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.timestamp
@@ -17,10 +17,10 @@ import java.util.UUID
  * @param TID The concrete tenantId type.
  * @param M The concrete model type.
  */
-abstract class TenantScopedDestroyableUuidTable<TID : Comparable<TID>, M>(name: String, )
+abstract class TenantScopedSoftDeletableUuidTable<TID : Comparable<TID>, M>(name: String, )
     : UUIDTable(name),
-    TenantScopedDestroyableTableTrait<UUID, TID, M, TenantScopedDestroyableUuidTable<TID, M>>
-        where M : TenantScopedModel<UUID, TID>, M :  DestroyableModel<UUID> {
+    TenantScopedSoftDeletableTableTrait<UUID, TID, M, TenantScopedSoftDeletableUuidTable<TID, M>>
+        where M : TenantScopedModel<UUID, TID>, M :  SoftDeletableModel<UUID> {
 
     override val createdAt = timestamp("created_at").clientDefault { now() }
     override val updatedAt = timestamp("updated_at").clientDefault { now() }
@@ -29,19 +29,19 @@ abstract class TenantScopedDestroyableUuidTable<TID : Comparable<TID>, M>(name: 
 
     override fun self() = this
 
-    override fun destroyed() = View(this) {
+    override fun softDeleted() = View(this) {
         Op.build { currentTenantScope() and destroyedAt.isNotNull() }
     }
 
-    override fun liveAndDestroyed() = View(this) {
+    override fun liveAndSoftDeleted() = View(this) {
         Op.build { currentTenantScope() }
     }
 
-    override fun destroyedForAllTenants() = VIewWithTenantScopeStriped(this) {
+    override fun softDeletedForAllTenants() = VIewWithTenantScopeStriped(this) {
         Op.build { destroyedAt.isNotNull() }
     }
 
-    override fun liveAndDestroyedForAllTenants() = VIewWithTenantScopeStriped(this) {
+    override fun liveAndSoftDeletedForAllTenants() = VIewWithTenantScopeStriped(this) {
         Op.build { destroyedAt.isNull() or destroyedAt.isNotNull() }
     }
 
@@ -49,11 +49,11 @@ abstract class TenantScopedDestroyableUuidTable<TID : Comparable<TID>, M>(name: 
         Op.build { destroyedAt.isNull() }
     }
 
-    open class View<TID : Comparable<TID>, M>(private val actual: TenantScopedDestroyableUuidTable<TID, M>,
+    open class View<TID : Comparable<TID>, M>(private val actual: TenantScopedSoftDeletableUuidTable<TID, M>,
                                          override val defaultScope: () -> Op<Boolean>)
-        : TenantScopedDestroyableUuidTable<TID, M>(actual.tableName),
-        TenantScopedDestroyableTableTrait<UUID, TID, M, TenantScopedDestroyableUuidTable<TID, M>>
-            where M : TenantScopedModel<UUID, TID>, M :  DestroyableModel<UUID> {
+        : TenantScopedSoftDeletableUuidTable<TID, M>(actual.tableName),
+        TenantScopedSoftDeletableTableTrait<UUID, TID, M, TenantScopedSoftDeletableUuidTable<TID, M>>
+            where M : TenantScopedModel<UUID, TID>, M :  SoftDeletableModel<UUID> {
 
         override val columns: List<Column<*>> = actual.columns
 
@@ -69,9 +69,9 @@ abstract class TenantScopedDestroyableUuidTable<TID : Comparable<TID>, M>(name: 
         override fun self() = this
     }
 
-    class VIewWithTenantScopeStriped<TID : Comparable<TID>, M>(actual: TenantScopedDestroyableUuidTable<TID, M>,
+    class VIewWithTenantScopeStriped<TID : Comparable<TID>, M>(actual: TenantScopedSoftDeletableUuidTable<TID, M>,
         override val defaultScope: () -> Op<Boolean>) : View<TID, M>(actual, defaultScope)
-            where M : TenantScopedModel<UUID, TID>, M :  DestroyableModel<UUID> {
+            where M : TenantScopedModel<UUID, TID>, M :  SoftDeletableModel<UUID> {
         override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M, vararg skip: Column<*>) {
           super.appendBaseStatementValues(stmt, model, tenantId, *skip)
         }
