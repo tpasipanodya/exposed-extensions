@@ -8,6 +8,7 @@ import io.taff.hephaestustest.expectation.any.equal
 import io.taff.hephaestustest.expectation.any.satisfy
 import io.taff.hephaestustest.expectation.boolean.beFalse
 import io.taff.hephaestustest.expectation.boolean.beTrue
+import io.taff.hephaestustest.expectation.iterable.beAnUnOrderedCollectionOf
 import io.taff.hephaestustest.expectation.should
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.SortOrder
@@ -123,22 +124,22 @@ fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
                 }
             }
 
-            it("doesn't load the record") {
-                selected should satisfy {
-                    size == 2 &&
-                    get(0).run {
+            it("loads all of the current tenant's records") {
+                selected should satisfy { size == 2 }
+                selected should beAnUnOrderedCollectionOf(
+                    satisfy<M> {
                         id == otherPersisted.id &&
                         title == otherPersisted.title &&
                         !createdAt.isNull() &&
                         !updatedAt.isNull() &&
                         softDeletedAt.isNull()
-                    } && get(1).run {
+                    },
+                    satisfy<M> {
                         title == persisted.title &&
                         !createdAt.isNull() &&
                         !updatedAt.isNull() &&
                         !softDeletedAt.isNull()
-                    }
-                }
+                    })
             }
         }
     }
