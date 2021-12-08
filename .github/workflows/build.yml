@@ -21,4 +21,4 @@ jobs:
           DB_URL: ${{ secrets.DB_URL }}
         with:
           gradle-version: 7.3
-          arguments: clean test build artifactoryPublish
+          arguments: clean test build artifactoryPublish --info

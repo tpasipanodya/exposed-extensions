@@ -8,6 +8,7 @@ import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 
 /**
@@ -30,15 +31,17 @@ interface TenantScopedTableTrait<ID : Comparable<ID>, TID: Comparable<TID>, M : 
 
 
     /** Set tenant Id on insert/update statements */
-    override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M) {
-        (CurrentTenantId.get() as TID?)
-            ?.let { safeTenantId ->
-                if (model.tenantId.isNull() || model.tenantId == safeTenantId) {
-                    stmt[tenantId] = safeTenantId
-                    model.tenantId = safeTenantId
-                } else throw TenantError("Model ${model.id} can't be persisted because it doesn't belong to the current tenant.")
-            } ?: throw TenantError("Model ${model.id} can't be persisted because There's no current tenant Id set.")
-        super.appendBaseStatementValues(stmt, model)
+    override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M, vararg skip: Column<*>) {
+        if (tenantId !in skip) {
+            (CurrentTenantId.get() as TID?)
+                ?.let { safeTenantId ->
+                    if (model.tenantId.isNull() || model.tenantId == safeTenantId) {
+                        stmt[tenantId] = safeTenantId
+                        model.tenantId = safeTenantId
+                    } else throw TenantError("Model ${model.id} can't be persisted because it doesn't belong to the current tenant.")
+                } ?: throw TenantError("Model ${model.id} can't be persisted because There's no current tenant Id set.")
+        }
+        super.appendBaseStatementValues(stmt, model, *skip)
     }
 
     /** Hard delete the provided records and raise a TenantError if they don't belong to the current tenant */
@@ -46,19 +49,17 @@ interface TenantScopedTableTrait<ID : Comparable<ID>, TID: Comparable<TID>, M : 
         .let { super.delete(*models) }
 
     /** Where clause for tenant isolation */
-    fun currentTenantScope() = Op.build {
-        (CurrentTenantId.get() as TID?)
-            ?.let { safeTenantId -> tenantId eq safeTenantId }
-            ?: tenantId.isNull()
-    }
+    fun SqlExpressionBuilder.currentTenantScope() = (CurrentTenantId.get() as TID?)
+        ?.let { safeTenantId -> tenantId eq safeTenantId }
+        ?: tenantId.isNull()
 
-    /** verify that a delete/destroy won't violate tenant isolation */
+    /** verify that a delete/softDelete won't violate tenant isolation */
     fun validateDestruction(models: Array<out M>) = models.also {
-        if (CurrentTenantId.get().isNull()) throw TenantError("Cannot destroy models because there is no CurrentTenantId.")
+        if (CurrentTenantId.get().isNull()) throw TenantError("Cannot delete models because there is no CurrentTenantId.")
 
         models.any { model -> model.tenantId != CurrentTenantId.get() }
             .also { belongsToOtherTenant ->
-                if (belongsToOtherTenant) throw TenantError("Cannot destroy models because they belong to a different tenant.")
+                if (belongsToOtherTenant) throw TenantError("Cannot delete models because they belong to a different tenant.")
             }
     }
 }

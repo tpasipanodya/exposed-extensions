@@ -43,7 +43,11 @@ interface ModelMappingTableTrait<ID : Comparable<ID>, M : Model<ID>, T : IdTable
             it.updatedAt = row[updatedAt]
         }
 
-    /** Insert an ordered list of models */
+    /**
+     * Insert an ordered list of models
+     * On failure, model ids won't be set and an exception may be thrown,
+     * effectively rolling back the transaction.
+     */
     fun insert(vararg models: M) = self().batchInsert(models.toList()) { model ->
         appendStatementValues(this, model)
         appendBaseStatementValues(this, model)
@@ -70,8 +74,10 @@ interface ModelMappingTableTrait<ID : Comparable<ID>, M : Model<ID>, T : IdTable
         ) == models.size
     }
 
-    fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M) {
-        model.id?.let { safeId -> stmt[id] = createEntityID(safeId, self()) }
+    fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M, vararg skip: Column<*>) {
+        if (self().id !in skip) {
+            model.id?.let { safeId -> stmt[id] = createEntityID(safeId, self()) }
+        }
     }
 
     /** Delete a list of models */

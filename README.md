@@ -119,10 +119,10 @@ data class Author(
   override var id: UUID? = null,
   override var createdAt: Instant? = null,
   override var updatedAt: Instant? = null
-) : DestroyableModel<UUID>
+) : SoftDeletableModel<UUID>
 
 // 2. Declare how it is stored
-val authors = object : DestroyableModelUuidTable<Author>("authors") {
+val authors = object : SoftDeletableModelUuidTable<Author>("authors") {
   val name = varchar("name", 50).nullable()
   override fun initializeModel(row: ResultRow) = Author(name = row[name])
   override fun appendStatementValues(stmt: UpdateBuilder<Int>, author: Author) {
@@ -139,10 +139,10 @@ val author = Author("Zeeya Merali")
 
 transaction {
   val persistedAuthor = authors.insert(author).first()
-  val destroyedAuthor = authors.destroy(author).first()
+  val softDeletedAuthor = authors.softDelete(author).first()
 
   // false
-  destroyedAuthor.destroyedAt.isNull()
+  softDeletedAuthor.softDeletedAt.isNull()
 }
 ```
 
@@ -186,14 +186,14 @@ transaction {
   // Fails
   setCurrentTenantId(otherTenantId)
   author.name = "Frank Herbert"
-  val destroyedAuthor = authors.update(author).first()
+  persistedAuthor = authors.update(author).first()
 }
 ```
 
 ### Tenant Isolation & Soft Deletes
 
-To use both, your data class should implement `TenantScopedModel` and `DestroyableModel`. For tables, use
-either `TenantScopedDestroyableLongIdTable` or `TenantScopedDestroyableUuidTable`.
+To use both, your data class should implement `TenantScopedModel` and `SoftDeletableModel`. For tables, use
+either `TenantScopedSoftDeletableLongIdTable` or `TenantScopedSoftDeletableUuidTable`.
 
 ### Postgres Columns
 

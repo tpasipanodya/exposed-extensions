@@ -9,7 +9,7 @@ internal var CurrentTenantId = ThreadLocal<Any>()
  * Set the current Tenant Id.
  */
 fun <ID> setCurrentTenantId(id: ID) = (CurrentTenantId.get() as ID)
-        .also {
+        .let {
             CurrentTenantId.set(id)
             CurrentTenantId.asContextElement()
         }

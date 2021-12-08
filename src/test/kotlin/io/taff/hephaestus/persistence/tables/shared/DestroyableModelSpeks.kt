@@ -2,12 +2,13 @@ package io.taff.hephaestus.persistence.tables.shared
 
 import io.taff.hephaestus.helpers.isNull
 import io.taff.hephaestus.persistence.PersistenceError
-import io.taff.hephaestus.persistence.models.DestroyableModel
-import io.taff.hephaestus.persistence.tables.traits.DestroyableTableTrait
+import io.taff.hephaestus.persistence.models.SoftDeletableModel
+import io.taff.hephaestus.persistence.tables.traits.SoftDeletableTableTrait
 import io.taff.hephaestustest.expectation.any.equal
 import io.taff.hephaestustest.expectation.any.satisfy
 import io.taff.hephaestustest.expectation.boolean.beFalse
 import io.taff.hephaestustest.expectation.boolean.beTrue
+import io.taff.hephaestustest.expectation.iterable.beAnUnOrderedCollectionOf
 import io.taff.hephaestustest.expectation.should
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.SortOrder
@@ -18,19 +19,20 @@ import org.junit.jupiter.api.fail
 import org.spekframework.spek2.dsl.Root
 import org.spekframework.spek2.style.specification.describe
 
-enum class Scope {
+enum class SoftDeletableScope {
     LIVE,
     DELETED,
     ALL
 }
 
-fun <ID : Comparable<ID>, M, T> Root.includeDestroyableModelSpeks(table: T,
-                                                                  recordFxn: () -> M,
-                                                                  directUpdate: (model: M, newTitle: String, scope: Scope) -> Int)
-where T : DestroyableTableTrait<ID, M, T>,
-      T : IdTable<ID>,
-      M : DestroyableModel<ID>,
-      M : TitleAware = describe("destroyable model speks") {
+fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
+    table: T,
+    recordFxn: () -> M,
+    directUpdate: (model: M, newTitle: String, scope: SoftDeletableScope) -> Int
+) where T : SoftDeletableTableTrait<ID, M, T>,
+        T : IdTable<ID>,
+        M : SoftDeletableModel<ID>,
+        M : TitleAware = describe("soft deletable table speks") {
 
     val record by memoized { recordFxn() }
     val persisted by memoized {
@@ -69,7 +71,7 @@ where T : DestroyableTableTrait<ID, M, T>,
             val selected by memoized {
                 transaction {
                     otherPersisted
-                    table.destroy(persisted)
+                    table.softDelete(persisted)
                     table.selectAll().map(table::toModel)
                 }
             }
@@ -82,18 +84,18 @@ where T : DestroyableTableTrait<ID, M, T>,
                         title == otherPersisted.title &&
                         !createdAt.isNull() &&
                         !updatedAt.isNull() &&
-                        destroyedAt.isNull()
+                        softDeletedAt.isNull()
                     }
                 }
             }
         }
 
-        context("destroyed scope") {
+        context("softDeleted scope") {
             val selected by memoized {
                 transaction {
                     otherPersisted
-                    table.destroy(persisted)
-                    table.destroyed().selectAll()
+                    table.softDelete(persisted)
+                    table.softDeleted().selectAll()
                         .map(table::toModel)
                 }
             }
@@ -105,39 +107,39 @@ where T : DestroyableTableTrait<ID, M, T>,
                         title == persisted.title &&
                         !createdAt.isNull() &&
                         !updatedAt.isNull() &&
-                        !destroyedAt.isNull()
+                        !softDeletedAt.isNull()
                     }
                 }
             }
         }
 
-        context("includingDestroyed scope") {
+        context("liveAndSoftDeleted scope") {
             val selected by memoized {
                 transaction {
                     otherPersisted
-                    table.destroy(persisted)
-                    table.includingDestroyed().selectAll()
+                    table.softDelete(persisted)
+                    table.liveAndSoftDeleted().selectAll()
                         .orderBy(table.id, SortOrder.ASC)
                         .map(table::toModel)
                 }
             }
 
-            it("doesn't load the record") {
-                selected should satisfy {
-                    size == 2 &&
-                    get(0).run {
+            it("loads all of the current tenant's records") {
+                selected should satisfy { size == 2 }
+                selected should beAnUnOrderedCollectionOf(
+                    satisfy<M> {
                         id == otherPersisted.id &&
                         title == otherPersisted.title &&
                         !createdAt.isNull() &&
                         !updatedAt.isNull() &&
-                        destroyedAt.isNull()
-                    } && get(1).run {
+                        softDeletedAt.isNull()
+                    },
+                    satisfy<M> {
                         title == persisted.title &&
                         !createdAt.isNull() &&
                         !updatedAt.isNull() &&
-                        !destroyedAt.isNull()
-                    }
-                }
+                        !softDeletedAt.isNull()
+                    })
             }
         }
     }
@@ -166,12 +168,12 @@ where T : DestroyableTableTrait<ID, M, T>,
             }
         }
 
-        context("when updating a destroyed record") {
+        context("when updating a soft deleted record") {
             context("when using the default scope") {
                 context("with model mapping") {
                     val updated by memoized {
                         transaction {
-                            table.destroy(persisted)
+                            table.softDelete(persisted)
                             persisted.title = newTitle
                             table.update(persisted)
                         }
@@ -194,8 +196,8 @@ where T : DestroyableTableTrait<ID, M, T>,
                     val updated by memoized {
                         transaction {
                             persisted
-                             table.destroy(persisted)
-                            directUpdate(persisted, newTitle, Scope.LIVE)
+                             table.softDelete(persisted)
+                            directUpdate(persisted, newTitle, SoftDeletableScope.LIVE)
                         }
                     }
 
@@ -213,13 +215,13 @@ where T : DestroyableTableTrait<ID, M, T>,
                 }
             }
 
-            context("When using the destroyed scope") {
+            context("When using the soft deleted scope") {
                 context("with model mapping") {
                     val updated by memoized {
                         transaction {
-                            table.destroy(persisted)
+                            table.softDelete(persisted)
                             persisted.title = newTitle
-                            table.destroyed().update(persisted)
+                            table.softDeleted().update(persisted)
                         }
                     }
 
@@ -231,7 +233,7 @@ where T : DestroyableTableTrait<ID, M, T>,
                                 it.title == newTitle &&
                                 !it.createdAt.isNull() &&
                                 !it.updatedAt.isNull() &&
-                                !it.destroyedAt.isNull()
+                                !it.softDeletedAt.isNull()
                             }
                         }
                     }
@@ -240,8 +242,8 @@ where T : DestroyableTableTrait<ID, M, T>,
                 context("without model mapping") {
                     val updated by memoized {
                         transaction {
-                            table.destroy(persisted)
-                            directUpdate(persisted, newTitle, Scope.DELETED)
+                            table.softDelete(persisted)
+                            directUpdate(persisted, newTitle, SoftDeletableScope.DELETED)
                         }
                     }
 
@@ -259,13 +261,13 @@ where T : DestroyableTableTrait<ID, M, T>,
                 }
             }
 
-            context("When using both live and destroyed scopes") {
+            context("When using both live and soft deleted scopes") {
                 context("with model mapping") {
                     val updated by memoized {
                         transaction {
-                            table.destroy(persisted)
+                            table.softDelete(persisted)
                             persisted.title = newTitle
-                            table.includingDestroyed().update(persisted)
+                            table.liveAndSoftDeleted().update(persisted)
                         }
                     }
 
@@ -277,7 +279,7 @@ where T : DestroyableTableTrait<ID, M, T>,
                                 it.title == newTitle &&
                                 !it.createdAt.isNull() &&
                                 !it.updatedAt.isNull() &&
-                                !it.destroyedAt.isNull()
+                                !it.softDeletedAt.isNull()
                             }
                         }
                     }
@@ -286,8 +288,8 @@ where T : DestroyableTableTrait<ID, M, T>,
                 context("without model maping"){
                     val updated by memoized {
                         transaction {
-                            table.destroy(persisted)
-                            directUpdate(persisted, newTitle, Scope.ALL)
+                            table.softDelete(persisted)
+                            directUpdate(persisted, newTitle, SoftDeletableScope.ALL)
                         }
                     }
 
@@ -349,16 +351,16 @@ where T : DestroyableTableTrait<ID, M, T>,
         }
     }
 
-    describe("destroy") {
-        val destroyed by memoized { transaction { table.destroy(persisted) } }
+    describe("softDelete") {
+        val softDeleted by memoized { transaction { table.softDelete(persisted) } }
 
         it("soft deletes the record") {
             persisted should satisfy { isPersisted() }
-            destroyed should beTrue()
+            softDeleted should beTrue()
             reloaded should satisfy {
                 size == 1 &&
                 first().title == persisted.title &&
-                !first().destroyedAt.isNull() }
+                !first().softDeletedAt.isNull() }
         }
     }
 }
