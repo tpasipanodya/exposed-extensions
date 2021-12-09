@@ -3,7 +3,6 @@ package io.taff.hephaestus.persistence.tables.uuid
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.persistence.models.SoftDeletableModel
 import io.taff.hephaestus.persistence.models.Model
-import io.taff.hephaestus.persistence.tables.shared.SoftDeletableScope
 import io.taff.hephaestus.persistence.tables.shared.TitleAware
 import io.taff.hephaestus.persistence.tables.shared.includeSoftDeletableTableSpeks
 import org.jetbrains.exposed.sql.*
@@ -21,10 +20,10 @@ data class SoftDeletableUuidRecord(override var title: String? = null,
     : TitleAware, Model<UUID>, SoftDeletableModel<UUID>
 
 
-var titleColumn: Column<String>? = null
+var softDeleteTitleColumn: Column<String>? = null
 val softDeletableUuidTable = object : SoftDeletableUuidTable<SoftDeletableUuidRecord>("soft_deletable_uuid_recogrds") {
     val title = varchar("title", 50)
-    init { titleColumn = title }
+    init { softDeleteTitleColumn = title }
 
     override fun initializeModel(row: ResultRow) = SoftDeletableUuidRecord(title = row[title])
     override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: SoftDeletableUuidRecord) {
@@ -41,13 +40,9 @@ object SoftDeletableUuidTableSpek  : Spek({
     beforeEachTest { transaction { softDeletableUuidTable.stripDefaultScope().deleteAll() } }
 
 
-    includeSoftDeletableTableSpeks(softDeletableUuidTable,
+    includeSoftDeletableTableSpeks(
+        softDeletableUuidTable,
         recordFxn = { SoftDeletableUuidRecord(title = "Soul Food") },
-        directUpdate = { record, newTitle, scope ->
-            when(scope) {
-                SoftDeletableScope.LIVE -> softDeletableUuidTable
-                SoftDeletableScope.DELETED -> softDeletableUuidTable.softDeleted()
-                SoftDeletableScope.ALL -> softDeletableUuidTable.liveAndSoftDeleted()
-            }.update({ softDeletableUuidTable.id eq record.id }) { it[titleColumn!!] = newTitle }
-        })
+        titleColumnRef = softDeleteTitleColumn!!
+    )
 })

@@ -22,6 +22,8 @@ interface TenantScopedSoftDeletableTableTrait<ID : Comparable<ID>, TID: Comparab
               T : IdTable<ID>,
               T:  SoftDeletableTableTrait<ID, M, T> {
 
+    override fun forAllTenants() = liveForAllTenants()
+
     /**
      * Returns a version of this table that's scoped to soft deleted entities for all tenants.
      *

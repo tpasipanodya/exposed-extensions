@@ -4,7 +4,6 @@ import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.persistence.clearCurrentTenantId
 import io.taff.hephaestus.persistence.models.SoftDeletableModel
 import io.taff.hephaestus.persistence.models.TenantScopedModel
-import io.taff.hephaestus.persistence.tables.shared.SoftDeletableTenantScope
 import io.taff.hephaestus.persistence.tables.shared.TitleAware
 import io.taff.hephaestus.persistence.tables.shared.includeTenantScopedSoftDeletableTableSpeks
 import org.jetbrains.exposed.sql.*
@@ -25,10 +24,10 @@ data class TenantScopedSoftDeletableLongIdRecord(
 ) : TitleAware, TenantScopedModel<Long, Long>, SoftDeletableModel<Long>
 
 /** Dummy tenant scoped t able for testing */
-var titleColumRef: Column<String>? = null
+var softDeleteTenantScopedTitleColumn: Column<String>? = null
 val tenantScopedSoftDeletableLongIdRecords = object : TenantScopedSoftDeletableLongIdTable<Long, TenantScopedSoftDeletableLongIdRecord>("tenant_scoped_soft_deletable_long_id_records") {
     val title = varchar("title", 50)
-    init { titleColumRef = title }
+    init { softDeleteTenantScopedTitleColumn = title }
     override val tenantId: Column<Long> = long("tenant_id")
     override fun initializeModel(row: ResultRow) = TenantScopedSoftDeletableLongIdRecord(title = row[title])
     override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: TenantScopedSoftDeletableLongIdRecord) {
@@ -59,14 +58,6 @@ object TenantScopedSoftDeletableLongIdTableSpek : Spek({
                 TenantScopedSoftDeletableLongIdRecord("Smooth Soul food"),
                 TenantScopedSoftDeletableLongIdRecord("Bada-boom Soul food")
             )
-        }, directUpdateFunc = { record, newTitle, scope ->
-            when(scope) {
-                SoftDeletableTenantScope.LIVE_FOR_TENANT -> tenantScopedSoftDeletableLongIdRecords
-                SoftDeletableTenantScope.DELETED_FOR_TENANT -> tenantScopedSoftDeletableLongIdRecords.softDeleted()
-                SoftDeletableTenantScope.LIVE_AND_SOFT_DELETED_FOR_CURRENT_TENANT -> tenantScopedSoftDeletableLongIdRecords.liveAndSoftDeleted()
-                SoftDeletableTenantScope.LIVE_FOR_ALL_TENANTS -> tenantScopedSoftDeletableLongIdRecords.liveForAllTenants()
-                SoftDeletableTenantScope.DELETED_FOR_ALL_TENANTS -> tenantScopedSoftDeletableLongIdRecords.softDeletedForAllTenants()
-                SoftDeletableTenantScope.LIVE_AND_SOFT_DELETED_FOR_ALL_TENANTS -> tenantScopedSoftDeletableLongIdRecords.liveForAllTenants()
-            }.update({ Op.build { tenantScopedSoftDeletableLongIdRecords.id eq record.id } }) { it[titleColumRef!!] = newTitle }
-        })
+        }, titleColumnRef = softDeleteTenantScopedTitleColumn!!
+    )
 })

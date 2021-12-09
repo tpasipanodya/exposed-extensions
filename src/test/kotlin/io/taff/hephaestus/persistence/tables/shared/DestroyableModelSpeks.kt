@@ -11,24 +11,21 @@ import io.taff.hephaestustest.expectation.boolean.beTrue
 import io.taff.hephaestustest.expectation.iterable.beAnUnOrderedCollectionOf
 import io.taff.hephaestustest.expectation.should
 import org.jetbrains.exposed.dao.id.IdTable
+import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import org.junit.jupiter.api.fail
 import org.spekframework.spek2.dsl.Root
 import org.spekframework.spek2.style.specification.describe
 
-enum class SoftDeletableScope {
-    LIVE,
-    DELETED,
-    ALL
-}
 
 fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
     table: T,
     recordFxn: () -> M,
-    directUpdate: (model: M, newTitle: String, scope: SoftDeletableScope) -> Int
+    titleColumnRef: Column<String>
 ) where T : SoftDeletableTableTrait<ID, M, T>,
         T : IdTable<ID>,
         M : SoftDeletableModel<ID>,
@@ -196,8 +193,10 @@ fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
                     val updated by memoized {
                         transaction {
                             persisted
-                             table.softDelete(persisted)
-                            directUpdate(persisted, newTitle, SoftDeletableScope.LIVE)
+                            table.softDelete(persisted)
+                            table.update({ table.id eq persisted.id }){
+                                it[titleColumnRef] = newTitle
+                            }
                         }
                     }
 
@@ -243,7 +242,10 @@ fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
                     val updated by memoized {
                         transaction {
                             table.softDelete(persisted)
-                            directUpdate(persisted, newTitle, SoftDeletableScope.DELETED)
+                            table.softDeleted()
+                                .update({ table.id eq persisted.id }){
+                                    it[titleColumnRef] = newTitle
+                                }
                         }
                     }
 
@@ -289,7 +291,10 @@ fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
                     val updated by memoized {
                         transaction {
                             table.softDelete(persisted)
-                            directUpdate(persisted, newTitle, SoftDeletableScope.ALL)
+                            table.liveAndSoftDeleted()
+                                .update({ table.id eq persisted.id }){
+                                    it[titleColumnRef] = newTitle
+                                }
                         }
                     }
 

@@ -4,7 +4,6 @@ package io.taff.hephaestus.persistence.tables.long
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.persistence.models.SoftDeletableModel
 import io.taff.hephaestus.persistence.models.Model
-import io.taff.hephaestus.persistence.tables.shared.SoftDeletableScope
 import io.taff.hephaestus.persistence.tables.shared.TitleAware
 import io.taff.hephaestus.persistence.tables.shared.includeSoftDeletableTableSpeks
 import org.jetbrains.exposed.sql.*
@@ -20,11 +19,11 @@ data class SoftDeletableLongIdRecord(override var title: String? = null,
                                    override var softDeletedAt: Instant? = null)
     : TitleAware, Model<Long>, SoftDeletableModel<Long>
 
-var titleColumn: Column<String>? = null
+var softDeleteTitleColumn: Column<String>? = null
 val softDeletableLongIdRecords = object : SoftDeletableLongIdTable<SoftDeletableLongIdRecord>("soft_deletable_long_id_records") {
     val title = varchar("title", 50)
 
-    init { titleColumn = title }
+    init { softDeleteTitleColumn = title }
 
     override fun initializeModel(row: ResultRow) = SoftDeletableLongIdRecord(title = row[title])
     override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: SoftDeletableLongIdRecord) {
@@ -39,13 +38,9 @@ object SoftDeletableLongIdTableSpek  :Spek({
 
     beforeEachTest { transaction { softDeletableLongIdRecords.stripDefaultScope().deleteAll() } }
 
-    includeSoftDeletableTableSpeks(softDeletableLongIdRecords,
+    includeSoftDeletableTableSpeks(
+        softDeletableLongIdRecords,
         recordFxn = { SoftDeletableLongIdRecord("Soul food") },
-        directUpdate = { record, newTitle, scope ->
-            when(scope) {
-                SoftDeletableScope.LIVE -> softDeletableLongIdRecords
-                SoftDeletableScope.DELETED -> softDeletableLongIdRecords.softDeleted()
-                SoftDeletableScope.ALL -> softDeletableLongIdRecords.liveAndSoftDeleted()
-            }.update({ softDeletableLongIdRecords.id eq record.id }) { it[titleColumn!!] = newTitle }
-        })
+        titleColumnRef = softDeleteTitleColumn!!
+    )
 })
