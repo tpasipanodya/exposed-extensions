@@ -224,9 +224,9 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         updated should beTrue()
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
-                                id == tenant1Record &&
+                                id == tenant1Record.id &&
                                 title == newTitle &&
-                                isPersisted()
+                                isPersisted() &&
                                 !createdAt.isNull() &&
                                 !updatedAt.isNull()
                             }, satisfy<M> {
@@ -259,9 +259,9 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         updated should equal(1)
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
-                                id == tenant1Record &&
+                                id == tenant1Record.id &&
                                 title == newTitle &&
-                                isPersisted()
+                                isPersisted() &&
                                 !createdAt.isNull() &&
                                 !updatedAt.isNull()
                             }, satisfy<M> {
@@ -297,9 +297,9 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
 
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
-                                id == tenant1Record &&
+                                id == tenant1Record.id &&
                                 title == tenant1Record.title &&
-                                isPersisted()
+                                isPersisted() &&
                                 !createdAt.isNull() &&
                                 !updatedAt.isNull()
                             }, satisfy<M> {
@@ -331,9 +331,9 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         updated should equal(0)
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
-                                id == tenant1Record &&
+                                id == tenant1Record.id &&
                                 title == tenant1Record.title &&
-                                isPersisted()
+                                isPersisted() &&
                                 !createdAt.isNull() &&
                                 !updatedAt.isNull()
                             }, satisfy<M> {
@@ -363,15 +363,13 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
-
                         try { updated; fail("Expected an error but non was raised.") }
                         catch (e: Exception) { e.message should satisfy { this == "Model ${tenant1Record.id} can't be persisted because There's no current tenant Id set." } }
-
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
-                                id == tenant1Record &&
-                                title == tenant1Record.title &&
-                                isPersisted()
+                                id == tenant1Record.id &&
+                                title == tenant1RecordFunc().title &&
+                                isPersisted() &&
                                 !createdAt.isNull() &&
                                 !updatedAt.isNull()
                             }, satisfy<M> {
@@ -403,9 +401,9 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         updated should equal(0)
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
-                                id == tenant1Record &&
+                                id == tenant1Record.id &&
                                 title == tenant1Record.title &&
-                                isPersisted()
+                                isPersisted() &&
                                 !createdAt.isNull() &&
                                 !updatedAt.isNull()
                             }, satisfy<M> {
@@ -441,9 +439,9 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         reloaded should satisfy { size == 2 }
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
-                                id == tenant1Record &&
+                                id == tenant1Record.id &&
                                 title == newTitle &&
-                                isPersisted()
+                                isPersisted() &&
                                 !createdAt.isNull() &&
                                 !updatedAt.isNull()
                             }, satisfy<M> {
@@ -477,9 +475,9 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         reloaded should satisfy { size == 2 }
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
-                                id == tenant1Record &&
+                                id == tenant1Record.id &&
                                 title == newTitle &&
-                                isPersisted()
+                                isPersisted() &&
                                 !createdAt.isNull() &&
                                 !updatedAt.isNull()
                             }, satisfy<M> {
@@ -512,9 +510,9 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         updated should equal(true)
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
-                                id == tenant1Record &&
+                                id == tenant1Record.id &&
                                 title == tenant1Record.title &&
-                                isPersisted()
+                                isPersisted() &&
                                 !createdAt.isNull() &&
                                 !updatedAt.isNull()
                             }, satisfy<M> {
@@ -547,9 +545,9 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         updated should equal(1)
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
-                                id == tenant1Record &&
+                                id == tenant1Record.id &&
                                 title == tenant1Record.title &&
-                                isPersisted()
+                                isPersisted() &&
                                 !createdAt.isNull() &&
                                 !updatedAt.isNull()
                             }, satisfy<M> {
@@ -582,9 +580,9 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         updated should equal(true)
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
-                                id == tenant1Record &&
+                                id == tenant1Record.id &&
                                 title == newTitle &&
-                                isPersisted()
+                                isPersisted() &&
                                 !createdAt.isNull() &&
                                 !updatedAt.isNull()
                             }, satisfy<M> {
@@ -617,9 +615,9 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         updated should equal(1)
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
-                                id == tenant1Record &&
+                                id == tenant1Record.id &&
                                 title == newTitle &&
-                                isPersisted()
+                                isPersisted() &&
                                 !createdAt.isNull() &&
                                 !updatedAt.isNull()
                             }, satisfy<M> {
@@ -655,6 +653,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
                                 isPersisted() &&
+                                id == tenant2Record.id &&
                                 title == tenant2Record.title &&
                                 this.tenantId == otherTenantId &&
                                 !createdAt.isNull() &&
@@ -679,6 +678,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         reloaded should satisfy { size == 1 }
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
+                                id == tenant2Record.id &&
                                 isPersisted() &&
                                 title == tenant2Record.title &&
                                 this.tenantId == otherTenantId &&
@@ -710,6 +710,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         reloaded should satisfy { size == 2 }
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
+                                id == tenant1Record.id &&
                                 isPersisted() &&
                                 title == tenant1Record.title &&
                                 this.tenantId == tenantId &&
@@ -717,6 +718,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                                 !updatedAt.isNull()
                             },
                             satisfy<M> {
+                                id == tenant2Record.id &&
                                 isPersisted() &&
                                 title == tenant2Record.title &&
                                 this.tenantId == otherTenantId &&
@@ -744,6 +746,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         reloaded should satisfy { size == 2 }
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
+                                id == tenant1Record.id &&
                                 isPersisted() &&
                                 title == tenant1Record.title &&
                                 this.tenantId == tenantId &&
@@ -751,6 +754,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                                 !updatedAt.isNull()
                             },
                             satisfy<M> {
+                                id == tenant2Record.id &&
                                 isPersisted() &&
                                 title == tenant2Record.title &&
                                 this.tenantId == otherTenantId &&
@@ -782,6 +786,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         reloaded should satisfy { size == 2 }
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
+                                id == tenant1Record.id &&
                                 isPersisted() &&
                                 title == tenant1Record.title &&
                                 this.tenantId == tenantId &&
@@ -789,6 +794,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                                 !updatedAt.isNull()
                             },
                             satisfy<M> {
+                                id == tenant2Record.id &&
                                 isPersisted() &&
                                 title == tenant2Record.title &&
                                 this.tenantId == otherTenantId &&
@@ -817,18 +823,20 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
                                 isPersisted() &&
-                                        title == tenant1Record.title &&
-                                        this.tenantId == tenantId &&
-                                        !createdAt.isNull() &&
-                                        !updatedAt.isNull()
+                                id == tenant1Record.id &&
+                                title == tenant1Record.title &&
+                                this.tenantId == tenantId &&
+                                !createdAt.isNull() &&
+                                !updatedAt.isNull()
                             },
                             satisfy<M> {
                                 isPersisted() &&
-                                        title == tenant2Record.title &&
-                                        this.tenantId == otherTenantId &&
-                                        !createdAt.isNull() &&
-                                        !updatedAt.isNull()
-                            }
+                                id == tenant2Record.id &&
+                                title == tenant2Record.title &&
+                                this.tenantId == otherTenantId &&
+                                !createdAt.isNull() &&
+                                !updatedAt.isNull()
+                    }
                         )
                     }
                 }
@@ -853,6 +861,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
                                 isPersisted() &&
+                                id == tenant2Record.id &&
                                 title == tenant2Record.title &&
                                 this.tenantId == otherTenantId &&
                                 !createdAt.isNull() &&
@@ -881,6 +890,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
                                 isPersisted() &&
+                                id == tenant2Record.id &&
                                 title == tenant2Record.title &&
                                 this.tenantId == otherTenantId &&
                                 !createdAt.isNull() &&
@@ -910,6 +920,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         reloaded should satisfy { size == 1 }
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
+                                id == tenant1Record.id &&
                                 isPersisted() &&
                                 title == tenant1Record.title &&
                                 this.tenantId == tenantId &&
@@ -938,6 +949,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         reloaded should satisfy { size == 1 }
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
+                                id == tenant1Record.id &&
                                 isPersisted() &&
                                 title == tenant1Record.title &&
                                 this.tenantId == tenantId &&
@@ -968,6 +980,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         reloaded should satisfy { size == 1 }
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
+                                id == tenant2Record.id &&
                                 isPersisted() &&
                                 title == tenant2Record.title &&
                                 this.tenantId == otherTenantId &&
@@ -996,6 +1009,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         reloaded should satisfy { size == 1 }
                         reloaded should beAnUnOrderedCollectionOf(
                             satisfy<M> {
+                                id == tenant2Record.id &&
                                 isPersisted() &&
                                 title == tenant2Record.title &&
                                 this.tenantId == otherTenantId &&

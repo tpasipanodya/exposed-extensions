@@ -23,10 +23,10 @@ import org.spekframework.spek2.dsl.Root
 import org.spekframework.spek2.style.specification.describe
 import java.util.*
 import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.update
 import org.spekframework.spek2.dsl.TestBody
+
 
 fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedSoftDeletableTableSpeks(
     table: T,
@@ -89,32 +89,32 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 selected should beAnUnOrderedCollectionOf (
                     satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                !isSoftDeleted() &&
-                                this.tenantId == tenantId &&
-                                title == tenant1Record1.title
+                        !isSoftDeleted() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record1.title
                     }
                 )
                 reloaded should beAnUnOrderedCollectionOf(
                     satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                !isSoftDeleted() &&
-                                this.tenantId == tenantId &&
-                                title == tenant1Record1.title
+                        !isSoftDeleted() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record1.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                isSoftDeleted() &&
-                                this.tenantId == tenantId &&
-                                title == tenant1Record2.title
+                        isSoftDeleted() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record2.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                !isSoftDeleted() &&
-                                this.tenantId == otherTenantId &&
-                                title == tenant2Record1.title
+                        !isSoftDeleted() &&
+                        this.tenantId == otherTenantId &&
+                        title == tenant2Record1.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                isSoftDeleted() &&
-                                this.tenantId == otherTenantId &&
-                                title == tenant2Record2.title
+                        isSoftDeleted() &&
+                        this.tenantId == otherTenantId &&
+                        title == tenant2Record2.title
                     }
                 )
             }
@@ -135,32 +135,32 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 selected should beAnUnOrderedCollectionOf (
                     satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                isSoftDeleted() &&
-                                this.tenantId == tenantId &&
-                                title == tenant1Record2.title
+                        isSoftDeleted() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record2.title
                     }
                 )
                 reloaded should beAnUnOrderedCollectionOf(
                     satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                !isSoftDeleted() &&
-                                this.tenantId == tenantId &&
-                                title == tenant1Record1.title
+                        !isSoftDeleted() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record1.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                isSoftDeleted() &&
-                                this.tenantId == tenantId &&
-                                title == tenant1Record2.title
+                        isSoftDeleted() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record2.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                !isSoftDeleted() &&
-                                this.tenantId == otherTenantId &&
-                                title == tenant2Record1.title
+                        !isSoftDeleted() &&
+                        this.tenantId == otherTenantId &&
+                        title == tenant2Record1.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                isSoftDeleted() &&
-                                this.tenantId == otherTenantId &&
-                                title == tenant2Record2.title
+                        isSoftDeleted() &&
+                        this.tenantId == otherTenantId &&
+                        title == tenant2Record2.title
                     }
                 )
             }
@@ -182,38 +182,38 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 selected should beAnUnOrderedCollectionOf (
                     satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                !isSoftDeleted() &&
-                                this.tenantId == tenantId &&
-                                title == tenant1Record1.title
+                        !isSoftDeleted() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record1.title
                     },
                     satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                isSoftDeleted() &&
-                                this.tenantId == tenantId &&
-                                title == tenant1Record2.title
+                        isSoftDeleted() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record2.title
                     }
                 )
                 reloaded should beAnUnOrderedCollectionOf(
                     satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                !isSoftDeleted() &&
-                                this.tenantId == tenantId &&
-                                title == tenant1Record1.title
+                        !isSoftDeleted() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record1.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                isSoftDeleted() &&
-                                this.tenantId == tenantId &&
-                                title == tenant1Record2.title
+                        isSoftDeleted() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record2.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                !isSoftDeleted() &&
-                                this.tenantId == otherTenantId &&
-                                title == tenant2Record1.title
+                        !isSoftDeleted() &&
+                        this.tenantId == otherTenantId &&
+                        title == tenant2Record1.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                isSoftDeleted() &&
-                                this.tenantId == otherTenantId &&
-                                title == tenant2Record2.title
+                        isSoftDeleted() &&
+                        this.tenantId == otherTenantId &&
+                        title == tenant2Record2.title
                     }
                 )
             }
@@ -235,38 +235,38 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 selected should beAnUnOrderedCollectionOf (
                     satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                !isSoftDeleted() &&
-                                this.tenantId == tenantId &&
-                                title == tenant1Record1.title
+                        !isSoftDeleted() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record1.title
                     },
                     satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                !isSoftDeleted() &&
-                                this.tenantId == otherTenantId &&
-                                title == tenant2Record1.title
+                        !isSoftDeleted() &&
+                        this.tenantId == otherTenantId &&
+                        title == tenant2Record1.title
                     }
                 )
                 reloaded should beAnUnOrderedCollectionOf(
                     satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                !isSoftDeleted() &&
-                                this.tenantId == tenantId &&
-                                title == tenant1Record1.title
+                        !isSoftDeleted() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record1.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                isSoftDeleted() &&
-                                this.tenantId == tenantId &&
-                                title == tenant1Record2.title
+                        isSoftDeleted() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record2.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                !isSoftDeleted() &&
-                                this.tenantId == otherTenantId &&
-                                title == tenant2Record1.title
+                        !isSoftDeleted() &&
+                        this.tenantId == otherTenantId &&
+                        title == tenant2Record1.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                isSoftDeleted() &&
-                                this.tenantId == otherTenantId &&
-                                title == tenant2Record2.title
+                        isSoftDeleted() &&
+                        this.tenantId == otherTenantId &&
+                        title == tenant2Record2.title
                     }
                 )
             }
@@ -288,38 +288,38 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 selected should beAnUnOrderedCollectionOf (
                     satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                isSoftDeleted() &&
-                                this.tenantId == tenantId &&
-                                title == tenant1Record2.title
+                        isSoftDeleted() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record2.title
                     },
                     satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                isSoftDeleted() &&
-                                this.tenantId == otherTenantId &&
-                                title == tenant2Record2.title
+                        isSoftDeleted() &&
+                        this.tenantId == otherTenantId &&
+                        title == tenant2Record2.title
                     }
                 )
                 reloaded should beAnUnOrderedCollectionOf(
                     satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                !isSoftDeleted() &&
-                                this.tenantId == tenantId &&
-                                title == tenant1Record1.title
+                        !isSoftDeleted() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record1.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                isSoftDeleted() &&
-                                this.tenantId == tenantId &&
-                                title == tenant1Record2.title
+                        isSoftDeleted() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record2.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                !isSoftDeleted() &&
-                                this.tenantId == otherTenantId &&
-                                title == tenant2Record1.title
+                        !isSoftDeleted() &&
+                        this.tenantId == otherTenantId &&
+                        title == tenant2Record1.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                isSoftDeleted() &&
-                                this.tenantId == otherTenantId &&
-                                title == tenant2Record2.title
+                        isSoftDeleted() &&
+                        this.tenantId == otherTenantId &&
+                        title == tenant2Record2.title
                     }
                 )
             }
@@ -341,47 +341,47 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 selected should beAnUnOrderedCollectionOf (
                     satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                !isSoftDeleted() &&
-                                this.tenantId == tenantId &&
-                                title == tenant1Record1.title
+                        !isSoftDeleted() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record1.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                isSoftDeleted() &&
-                                this.tenantId == tenantId &&
-                                title == tenant1Record2.title
+                        isSoftDeleted() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record2.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                !isSoftDeleted() &&
-                                this.tenantId == otherTenantId &&
-                                title == tenant2Record1.title
+                        !isSoftDeleted() &&
+                        this.tenantId == otherTenantId &&
+                        title == tenant2Record1.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                isSoftDeleted() &&
-                                this.tenantId == otherTenantId &&
-                                title == tenant2Record2.title
+                        isSoftDeleted() &&
+                        this.tenantId == otherTenantId &&
+                        title == tenant2Record2.title
                     }
                 )
                 reloaded should beAnUnOrderedCollectionOf(
                     satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                !isSoftDeleted() &&
-                                this.tenantId == tenantId &&
-                                title == tenant1Record1.title
+                        !isSoftDeleted() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record1.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                isSoftDeleted() &&
-                                this.tenantId == tenantId &&
-                                title == tenant1Record2.title
+                        isSoftDeleted() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record2.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                !isSoftDeleted() &&
-                                this.tenantId == otherTenantId &&
-                                title == tenant2Record1.title
+                        !isSoftDeleted() &&
+                        this.tenantId == otherTenantId &&
+                        title == tenant2Record1.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                isSoftDeleted() &&
-                                this.tenantId == otherTenantId &&
-                                title == tenant2Record2.title
+                        isSoftDeleted() &&
+                        this.tenantId == otherTenantId &&
+                        title == tenant2Record2.title
                     }
                 )
             }
@@ -493,24 +493,24 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 reloaded should beAnUnOrderedCollectionOf(
                     satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                !isSoftDeleted() &&
-                                this.tenantId == tenantId &&
-                                title == newTitle
+                        !isSoftDeleted() &&
+                        this.tenantId == tenantId &&
+                        title == newTitle
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                !isSoftDeleted() &&
-                                this.tenantId == tenantId &&
-                                title == tenant1Record2.title
+                        !isSoftDeleted() &&
+                        this.tenantId == tenantId &&
+                        title == tenant1Record2.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                !isSoftDeleted() &&
-                                this.tenantId == otherTenantId &&
-                                title == tenant2Record1.title
+                        !isSoftDeleted() &&
+                        this.tenantId == otherTenantId &&
+                        title == tenant2Record1.title
                     }, satisfy<M> {
                         this.let(Model<*>::isPersisted) &&
-                                !isSoftDeleted() &&
-                                this.tenantId == otherTenantId &&
-                                title == tenant2Record2.title
+                        !isSoftDeleted() &&
+                        this.tenantId == otherTenantId &&
+                        title == tenant2Record2.title
                     }
                 )
             }

@@ -320,13 +320,11 @@ fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
             }
 
             it("does not modify the record") {
-                try {
-                    updated
-                    fail("Expected an exception to be raised but none was")
-                } catch (e: PersistenceError.UnpersistedUpdateError) {
+                try { updated; fail("Expected an exception to be raised but none was") }
+                catch (e: PersistenceError.UnpersistedUpdateError) {
                     e.message!! should satisfy {
                         contains("Cannot update") &&
-                                contains(" because it hasn't been persisted yet")
+                        contains(" because it hasn't been persisted yet")
                     }
                 }
             }
