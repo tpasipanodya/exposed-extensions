@@ -4,7 +4,6 @@ package io.taff.hephaestus.persistence.tables.long
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.persistence.models.SoftDeletableModel
 import io.taff.hephaestus.persistence.models.Model
-import io.taff.hephaestus.persistence.tables.shared.SoftDeletableScope
 import io.taff.hephaestus.persistence.tables.shared.TitleAware
 import io.taff.hephaestus.persistence.tables.shared.includeSoftDeletableTableSpeks
 import org.jetbrains.exposed.sql.*
@@ -39,13 +38,9 @@ object SoftDeletableLongIdTableSpek  :Spek({
 
     beforeEachTest { transaction { softDeletableLongIdRecords.stripDefaultScope().deleteAll() } }
 
-    includeSoftDeletableTableSpeks(softDeletableLongIdRecords,
+    includeSoftDeletableTableSpeks(
+        softDeletableLongIdRecords,
         recordFxn = { SoftDeletableLongIdRecord("Soul food") },
-        directUpdate = { record, newTitle, scope ->
-            when(scope) {
-                SoftDeletableScope.LIVE -> softDeletableLongIdRecords
-                SoftDeletableScope.DELETED -> softDeletableLongIdRecords.softDeleted()
-                SoftDeletableScope.ALL -> softDeletableLongIdRecords.liveAndSoftDeleted()
-            }.update({ softDeletableLongIdRecords.id eq record.id }) { it[softDeleteTitleColumn!!] = newTitle }
-        })
+        titleColumnRef = softDeleteTitleColumn!!
+    )
 })

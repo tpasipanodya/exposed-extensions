@@ -3,7 +3,6 @@ package io.taff.hephaestus.persistence.tables.uuid
 import io.taff.hephaestus.helpers.env
 import io.taff.hephaestus.persistence.models.SoftDeletableModel
 import io.taff.hephaestus.persistence.models.Model
-import io.taff.hephaestus.persistence.tables.shared.SoftDeletableScope
 import io.taff.hephaestus.persistence.tables.shared.TitleAware
 import io.taff.hephaestus.persistence.tables.shared.includeSoftDeletableTableSpeks
 import org.jetbrains.exposed.sql.*
@@ -41,13 +40,9 @@ object SoftDeletableUuidTableSpek  : Spek({
     beforeEachTest { transaction { softDeletableUuidTable.stripDefaultScope().deleteAll() } }
 
 
-    includeSoftDeletableTableSpeks(softDeletableUuidTable,
+    includeSoftDeletableTableSpeks(
+        softDeletableUuidTable,
         recordFxn = { SoftDeletableUuidRecord(title = "Soul Food") },
-        directUpdate = { record, newTitle, scope ->
-            when(scope) {
-                SoftDeletableScope.LIVE -> softDeletableUuidTable
-                SoftDeletableScope.DELETED -> softDeletableUuidTable.softDeleted()
-                SoftDeletableScope.ALL -> softDeletableUuidTable.liveAndSoftDeleted()
-            }.update({ softDeletableUuidTable.id eq record.id }) { it[softDeleteTitleColumn!!] = newTitle }
-        })
+        titleColumnRef = softDeleteTitleColumn!!
+    )
 })
