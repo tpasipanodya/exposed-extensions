@@ -5,6 +5,7 @@ import io.taff.hephaestus.persistence.TenantError
 import io.taff.hephaestus.persistence.clearCurrentTenantId
 import io.taff.hephaestus.persistence.models.TenantScopedModel
 import io.taff.hephaestus.persistence.setCurrentTenantId
+import io.taff.hephaestus.persistence.tables.long.tenantScopedLongIdRecords
 import io.taff.hephaestus.persistence.tables.traits.TenantScopedTableTrait
 import io.taff.hephaestus.persistence.tables.uuid.tenantScopedUuidRecords
 import io.taff.hephaestus.persistence.tables.uuid.titleColumnRef
@@ -19,6 +20,7 @@ import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -39,6 +41,10 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
         T : TenantScopedTableTrait<ID, TID, M, T>,
         M : TenantScopedModel<ID, TID>,
         M : TitleAware = describe("tenant scoped table") {
+
+    beforeEachTest { transaction { table.stripDefaultScope().deleteAll() } }
+
+    afterEachTest { clearCurrentTenantId() }
 
     val tenantId by memoized { tenantIdFunc() }
     val otherTenantId by memoized { tenant2IdFunc() }

@@ -39,10 +39,6 @@ object TenantScopedUuidTableSpek : Spek({
     Database.connect(env<String>("DB_URL"))
     transaction { SchemaUtils.create(tenantScopedUuidRecords) }
 
-    beforeEachTest { transaction { tenantScopedUuidRecords.stripDefaultScope().deleteAll() } }
-
-    afterEachTest { clearCurrentTenantId() }
-
     includeTenantScopedTableSpeks(tenantScopedUuidRecords,
         tenantIdFunc = { UUID.randomUUID () },
         tenant2IdFunc = { UUID.randomUUID() },
