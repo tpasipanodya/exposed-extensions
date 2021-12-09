@@ -5,10 +5,7 @@ import io.taff.hephaestus.persistence.TenantError
 import io.taff.hephaestus.persistence.clearCurrentTenantId
 import io.taff.hephaestus.persistence.models.TenantScopedModel
 import io.taff.hephaestus.persistence.setCurrentTenantId
-import io.taff.hephaestus.persistence.tables.long.tenantScopedLongIdRecords
 import io.taff.hephaestus.persistence.tables.traits.TenantScopedTableTrait
-import io.taff.hephaestus.persistence.tables.uuid.tenantScopedUuidRecords
-import io.taff.hephaestus.persistence.tables.uuid.titleColumnRef
 import io.taff.hephaestustest.expectation.any.equal
 import io.taff.hephaestustest.expectation.any.satisfy
 import io.taff.hephaestustest.expectation.boolean.beTrue
@@ -18,7 +15,6 @@ import io.taff.hephaestustest.expectation.shouldNot
 import java.util.*
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.deleteWhere
@@ -118,6 +114,90 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                 tenant1Record shouldNot satisfy { isPersisted() }
                 tenant2Record shouldNot satisfy { isPersisted() }
                 reloaded should satisfy { isEmpty() }
+            }
+        }
+    }
+
+    describe("select") {
+        context("scope = forCurrentTenant") {
+            val selected by memoized {
+                transaction {
+                    persisted
+                    setCurrentTenantId(tenantId)
+                    table.selectAll().map(table::toModel)
+                }
+            }
+
+            it("only loads the current tenant's records") {
+                selected should satisfy { size == 1 }
+                selected should beAnUnOrderedCollectionOf(
+                    satisfy<M> {
+                        id == tenant1Record.id &&
+                        title == tenant1Record.title &&
+                        !createdAt.isNull() &&
+                        !updatedAt.isNull()
+                    }
+                )
+                reloaded should satisfy { size == 2 }
+                reloaded should beAnUnOrderedCollectionOf(
+                    satisfy<M> {
+                        id == tenant1Record.id &&
+                        title == tenant1Record.title &&
+                        !createdAt.isNull() &&
+                        !updatedAt.isNull()
+                    },
+                    satisfy<M> {
+                        id == tenant2Record.id &&
+                        title == tenant2Record.title &&
+                        !createdAt.isNull() &&
+                        !updatedAt.isNull()
+                    }
+                )
+            }
+        }
+
+        context("scope = forAllTenants") {
+            val selected by memoized {
+                transaction {
+                    persisted
+                    setCurrentTenantId(tenantId)
+                    table.forAllTenants()
+                        .selectAll()
+                        .map(table::toModel)
+                }
+            }
+
+            it("only loads the current tenant's records") {
+                selected should satisfy { size == 2 }
+                selected should beAnUnOrderedCollectionOf(
+                    satisfy<M> {
+                        id == tenant1Record.id &&
+                        title == tenant1Record.title &&
+                        !createdAt.isNull() &&
+                        !updatedAt.isNull()
+                    },
+                    satisfy<M> {
+                        id == tenant2Record.id &&
+                        title == tenant2Record.title &&
+                        !createdAt.isNull() &&
+                        !updatedAt.isNull()
+                    }
+                )
+                reloaded should satisfy { size == 2 }
+                reloaded should beAnUnOrderedCollectionOf(
+                    satisfy<M> {
+                        id == tenant1Record.id &&
+                        title == tenant1Record.title &&
+                        !createdAt.isNull() &&
+                        !updatedAt.isNull()
+                    },
+                    satisfy<M> {
+                        id == tenant2Record.id &&
+                        title == tenant2Record.title &&
+                        !createdAt.isNull() &&
+                        !updatedAt.isNull()
+                    }
+                )
             }
         }
     }
@@ -459,7 +539,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         }
                     }
 
-                    it("doesn't update because of tenant isolation") {
+                    it("updates the record") {
                         persisted should beAnUnOrderedCollectionOf(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
@@ -494,7 +574,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         }
                     }
 
-                    it("doesn't update because of tenant isolation") {
+                    it("updates the record") {
                         persisted should beAnUnOrderedCollectionOf(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
@@ -529,7 +609,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         }
                     }
 
-                    it("doesn't update because of tenant isolation") {
+                    it("updates the record") {
                         persisted should beAnUnOrderedCollectionOf(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
@@ -879,7 +959,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         }
                     }
 
-                    it("doesn't delete the records") {
+                    it("deletes the record") {
                         persisted should beAnUnOrderedCollectionOf(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
@@ -907,7 +987,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         }
                     }
 
-                    it("doesn't delete the records") {
+                    it("deletes the record") {
                         persisted should beAnUnOrderedCollectionOf(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }

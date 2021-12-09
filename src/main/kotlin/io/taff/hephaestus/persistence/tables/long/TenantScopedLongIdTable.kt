@@ -30,6 +30,8 @@ abstract class TenantScopedLongIdTable<TID : Comparable<TID>, M : TenantScopedMo
 
     class AllTenantsView<TID : Comparable<TID>, M : TenantScopedModel<Long, TID>>(private val actual: TenantScopedLongIdTable<TID, M>)
         : TenantScopedLongIdTable<TID, M>(name = actual.tableName), TenantScopedTableTrait<Long, TID, M, TenantScopedLongIdTable<TID, M>> {
+
+        override val columns = actual.columns
         override val tenantId: Column<TID> = actual.tenantId
         override val createdAt = actual.createdAt
         override val updatedAt = actual.updatedAt
