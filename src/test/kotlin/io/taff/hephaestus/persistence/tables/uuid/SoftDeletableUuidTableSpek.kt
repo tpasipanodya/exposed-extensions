@@ -21,10 +21,10 @@ data class SoftDeletableUuidRecord(override var title: String? = null,
     : TitleAware, Model<UUID>, SoftDeletableModel<UUID>
 
 
-var titleColumn: Column<String>? = null
+var softDeleteTitleColumn: Column<String>? = null
 val softDeletableUuidTable = object : SoftDeletableUuidTable<SoftDeletableUuidRecord>("soft_deletable_uuid_recogrds") {
     val title = varchar("title", 50)
-    init { titleColumn = title }
+    init { softDeleteTitleColumn = title }
 
     override fun initializeModel(row: ResultRow) = SoftDeletableUuidRecord(title = row[title])
     override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: SoftDeletableUuidRecord) {
@@ -48,6 +48,6 @@ object SoftDeletableUuidTableSpek  : Spek({
                 SoftDeletableScope.LIVE -> softDeletableUuidTable
                 SoftDeletableScope.DELETED -> softDeletableUuidTable.softDeleted()
                 SoftDeletableScope.ALL -> softDeletableUuidTable.liveAndSoftDeleted()
-            }.update({ softDeletableUuidTable.id eq record.id }) { it[titleColumn!!] = newTitle }
+            }.update({ softDeletableUuidTable.id eq record.id }) { it[softDeleteTitleColumn!!] = newTitle }
         })
 })

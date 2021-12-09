@@ -20,11 +20,11 @@ data class SoftDeletableLongIdRecord(override var title: String? = null,
                                    override var softDeletedAt: Instant? = null)
     : TitleAware, Model<Long>, SoftDeletableModel<Long>
 
-var titleColumn: Column<String>? = null
+var softDeleteTitleColumn: Column<String>? = null
 val softDeletableLongIdRecords = object : SoftDeletableLongIdTable<SoftDeletableLongIdRecord>("soft_deletable_long_id_records") {
     val title = varchar("title", 50)
 
-    init { titleColumn = title }
+    init { softDeleteTitleColumn = title }
 
     override fun initializeModel(row: ResultRow) = SoftDeletableLongIdRecord(title = row[title])
     override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: SoftDeletableLongIdRecord) {
@@ -46,6 +46,6 @@ object SoftDeletableLongIdTableSpek  :Spek({
                 SoftDeletableScope.LIVE -> softDeletableLongIdRecords
                 SoftDeletableScope.DELETED -> softDeletableLongIdRecords.softDeleted()
                 SoftDeletableScope.ALL -> softDeletableLongIdRecords.liveAndSoftDeleted()
-            }.update({ softDeletableLongIdRecords.id eq record.id }) { it[titleColumn!!] = newTitle }
+            }.update({ softDeletableLongIdRecords.id eq record.id }) { it[softDeleteTitleColumn!!] = newTitle }
         })
 })

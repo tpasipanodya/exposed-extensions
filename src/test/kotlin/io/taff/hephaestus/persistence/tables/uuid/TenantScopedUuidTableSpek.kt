@@ -1,7 +1,6 @@
 package io.taff.hephaestus.persistence.tables.uuid
 
 import io.taff.hephaestus.helpers.env
-import io.taff.hephaestus.persistence.clearCurrentTenantId
 import io.taff.hephaestus.persistence.models.TenantScopedModel
 import io.taff.hephaestus.persistence.tables.shared.TitleAware
 import io.taff.hephaestus.persistence.tables.shared.includeTenantScopedTableSpeks
@@ -11,7 +10,6 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.spekframework.spek2.Spek
 import java.time.Instant
 import java.util.*
-import org.jetbrains.exposed.dao.id.IdTable
 
 /** Dummy tenant scoped model for testing */
 data class TenantScopedUuidRecord(
@@ -23,10 +21,10 @@ data class TenantScopedUuidRecord(
 ) : TenantScopedModel<UUID, UUID>, TitleAware
 
 /** Dummy tenant scoped t able for testing */
-var titleColumnRef: Column<String>? = null
+var tenantScopedTitleColumn: Column<String>? = null
 val tenantScopedUuidRecords = object : TenantScopedUuidTable<UUID, TenantScopedUuidRecord>("tenant_scoped_uuid_records") {
     val title = varchar("title", 50)
-    init { titleColumnRef = title }
+    init { tenantScopedTitleColumn = title }
     override val tenantId: Column<UUID> = uuid("tenant_id")
     override fun initializeModel(row: ResultRow) = TenantScopedUuidRecord(title = row[title])
     override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: TenantScopedUuidRecord) {
@@ -44,6 +42,6 @@ object TenantScopedUuidTableSpek : Spek({
         tenant2IdFunc = { UUID.randomUUID() },
         tenant1RecordFunc = { TenantScopedUuidRecord("Soul food")  },
         tenant2RecordFunc = { TenantScopedUuidRecord("Groovy soul food") },
-        titleColumnRef = titleColumnRef!!
+        titleColumnRef = tenantScopedTitleColumn!!
     )
 })

@@ -22,17 +22,11 @@ import org.junit.jupiter.api.fail
 import org.spekframework.spek2.dsl.Root
 import org.spekframework.spek2.style.specification.describe
 import java.util.*
+import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.update
 import org.spekframework.spek2.dsl.TestBody
-
-enum class SoftDeletableTenantScope {
-    LIVE_FOR_TENANT,
-    DELETED_FOR_TENANT,
-    LIVE_AND_SOFT_DELETED_FOR_CURRENT_TENANT,
-    LIVE_FOR_ALL_TENANTS,
-    DELETED_FOR_ALL_TENANTS,
-    LIVE_AND_SOFT_DELETED_FOR_ALL_TENANTS
-}
 
 fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedSoftDeletableTableSpeks(
     table: T,
@@ -40,12 +34,11 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
     otherTenantIdFunc: () -> TID,
     tenant1RecordsFunc: () -> Array<M>,
     tenant2RecordsFunc: () -> Array<M>,
-    directUpdateFunc: (record: M, newTitle: String, scope: SoftDeletableTenantScope) -> Int
-) where T : IdTable<ID>,
-        T : TenantScopedSoftDeletableTableTrait<ID, TID, M, T>,
-        M : TenantScopedModel<ID, TID>,
-        M : SoftDeletableModel<ID>,
-        M : TitleAware = describe("tenant scoped soft deletable table speks") {
+    titleColumnRef: Column<String>) where T : IdTable<ID>,
+                                          T : TenantScopedSoftDeletableTableTrait<ID, TID, M, T>,
+                                          M : TenantScopedModel<ID, TID>,
+                                          M : SoftDeletableModel<ID>,
+                                          M : TitleAware = describe("tenant scoped soft deletable table speks") {
 
     val tenantId by memoized { tenantIdFunc() }
     val otherTenantId by memoized { otherTenantIdFunc() }
@@ -542,11 +535,9 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                         transaction {
                             persisted
                             setCurrentTenantId(tenantId)
-                            directUpdateFunc(
-                                tenant1Record1,
-                                newTitle,
-                                SoftDeletableTenantScope.LIVE_FOR_TENANT
-                            ) == 1
+                            table.update({ table.id eq tenant1Record1.id }){
+                                it[titleColumnRef] = newTitle
+                            } == 1
                         }
                     }
 
@@ -606,11 +597,10 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                         transaction {
                             persisted
                             setCurrentTenantId(tenantId)
-                            directUpdateFunc(
-                                tenant1Record1,
-                                newTitle,
-                                SoftDeletableTenantScope.DELETED_FOR_TENANT
-                            )
+                            table.softDeleted()
+                                .update({ table.id eq tenant1Record1.id }){
+                                    it[titleColumnRef] = newTitle
+                                }
                         }
                     }
 
@@ -670,11 +660,10 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                         transaction {
                             persisted
                             setCurrentTenantId(tenantId)
-                            directUpdateFunc(
-                                tenant1Record1,
-                                newTitle,
-                                SoftDeletableTenantScope.LIVE_AND_SOFT_DELETED_FOR_CURRENT_TENANT
-                            )
+                            table.liveAndSoftDeleted()
+                                .update({ table.id eq tenant1Record1.id }){
+                                    it[titleColumnRef] = newTitle
+                                }
                         }
                     }
 
@@ -704,11 +693,10 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                         transaction {
                             persisted
                             setCurrentTenantId(tenantId)
-                            directUpdateFunc(
-                                tenant1Record1,
-                                newTitle,
-                                SoftDeletableTenantScope.LIVE_FOR_ALL_TENANTS
-                            )
+                            table.liveForAllTenants()
+                                .update({ table.id eq tenant1Record1.id }) {
+                                    it[titleColumnRef] = newTitle
+                                }
                         }
                     }
 
@@ -739,11 +727,10 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                         transaction {
                             persisted
                             setCurrentTenantId(tenantId)
-                            directUpdateFunc(
-                                tenant1Record1,
-                                newTitle,
-                                SoftDeletableTenantScope.LIVE_AND_SOFT_DELETED_FOR_ALL_TENANTS
-                            )
+                            table.liveAndSoftDeletedForAllTenants()
+                                .update({ table.id eq tenant1Record1.id }){
+                                    it[titleColumnRef] = newTitle
+                                }
                         }
                     }
 
@@ -803,11 +790,10 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                         transaction {
                             persisted
                             setCurrentTenantId(tenantId)
-                            directUpdateFunc(
-                                tenant1Record1,
-                                newTitle,
-                                SoftDeletableTenantScope.DELETED_FOR_ALL_TENANTS
-                            )
+                            table.softDeletedForAllTenants()
+                                .update({ table.id eq tenant1Record1.id }) {
+                                    it[titleColumnRef] = newTitle
+                                }
                         }
                     }
 
@@ -902,11 +888,9 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 val updated by memoized {
                     transaction {
                         setCurrentTenantId(otherTenantId)
-                        directUpdateFunc(
-                            tenant1Record1,
-                            newTitle,
-                            SoftDeletableTenantScope.LIVE_FOR_TENANT
-                        )
+                        table.update({ table.id eq tenant1Record1.id }){
+                            it[titleColumnRef] = newTitle
+                        }
                     }
                 }
 
@@ -998,7 +982,9 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 val updated by memoized {
                     clearCurrentTenantId<UUID>()
                     transaction {
-                        directUpdateFunc(tenant1Record1, newTitle, SoftDeletableTenantScope.LIVE_FOR_TENANT)
+                        table.update({ table.id eq tenant1Record1.id }){
+                            it[titleColumnRef] = newTitle
+                        }
                     }
                 }
 
