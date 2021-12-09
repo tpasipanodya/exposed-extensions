@@ -66,6 +66,7 @@ abstract class TenantScopedSoftDeletableLongIdTable<TID : Comparable<TID>, M>(na
         override fun describe(s: Transaction, queryBuilder: QueryBuilder) = actual.describe(s, queryBuilder)
 
         override fun self() = this
+
     }
 
     class VIewWithTenantScopeStriped<TID : Comparable<TID>, M>(actual: TenantScopedSoftDeletableLongIdTable<TID, M>,

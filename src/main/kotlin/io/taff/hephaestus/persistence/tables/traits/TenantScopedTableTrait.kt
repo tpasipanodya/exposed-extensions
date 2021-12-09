@@ -25,6 +25,9 @@ interface TenantScopedTableTrait<ID : Comparable<ID>, TID: Comparable<TID>, M : 
     /** The Tenant id column. */
     val tenantId: Column<TID>
 
+    /** Returns a view on all records across tenants. Identical to stripDefaultScope */
+    fun forAllTenants() : T
+
     /** Set tenant Id on models loaded frm the DB */
     override fun toModel(row: ResultRow) = super.toModel(row)
         .also { it.tenantId = row[tenantId] }
