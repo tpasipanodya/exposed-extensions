@@ -1,6 +1,6 @@
 # Exposed Extensions
 
-A collection of extensions to [Exposed](https://github.com/tpasipanodya/Exposed). Includes:
+A collection of extensions for [Exposed](https://github.com/tpasipanodya/Exposed). Includes:
 - Logical tenant isolation, soft deletes and  (and more) via [Exposed](https://github.com/tpasipanodya/Exposed)'s default scopes.
 - Declarative mapping of data classes/POKOs to and from the database. This is similar to
   [Exposed's](https://github.com/tpasipanodya/Exposed) DAO DSL with the exception that there is no magic. 
