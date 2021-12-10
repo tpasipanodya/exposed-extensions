@@ -13,6 +13,5 @@ data class MyModel(
 
 object ModelSpek : Spek({
 
-    includeModelSpeks { MyModel(id = it) }
-
+    includeModelSpeks(UUID.randomUUID()) { MyModel(id = it) }
 })

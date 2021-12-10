@@ -7,10 +7,9 @@ import org.spekframework.spek2.dsl.Root
 import org.spekframework.spek2.style.specification.describe
 import java.util.*
 
-fun <ID : Comparable<UUID>, M : Model<ID>> Root.includeModelSpeks(modelFxn: (id: UUID?) -> M) {
+fun <ID : Comparable<ID>, M : Model<ID>> Root.includeModelSpeks(id: ID, modelFxn: (ID?) -> M) {
     describe("isPersisted") {
         context("with an id set") {
-            val id by memoized { UUID.randomUUID() }
             val model by memoized { modelFxn(id) }
 
             it("is persisted") {
@@ -20,7 +19,7 @@ fun <ID : Comparable<UUID>, M : Model<ID>> Root.includeModelSpeks(modelFxn: (id:
 
         context("with no id set") {
             val id by memoized { null }
-            val model by memoized { modelFxn(id) }
+            val model by memoized { modelFxn(null) }
 
             it("is persisted") {
                 model shouldNot satisfy { isPersisted() }

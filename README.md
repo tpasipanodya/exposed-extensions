@@ -1,12 +1,10 @@
 # Hephaestus
 
 A collection of Kotlin tools for simplifying backend development. Currently, Includes the following:
-- A declarative, functional & dynamic graphql client.
-- Augmented [Exposed](https://github.com/JetBrains/Exposed) with tables that enable the following:
-  - Declarative mapping KOJOs to and from A database via [Exposed](https://github.com/JetBrains/Exposed).
-  - Tenant isolation
-  - Soft deletes
-  - Audit timestamp fields.
+- A declarative graphql client.
+- Logical tenant isolation, soft deletes and  (and more) via [Exposed](https://github.com/tpasipanodya/Exposed).
+- Declarative mapping KOJOs to and from A database via [Exposed](https://github.com/JetBrains/Exposed).
+
 
 Soon to be added:
 - [Kgraphql](https://kgraphql.io) augmented with the following:
@@ -14,8 +12,9 @@ Soon to be added:
   - Tenant Isolation (integrated into Exposed as well)
   
 ## Installing
-
+```kotlin
 implementation("io.taff:hephaestus:0.1.0")
+```
 
 ## Using The Graphql Client
 

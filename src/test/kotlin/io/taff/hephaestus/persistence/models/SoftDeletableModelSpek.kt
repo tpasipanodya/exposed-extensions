@@ -19,11 +19,8 @@ data class MySoftDeletableModel(
 
 object SoftDeletableModelSpek : Spek ({
 
-    includeModelSpeks {
-        MySoftDeletableModel(
-            id = it,
-            softDeletedAt = null
-        )
+    includeModelSpeks(UUID.randomUUID()) {
+        MySoftDeletableModel(id = it, softDeletedAt = null)
     }
 
     describe("isSoftDeleted") {

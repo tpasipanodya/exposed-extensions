@@ -42,9 +42,7 @@ dependencies {
 	api("io.taff.exposed:exposed-jdbc:0.2.2")
 	api("io.taff.exposed:exposed-java-time:0.2.2")
 	implementation("org.postgresql:postgresql:42.3.1")
-	testImplementation("com.apurebase:kgraphql:0.17.14")
 	testImplementation("io.taff:hephaestus-test:0.3.0")
-	testImplementation("io.javalin:javalin:4.1.1")
 	testImplementation(enforcedPlatform("org.junit:junit-bom:5.8.1"))
 }
 
