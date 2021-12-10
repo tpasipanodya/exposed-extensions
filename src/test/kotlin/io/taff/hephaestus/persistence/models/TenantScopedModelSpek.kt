@@ -25,11 +25,8 @@ object TenantScopedModelSpek : Spek({
         )
     }
 
-    includeModelSpeks {
-        MyTenantScopedModel(
-            id = it,
-            tenantId = tenantId
-        )
+    includeModelSpeks(UUID.randomUUID()) {
+        MyTenantScopedModel(id = it, tenantId = tenantId)
     }
 
     describe("asCurrent (returning T)") {

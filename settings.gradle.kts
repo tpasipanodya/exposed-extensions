@@ -1,1 +1,1 @@
-rootProject.name = "hephaestus"
+rootProject.name = "exposed-extensions"
