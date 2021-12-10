@@ -19,7 +19,7 @@ data class Book(
     var sentenceCountsPerPage: Map<String, Int> = listOf(),
     override var createdAt: Instant? = null,
     override var updatedAt: Instant? = null
-) : Model<Long> { override fun tenantId() = authorId }
+) : Model<Long>
 
 val books = object : ModelMappingLongIdTable<Book>() {
     val pages = stringArray("strings")

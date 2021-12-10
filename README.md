@@ -20,13 +20,11 @@ Using logical tenant isolation as an example:
 /** 1. Declare your model. */
 data class Book(
   var title: String? = null,
-  var authorId: Long? = null,
+  var tenantId: Long? = null,
   override var id: Long? = null,
   override var createdAt: Instant? = null,
   override var updatedAt: Instant? = null
-) : TenanatScopedModel<Long, Long> {
-  override fun tenantId() = authorId
-}
+) : TenanatScopedModel<Long, Long>
 
 /** 2. Declare how it is stored */
 val books = object : TenantScopedLongIdTable<Long, Book>() {
