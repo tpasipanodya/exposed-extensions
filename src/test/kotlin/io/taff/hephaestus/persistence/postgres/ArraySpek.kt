@@ -21,7 +21,6 @@ data class ModelWithArrays(
     var longs: List<Long> = listOf(),
     var ints: List<Int> = listOf(),
     var bools: List<Boolean> = listOf(),
-    var doubles: List<Double> = listOf(),
     override var createdAt: Instant? = null,
     override var updatedAt: Instant? = null
 ) : Model<UUID>
