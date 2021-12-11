@@ -1,5 +1,19 @@
 package io.taff.exposed.extensions.tables.shared
 
+import io.taff.exposed.extensions.TenantError
+import io.taff.exposed.extensions.clearCurrentTenantId
+import io.taff.exposed.extensions.helpers.isNull
+import io.taff.exposed.extensions.models.Model
+import io.taff.exposed.extensions.models.SoftDeletableModel
+import io.taff.exposed.extensions.models.TenantScopedModel
+import io.taff.exposed.extensions.setCurrentTenantId
+import io.taff.exposed.extensions.tables.traits.TenantScopedSoftDeletableTableTrait
+import io.taff.spek.expekt.any.equal
+import io.taff.spek.expekt.any.satisfy
+import io.taff.spek.expekt.boolean.beTrue
+import io.taff.spek.expekt.iterable.beAnUnOrderedCollectionOf
+import io.taff.spek.expekt.should
+import io.taff.spek.expekt.shouldNot
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.selectAll

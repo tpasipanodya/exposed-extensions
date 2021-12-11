@@ -1,5 +1,15 @@
 package io.taff.exposed.extensions.tables.shared
 
+import io.taff.exposed.extensions.PersistenceError
+import io.taff.exposed.extensions.helpers.isNull
+import io.taff.exposed.extensions.models.SoftDeletableModel
+import io.taff.exposed.extensions.tables.traits.SoftDeletableTableTrait
+import io.taff.spek.expekt.any.equal
+import io.taff.spek.expekt.any.satisfy
+import io.taff.spek.expekt.boolean.beFalse
+import io.taff.spek.expekt.boolean.beTrue
+import io.taff.spek.expekt.iterable.beAnUnOrderedCollectionOf
+import io.taff.spek.expekt.should
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.SortOrder
