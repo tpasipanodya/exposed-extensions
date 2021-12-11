@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "io.taff"
-version = "0.3.0${ if (isReleaseBuild()) "" else "-SNAPSHOT" }"
+version = "0.4.0${ if (isReleaseBuild()) "" else "-SNAPSHOT" }"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
@@ -42,7 +42,7 @@ dependencies {
 	api("io.taff.exposed:exposed-jdbc:0.2.2")
 	api("io.taff.exposed:exposed-java-time:0.2.2")
 	implementation("org.postgresql:postgresql:42.3.1")
-	testImplementation("io.taff:hephaestus-test:0.3.0")
+	testImplementation("io.taff:spek-expekt:0.4.0")
 	testImplementation(enforcedPlatform("org.junit:junit-bom:5.8.2"))
 }
 
@@ -88,7 +88,7 @@ publishing {
 			pom {
 				name.set(project.name)
 				description.set("${project.name} $version - Lightweight utilities for simplifying backend application configuration")
-				url.set("https://github.com/tpasipanodya/hephaestus")
+				url.set("https://github.com/tpasipanodya/exposed-extensions")
 
 				licenses {
 					license {
@@ -105,9 +105,9 @@ publishing {
 				}
 
 				scm {
-					connection.set("scm:git:git://github.com/tpasipanodya/hephaestus.git")
-					developerConnection.set("scm:git:ssh://github.com/tpasipanodya/hephaestus.git")
-					url.set("http://github.com/tpasipanodya/hephaestus/tree/main")
+					connection.set("scm:git:git://github.com/tpasipanodya/exposed-extensions.git")
+					developerConnection.set("scm:git:ssh://github.com/tpasipanodya/exposed-extensions.git")
+					url.set("http://github.com/tpasipanodya/exposed-extensions/tree/main")
 				}
 			}
 
