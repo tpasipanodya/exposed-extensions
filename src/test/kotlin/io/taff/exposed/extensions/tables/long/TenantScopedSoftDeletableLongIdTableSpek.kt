@@ -1,11 +1,11 @@
 package io.taff.exposed.extensions.tables.long
 
-import io.taff.hephaestus.helpers.env
-import io.taff.hephaestus.persistence.clearCurrentTenantId
-import io.taff.hephaestus.persistence.models.SoftDeletableModel
-import io.taff.hephaestus.persistence.models.TenantScopedModel
-import io.taff.hephaestus.persistence.tables.shared.TitleAware
-import io.taff.hephaestus.persistence.tables.shared.includeTenantScopedSoftDeletableTableSpeks
+import io.taff.exposed.extensions.clearCurrentTenantId
+import io.taff.exposed.extensions.helpers.env
+import io.taff.exposed.extensions.models.SoftDeletableModel
+import io.taff.exposed.extensions.models.TenantScopedModel
+import io.taff.exposed.extensions.tables.shared.TitleAware
+import io.taff.exposed.extensions.tables.shared.includeTenantScopedSoftDeletableTableSpeks
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction

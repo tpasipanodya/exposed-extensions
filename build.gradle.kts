@@ -88,7 +88,7 @@ publishing {
 			pom {
 				name.set(project.name)
 				description.set("${project.name} $version - Lightweight utilities for simplifying backend application configuration")
-				url.set("https://github.com/tpasipanodya/hephaestus")
+				url.set("https://github.com/tpasipanodya/exposed-extensions")
 
 				licenses {
 					license {
@@ -105,9 +105,9 @@ publishing {
 				}
 
 				scm {
-					connection.set("scm:git:git://github.com/tpasipanodya/hephaestus.git")
-					developerConnection.set("scm:git:ssh://github.com/tpasipanodya/hephaestus.git")
-					url.set("http://github.com/tpasipanodya/hephaestus/tree/main")
+					connection.set("scm:git:git://github.com/tpasipanodya/exposed-extensions.git")
+					developerConnection.set("scm:git:ssh://github.com/tpasipanodya/exposed-extensions.git")
+					url.set("http://github.com/tpasipanodya/exposed-extensions/tree/main")
 				}
 			}
 

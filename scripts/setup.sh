@@ -1,9 +1,9 @@
 #!/bin/bash
 
 BOOTSTRAP_SQL="
-CREATE DATABASE hephaestus;
-CREATE USER hephaestus WITH ENCRYPTED PASSWORD 'hephaestus';
-GRANT ALL PRIVILEGES ON DATABASE hephaestus TO hephaestus;
+CREATE DATABASE exposed_extensions;
+CREATE USER exposed_extensions WITH ENCRYPTED PASSWORD 'exposed_extensions';
+GRANT ALL PRIVILEGES ON DATABASE exposed_extensions TO exposed_extensions;
 "
 
 # Start postgres

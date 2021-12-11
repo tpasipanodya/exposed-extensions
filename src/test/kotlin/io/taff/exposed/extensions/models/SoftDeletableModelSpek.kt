@@ -1,6 +1,6 @@
 package io.taff.exposed.extensions.models
 
-import io.taff.hephaestus.persistence.models.includeModelSpeks
+import io.taff.exposed.extensions.models.examples.includeModelSpeks
 import io.taff.spek.expekt.any.satisfy
 import io.taff.spek.expekt.should
 import io.taff.spek.expekt.shouldNot

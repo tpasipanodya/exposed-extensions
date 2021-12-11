@@ -1,8 +1,9 @@
 package io.taff.exposed.extensions.models
 
-import io.taff.hephaestustest.expectation.any.satisfy
-import io.taff.hephaestustest.expectation.should
-import io.taff.hephaestus.persistence.CurrentTenantId
+import io.taff.exposed.extensions.CurrentTenantId
+import io.taff.exposed.extensions.models.examples.includeModelSpeks
+import io.taff.spek.expekt.any.satisfy
+import io.taff.spek.expekt.should
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.time.Instant

@@ -1,12 +1,12 @@
 package io.taff.exposed.extensions.tables.uuid
 
-import io.taff.hephaestus.helpers.env
+import io.taff.exposed.extensions.helpers.env
+import io.taff.exposed.extensions.models.Model
+import io.taff.exposed.extensions.tables.shared.TitleAware
+import io.taff.exposed.extensions.tables.shared.includeModelMappingTableSpeks
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.spekframework.spek2.Spek
-import io.taff.hephaestus.persistence.models.Model
-import io.taff.hephaestus.persistence.tables.shared.TitleAware
-import io.taff.hephaestus.persistence.tables.shared.includeModelMappingTableSpeks
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import java.time.Instant
 import java.util.UUID

@@ -1,14 +1,17 @@
 package io.taff.exposed.extensions.tables.long
 
-import io.taff.hephaestus.helpers.env
-import io.taff.hephaestus.persistence.models.TenantScopedModel
-import io.taff.hephaestus.persistence.tables.shared.TitleAware
-import io.taff.hephaestus.persistence.tables.shared.includeTenantScopedTableSpeks
-import org.jetbrains.exposed.sql.*
+import io.taff.exposed.extensions.helpers.env
+import io.taff.exposed.extensions.models.TenantScopedModel
+import io.taff.exposed.extensions.tables.shared.TitleAware
+import io.taff.exposed.extensions.tables.shared.includeTenantScopedTableSpeks
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.spekframework.spek2.Spek
 import java.time.Instant
+import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SchemaUtils
 
 
 /** Dummy tenant scoped model for testing */

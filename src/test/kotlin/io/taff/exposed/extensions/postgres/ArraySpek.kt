@@ -1,18 +1,17 @@
 package io.taff.exposed.extensions.postgres
 
-import io.taff.hephaestustest.expectation.any.satisfy
-import io.taff.hephaestustest.expectation.should
-import io.taff.hephaestus.helpers.env
-import io.taff.hephaestus.helpers.isNull
-import io.taff.hephaestus.persistence.models.Model
-import io.taff.hephaestus.persistence.tables.uuid.ModelMappingUuidTable
+import io.taff.exposed.extensions.helpers.env
+import io.taff.exposed.extensions.helpers.isNull
+import io.taff.exposed.extensions.models.Model
+import io.taff.exposed.extensions.tables.uuid.ModelMappingUuidTable
+import io.taff.spek.expekt.any.satisfy
+import io.taff.spek.expekt.should
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.time.Instant
-import java.time.OffsetDateTime
 import java.util.*
 
 data class ModelWithArrays(

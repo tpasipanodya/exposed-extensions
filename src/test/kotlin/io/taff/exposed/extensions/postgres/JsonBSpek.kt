@@ -1,13 +1,13 @@
 package io.taff.exposed.extensions.postgres
 
 import com.fasterxml.jackson.core.type.TypeReference
-import io.taff.hephaestustest.expectation.any.satisfy
-import io.taff.hephaestustest.expectation.should
-import io.taff.hephaestus.Config
-import io.taff.hephaestus.helpers.env
-import io.taff.hephaestus.helpers.isNull
-import io.taff.hephaestus.persistence.models.Model
-import io.taff.hephaestus.persistence.tables.uuid.ModelMappingUuidTable
+import io.taff.exposed.extensions.Config
+import io.taff.exposed.extensions.helpers.env
+import io.taff.exposed.extensions.helpers.isNull
+import io.taff.exposed.extensions.models.Model
+import io.taff.exposed.extensions.tables.uuid.ModelMappingUuidTable
+import io.taff.spek.expekt.any.satisfy
+import io.taff.spek.expekt.should
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction

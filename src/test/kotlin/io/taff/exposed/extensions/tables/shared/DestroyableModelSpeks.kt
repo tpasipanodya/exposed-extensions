@@ -1,15 +1,5 @@
 package io.taff.exposed.extensions.tables.shared
 
-import io.taff.hephaestus.helpers.isNull
-import io.taff.hephaestus.persistence.PersistenceError
-import io.taff.hephaestus.persistence.models.SoftDeletableModel
-import io.taff.hephaestus.persistence.tables.traits.SoftDeletableTableTrait
-import io.taff.hephaestustest.expectation.any.equal
-import io.taff.hephaestustest.expectation.any.satisfy
-import io.taff.hephaestustest.expectation.boolean.beFalse
-import io.taff.hephaestustest.expectation.boolean.beTrue
-import io.taff.hephaestustest.expectation.iterable.beAnUnOrderedCollectionOf
-import io.taff.hephaestustest.expectation.should
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.SortOrder

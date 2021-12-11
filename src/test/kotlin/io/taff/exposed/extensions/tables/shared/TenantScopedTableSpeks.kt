@@ -1,17 +1,5 @@
 package io.taff.exposed.extensions.tables.shared
 
-import io.taff.hephaestus.helpers.isNull
-import io.taff.hephaestus.persistence.TenantError
-import io.taff.hephaestus.persistence.clearCurrentTenantId
-import io.taff.hephaestus.persistence.models.TenantScopedModel
-import io.taff.hephaestus.persistence.setCurrentTenantId
-import io.taff.hephaestus.persistence.tables.traits.TenantScopedTableTrait
-import io.taff.hephaestustest.expectation.any.equal
-import io.taff.hephaestustest.expectation.any.satisfy
-import io.taff.hephaestustest.expectation.boolean.beTrue
-import io.taff.hephaestustest.expectation.iterable.beAnUnOrderedCollectionOf
-import io.taff.hephaestustest.expectation.should
-import io.taff.hephaestustest.expectation.shouldNot
 import java.util.*
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column

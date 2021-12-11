@@ -1,13 +1,13 @@
 package io.taff.exposed.extensions.tables.shared
 
-import io.taff.hephaestus.helpers.isNull
-import io.taff.hephaestus.persistence.PersistenceError
-import io.taff.hephaestus.persistence.models.Model
-import io.taff.hephaestus.persistence.tables.traits.ModelMappingTableTrait
-import io.taff.hephaestustest.expectation.any.equal
-import io.taff.hephaestustest.expectation.any.satisfy
-import io.taff.hephaestustest.expectation.iterable.beAnUnOrderedCollectionOf
-import io.taff.hephaestustest.expectation.should
+import io.taff.exposed.extensions.PersistenceError
+import io.taff.exposed.extensions.helpers.isNull
+import io.taff.exposed.extensions.models.Model
+import io.taff.exposed.extensions.tables.traits.ModelMappingTableTrait
+import io.taff.spek.expekt.any.equal
+import io.taff.spek.expekt.any.satisfy
+import io.taff.spek.expekt.iterable.beAnUnOrderedCollectionOf
+import io.taff.spek.expekt.should
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.deleteWhere
