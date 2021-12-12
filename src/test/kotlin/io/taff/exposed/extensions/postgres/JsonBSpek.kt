@@ -2,8 +2,8 @@ package io.taff.exposed.extensions.postgres
 
 import com.fasterxml.jackson.core.type.TypeReference
 import io.taff.exposed.extensions.Config
-import io.taff.exposed.extensions.helpers.env
-import io.taff.exposed.extensions.helpers.isNull
+import io.taff.exposed.extensions.env
+import io.taff.exposed.extensions.isNull
 import io.taff.exposed.extensions.models.Model
 import io.taff.exposed.extensions.tables.uuid.ModelMappingUuidTable
 import io.taff.spek.expekt.any.satisfy

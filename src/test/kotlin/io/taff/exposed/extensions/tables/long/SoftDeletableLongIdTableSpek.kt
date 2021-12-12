@@ -1,7 +1,7 @@
 package io.taff.exposed.extensions.tables.long
 
 
-import io.taff.exposed.extensions.helpers.env
+import io.taff.exposed.extensions.env
 import io.taff.exposed.extensions.models.Model
 import io.taff.exposed.extensions.models.SoftDeletableModel
 import io.taff.exposed.extensions.tables.shared.TitleAware

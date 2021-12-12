@@ -1,7 +1,7 @@
 package io.taff.exposed.extensions.models
 
 import java.time.Instant
-import io.taff.exposed.extensions.helpers.isNull
+import io.taff.exposed.extensions.isNull
 
 /**
  * Models that have an Id.

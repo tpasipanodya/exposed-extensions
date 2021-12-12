@@ -1,6 +1,6 @@
 package io.taff.exposed.extensions.models
 
-import io.taff.exposed.extensions.helpers.isNull
+import io.taff.exposed.extensions.isNull
 import java.time.Instant
 
 /**
