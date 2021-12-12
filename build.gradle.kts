@@ -138,4 +138,4 @@ artifactory {
 	})
 }
 
-fun isReleaseBuild() = System.getenv("IS_RELEASE_BUILD")?.toBoolean() == true
+fun isReleaseBuild() = System.getenv("IS_SNAPSHOT_BUILD")?.toBoolean() == false
