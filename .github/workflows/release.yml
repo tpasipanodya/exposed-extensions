@@ -21,4 +21,4 @@ jobs:
           ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
           IS_RELEASE_BUILD: true
           DB_URL: ${{ secrets.DB_URL }}
-        run: echo $ARTIFACTORY_PASSWORD
+        run: echo $ARTIFACTORY_USER
