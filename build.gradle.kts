@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "io.taff"
-version = "0.4.0${ if (isReleaseBuild()) "" else "-SNAPSHOT" }"
+version = "0.5.0${ if (isReleaseBuild()) "" else "-SNAPSHOT" }"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
@@ -59,7 +59,6 @@ tasks {
 		dependsOn(dokkaHtml)
 		archiveClassifier.set("javadoc")
 	}
-
 	register<Jar>("sourcesJar") {
 		from(sourceSets.main.get().allSource)
 		archiveClassifier.set("sources")
@@ -74,36 +73,30 @@ publishing {
 			this.groupId = project.group.toString()
 			this.artifactId = project.name
 			this.version = project.version.toString()
-
 			from(components["java"])
 			versionMapping {
 				usage("java-api") {
 					fromResolutionOf("runtimeClasspath")
 				}
 			}
-
 			artifact(tasks["dokkaJar"])
 			artifact(tasks["sourcesJar"])
-
 			pom {
 				name.set(project.name)
 				description.set("${project.name} $version - Lightweight utilities for simplifying backend application configuration")
 				url.set("https://github.com/tpasipanodya/exposed-extensions")
-
 				licenses {
 					license {
 						name.set("The Apache Software License, Version 2.0")
 						url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
 					}
 				}
-
 				developers {
 					developer {
 						name.set("Tafadzwa Pasipanodya")
 						email.set("tmpasipanodya@gmail.com")
 					}
 				}
-
 				scm {
 					connection.set("scm:git:git://github.com/tpasipanodya/exposed-extensions.git")
 					developerConnection.set("scm:git:ssh://github.com/tpasipanodya/exposed-extensions.git")
@@ -118,7 +111,6 @@ publishing {
 
 artifactory {
 	setContextUrl("https://tmpasipanodya.jfrog.io/artifactory/")
-
 	publish(delegateClosureOf<PublisherConfig> {
 
 		repository(delegateClosureOf<GroovyObject> {
@@ -132,10 +124,12 @@ artifactory {
 			invokeMethod("publications", "mavenJava")
 		})
 	})
-
 	resolve(delegateClosureOf<ResolverConfig> {
 		setProperty("repoKey", if (isReleaseBuild()) "releases" else "snapshots")
 	})
 }
 
-fun isReleaseBuild() = System.getenv("IS_SNAPSHOT_BUILD")?.toBoolean() == false
+fun isReleaseBuild() = !project.properties["IS_SNAPSHOT_BUILD"].let { isReleaseBuild ->
+	println("isReleaseBuild: $isReleaseBuild")
+	isReleaseBuild.toString().toBoolean()
+}

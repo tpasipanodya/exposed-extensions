@@ -17,8 +17,7 @@ jobs:
         env:
           ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
           ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
-          IS_SNAPSHOT_BUILD: true
           DB_URL: ${{ secrets.DB_URL }}
         with:
           gradle-version: 7.3
-          arguments: clean test build artifactoryPublish --info
+          arguments: clean test build artifactoryPublish --info -PIS_SNAPSHOT_BUILD=true
