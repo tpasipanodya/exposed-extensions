@@ -6,6 +6,7 @@ import io.taff.spek.expekt.should
 import kotlinx.coroutines.asContextElement
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import kotlin.time.Duration.Companion.days
 
 object FunctionsSpek  : Spek({
 
@@ -22,6 +23,7 @@ object FunctionsSpek  : Spek({
     describe("currentTenantId, setCurrentTenantId & clearCurrentTenantId") {
         it("returns the current tenant id") {
             currentTenantId<Long?>() should satisfy { isNull() }
+
 
             setCurrentTenantId(1L)
             currentTenantId<Long?>() should equal(1L)
