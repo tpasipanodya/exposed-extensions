@@ -21,7 +21,7 @@ jobs:
           ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
           ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
           DB_URL: ${{ secrets.DB_URL }}
-          IS_RELEASE_BUILD: 'true'
+          IS_RELEASE_BUILD: 'false'
         with:
           gradle-version: 7.3
           arguments: clean test build artifactoryPublish --info
