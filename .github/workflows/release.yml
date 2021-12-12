@@ -16,9 +16,12 @@ jobs:
       - name: Start Supporting Services
         run: ./scripts/setup.sh
       - name: Build & Deploy
+        uses: gradle/gradle-build-action@v2
         env:
           ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
           ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
-          IS_RELEASE_BUILD: true
+          IS_RELEASE_BUILD: false
           DB_URL: ${{ secrets.DB_URL }}
-        run: echo $ARTIFACTORY_USER
+        with:
+          gradle-version: 7.3
+          arguments: clean test build artifactoryPublish --info

@@ -2,7 +2,7 @@ package io.taff.exposed.extensions.tables.shared
 
 import io.taff.exposed.extensions.TenantError
 import io.taff.exposed.extensions.clearCurrentTenantId
-import io.taff.exposed.extensions.helpers.isNull
+import io.taff.exposed.extensions.isNull
 import io.taff.exposed.extensions.models.TenantScopedModel
 import io.taff.exposed.extensions.setCurrentTenantId
 import io.taff.exposed.extensions.tables.traits.TenantScopedTableTrait

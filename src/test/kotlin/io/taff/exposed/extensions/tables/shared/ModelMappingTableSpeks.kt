@@ -1,7 +1,7 @@
 package io.taff.exposed.extensions.tables.shared
 
 import io.taff.exposed.extensions.PersistenceError
-import io.taff.exposed.extensions.helpers.isNull
+import io.taff.exposed.extensions.isNull
 import io.taff.exposed.extensions.models.Model
 import io.taff.exposed.extensions.tables.traits.ModelMappingTableTrait
 import io.taff.spek.expekt.any.equal

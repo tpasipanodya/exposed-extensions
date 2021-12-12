@@ -2,7 +2,7 @@ package io.taff.exposed.extensions.tables.traits
 
 import io.taff.exposed.extensions.CurrentTenantId
 import io.taff.exposed.extensions.TenantError
-import io.taff.exposed.extensions.helpers.isNull
+import io.taff.exposed.extensions.isNull
 import io.taff.exposed.extensions.models.TenantScopedModel
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column

@@ -1,7 +1,7 @@
 package io.taff.exposed.extensions.tables.uuid
 
 import io.taff.exposed.extensions.clearCurrentTenantId
-import io.taff.exposed.extensions.helpers.env
+import io.taff.exposed.extensions.env
 import io.taff.exposed.extensions.models.SoftDeletableModel
 import io.taff.exposed.extensions.models.TenantScopedModel
 import io.taff.exposed.extensions.tables.shared.TitleAware
