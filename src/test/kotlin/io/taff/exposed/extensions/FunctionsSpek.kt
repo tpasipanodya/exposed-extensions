@@ -3,10 +3,8 @@ package io.taff.exposed.extensions
 import io.taff.spek.expekt.any.equal
 import io.taff.spek.expekt.any.satisfy
 import io.taff.spek.expekt.should
-import kotlinx.coroutines.asContextElement
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import kotlin.time.Duration.Companion.days
 
 object FunctionsSpek  : Spek({
 
