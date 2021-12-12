@@ -20,7 +20,7 @@ jobs:
         env:
           ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
           ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
-          IS_RELEASE_BUILD: false
+          IS_RELEASE_BUILD: true
           DB_URL: ${{ secrets.DB_URL }}
         with:
           gradle-version: 7.3
