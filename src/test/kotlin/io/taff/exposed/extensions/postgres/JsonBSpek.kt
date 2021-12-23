@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference
 import io.taff.exposed.extensions.Config
 import io.taff.exposed.extensions.env
 import io.taff.exposed.extensions.isNull
-import io.taff.exposed.extensions.models.Model
-import io.taff.exposed.extensions.tables.uuid.ModelMappingUuidTable
+import io.taff.exposed.extensions.records.Record
+import io.taff.exposed.extensions.tables.uuid.RecordMappingUuidTable
 import io.taff.spek.expekt.any.satisfy
 import io.taff.spek.expekt.should
 import org.jetbrains.exposed.sql.*
@@ -16,15 +16,15 @@ import org.spekframework.spek2.style.specification.describe
 import java.time.Instant
 import java.util.*
 
-data class ModelWithJson(
+data class RecordWithJson(
     override var id: UUID? = null,
     var json: Map<String, Any> = mapOf(),
     override var createdAt: Instant? = null,
     override var updatedAt: Instant? = null
-) : Model<UUID>
+) : Record<UUID>
 
 
-val modelsWithJson = object : ModelMappingUuidTable<ModelWithJson>("models_with_json") {
+val recordsWithJson = object : RecordMappingUuidTable<RecordWithJson>("records_with_json") {
     val json = jsonb("strings") {
         Config.objectMapper.readValue(
             it,
@@ -32,19 +32,19 @@ val modelsWithJson = object : ModelMappingUuidTable<ModelWithJson>("models_with_
         )
     }
 
-    override fun initializeModel(row: ResultRow) = ModelWithJson(json = row[json])
+    override fun initializeRecord(row: ResultRow) = RecordWithJson(json = row[json])
 
-    override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: ModelWithJson) {
-        stmt[json] = model.json
+    override fun appendStatementValues(stmt: UpdateBuilder<Int>, record: RecordWithJson) {
+        stmt[json] = record.json
     }
 }
 
 object JsonBSpek : Spek({
 
     Database.connect(env<String>("DB_URL"))
-    transaction { SchemaUtils.create(modelsWithJson) }
+    transaction { SchemaUtils.create(recordsWithJson) }
 
-    beforeEachTest { transaction { modelsWithJson.deleteAll() } }
+    beforeEachTest { transaction { recordsWithJson.deleteAll() } }
 
     describe("reading and writing") {
         val actualJson by memoized {
@@ -53,21 +53,21 @@ object JsonBSpek : Spek({
         }
         val persisted by memoized {
             transaction {
-                modelsWithJson
-                    .insert(ModelWithJson(json = actualJson))
+                recordsWithJson
+                    .insert(RecordWithJson(json = actualJson))
                     .first()
             }
         }
         val reloaded by memoized {
             transaction {
-                modelsWithJson
+                recordsWithJson
                     .selectAll()
-                    .map(modelsWithJson::toModel)
+                    .map(recordsWithJson::toRecord)
                     .first()
             }
         }
 
-        it("correctly persists and loads the model") {
+        it("correctly persists and loads the record") {
             persisted should satisfy {
                 json == actualJson &&
                 !(id.isNull() &&

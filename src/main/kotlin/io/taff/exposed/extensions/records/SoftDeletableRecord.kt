@@ -1,14 +1,14 @@
-package io.taff.exposed.extensions.models
+package io.taff.exposed.extensions.records
 
 import io.taff.exposed.extensions.isNull
 import java.time.Instant
 
 /**
- * Models that can be soft deleted.
+ * Records that can be soft deleted.
  *
  * @param ID The id type.
  */
-interface SoftDeletableModel<ID : Comparable<ID>> : Model<ID> {
+interface SoftDeletableRecord<ID : Comparable<ID>> : Record<ID> {
 
     var softDeletedAt: Instant?
 

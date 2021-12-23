@@ -1,7 +1,7 @@
 package io.taff.exposed.extensions.tables.traits
 
-import io.taff.exposed.extensions.models.SoftDeletableModel
-import io.taff.exposed.extensions.models.TenantScopedModel
+import io.taff.exposed.extensions.records.SoftDeletableRecord
+import io.taff.exposed.extensions.records.TenantScopedRecord
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.ResultRow
@@ -10,15 +10,15 @@ import org.jetbrains.exposed.sql.statements.UpdateBuilder
 /**
  * Tenant Isolation + soft delete behavior applicable to tables.
  *
- * @param ID The model's concrete id type.
+ * @param ID The record's concrete id type.
  * @param TID The concrete tenantId type.
- * @param M The concrete model type.
+ * @param M The concrete record type.
  * @param T The underlying exposed table's concrete type.
  */
 interface TenantScopedSoftDeletableTableTrait<ID : Comparable<ID>, TID: Comparable<TID>, M, T>
     :TenantScopedTableTrait<ID, TID, M, T>, SoftDeletableTableTrait<ID, M, T>
-        where M : TenantScopedModel<ID, TID>,
-              M : SoftDeletableModel<ID>,
+        where M : TenantScopedRecord<ID, TID>,
+              M : SoftDeletableRecord<ID>,
               T : IdTable<ID>,
               T:  SoftDeletableTableTrait<ID, M, T> {
 
@@ -46,23 +46,23 @@ interface TenantScopedSoftDeletableTableTrait<ID : Comparable<ID>, TID: Comparab
      */
     fun liveForAllTenants() : T
 
-    /** populate the model from a result row */
-    override fun toModel(row: ResultRow) = super<TenantScopedTableTrait>
-        .toModel(row)
+    /** populate the record from a result row */
+    override fun toRecord(row: ResultRow) = super<TenantScopedTableTrait>
+        .toRecord(row)
         .also { it.softDeletedAt = row[softDeletedAt] }
 
     /** populate insert/update statements */
-    override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M, vararg skip: Column<*>) {
-        super<TenantScopedTableTrait>.appendBaseStatementValues(stmt, model, *skip)
-        super<SoftDeletableTableTrait>.appendBaseStatementValues(stmt, model, *skip)
+    override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, record: M, vararg skip: Column<*>) {
+        super<TenantScopedTableTrait>.appendBaseStatementValues(stmt, record, *skip)
+        super<SoftDeletableTableTrait>.appendBaseStatementValues(stmt, record, *skip)
     }
 
-    override fun delete(vararg models: M) : Boolean = super<TenantScopedTableTrait>.delete(*models)
-        .also { modelsDeleted -> if (modelsDeleted) models.forEach { it.markAsSoftDeleted() } }
+    override fun delete(vararg records: M) : Boolean = super<TenantScopedTableTrait>.delete(*records)
+        .also { recordIsDestroyed -> if (recordIsDestroyed) records.forEach { it.markAsSoftDeleted() } }
 
 
-    override fun softDelete(vararg models: M) =  validateDestruction(models)
-        .onEach(SoftDeletableModel<ID>::markAsSoftDeleted)
+    override fun softDelete(vararg records: M) =  validateDestruction(records)
+        .onEach(SoftDeletableRecord<ID>::markAsSoftDeleted)
         .let(::update)
-        .also { modelisSoftDeleted -> if (!modelisSoftDeleted) models.forEach(SoftDeletableModel<ID>::markAsLive) }
+        .also { recordIsSoftDeleted -> if (!recordIsSoftDeleted) records.forEach(SoftDeletableRecord<ID>::markAsLive) }
 }

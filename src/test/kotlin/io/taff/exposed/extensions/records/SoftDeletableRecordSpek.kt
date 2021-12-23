@@ -1,6 +1,6 @@
-package io.taff.exposed.extensions.models
+package io.taff.exposed.extensions.records
 
-import io.taff.exposed.extensions.models.examples.includeModelSpeks
+import io.taff.exposed.extensions.records.examples.includeRecordSpeks
 import io.taff.spek.expekt.any.satisfy
 import io.taff.spek.expekt.should
 import io.taff.spek.expekt.shouldNot
@@ -11,36 +11,36 @@ import java.time.Instant.now
 import java.util.*
 
 
-data class MySoftDeletableModel(
+data class MySoftDeletableRecord(
     override var id: UUID?,
     override var softDeletedAt: Instant?,
     override var createdAt: Instant? = null,
     override var updatedAt: Instant? = null
-) : SoftDeletableModel<UUID>
+) : SoftDeletableRecord<UUID>
 
-object SoftDeletableModelSpek : Spek ({
+object SoftDeletableRecordSpek : Spek ({
 
-    includeModelSpeks(UUID.randomUUID()) {
-        MySoftDeletableModel(id = it, softDeletedAt = null)
+    includeRecordSpeks(UUID.randomUUID()) {
+        MySoftDeletableRecord(id = it, softDeletedAt = null)
     }
 
     describe("isSoftDeleted") {
         val id by memoized { UUID.randomUUID() }
 
         context("no softDeletedAt value set") {
-            val model by memoized { MySoftDeletableModel(id, null) }
+            val record by memoized { MySoftDeletableRecord(id, null) }
 
             it("is not soft deleted") {
-                model shouldNot satisfy { isSoftDeleted() }
+                record shouldNot satisfy { isSoftDeleted() }
             }
         }
 
         context("softDeletedAt value set") {
             val softDeletedAt by memoized { now() }
-            val model by memoized { MySoftDeletableModel(id, softDeletedAt) }
+            val record by memoized { MySoftDeletableRecord(id, softDeletedAt) }
 
             it("is not soft deleted") {
-                model should satisfy { isSoftDeleted() }
+                record should satisfy { isSoftDeleted() }
             }
         }
 
@@ -48,12 +48,12 @@ object SoftDeletableModelSpek : Spek ({
 
     describe("markAsSoftDeleted") {
         val id by memoized { UUID.randomUUID() }
-        val model by memoized { MySoftDeletableModel(id, null) }
+        val record by memoized { MySoftDeletableRecord(id, null) }
 
-        it("marks the model as soft deleted") {
-            model shouldNot satisfy { isSoftDeleted() }
-            model.markAsSoftDeleted()
-            model should satisfy { isSoftDeleted() }
+        it("marks the record as soft deleted") {
+            record shouldNot satisfy { isSoftDeleted() }
+            record.markAsSoftDeleted()
+            record should satisfy { isSoftDeleted() }
         }
     }
 })

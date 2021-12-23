@@ -2,8 +2,8 @@ package io.taff.exposed.extensions.tables.long
 
 
 import io.taff.exposed.extensions.env
-import io.taff.exposed.extensions.models.Model
-import io.taff.exposed.extensions.models.SoftDeletableModel
+import io.taff.exposed.extensions.records.Record
+import io.taff.exposed.extensions.records.SoftDeletableRecord
 import io.taff.exposed.extensions.tables.shared.TitleAware
 import io.taff.exposed.extensions.tables.shared.includeSoftDeletableTableSpeks
 import org.jetbrains.exposed.sql.*
@@ -17,7 +17,7 @@ data class SoftDeletableLongIdRecord(override var title: String? = null,
                                    override var createdAt: Instant? = null,
                                    override var updatedAt: Instant? = null,
                                    override var softDeletedAt: Instant? = null)
-    : TitleAware, Model<Long>, SoftDeletableModel<Long>
+    : TitleAware, Record<Long>, SoftDeletableRecord<Long>
 
 var softDeleteTitleColumn: Column<String>? = null
 val softDeletableLongIdRecords = object : SoftDeletableLongIdTable<SoftDeletableLongIdRecord>("soft_deletable_long_id_records") {
@@ -25,9 +25,9 @@ val softDeletableLongIdRecords = object : SoftDeletableLongIdTable<SoftDeletable
 
     init { softDeleteTitleColumn = title }
 
-    override fun initializeModel(row: ResultRow) = SoftDeletableLongIdRecord(title = row[title])
-    override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: SoftDeletableLongIdRecord) {
-        model.title?.let { stmt[title] = it }
+    override fun initializeRecord(row: ResultRow) = SoftDeletableLongIdRecord(title = row[title])
+    override fun appendStatementValues(stmt: UpdateBuilder<Int>, record: SoftDeletableLongIdRecord) {
+        record.title?.let { stmt[title] = it }
     }
 }
 

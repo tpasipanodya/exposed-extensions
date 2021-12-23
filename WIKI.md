@@ -1,16 +1,16 @@
 ## Declarative entity mapping
 
-Everything revolves around the `Model<ID>` class and its derivatives.
+Everything revolves around the `Record<ID>` class and its derivatives.
 
 | Class                        | Purpose                                                          |
 | ---------------------------- | ---------------------------------------------------------------- |
-| `Model<ID>`                  | Adds timestamp audit fields (`createdAt` and `updatedAt`)        |
-| `SoftDeletableModel<ID>`     | Adds soft delete support via the `softDeletedAt` timestamp field |
-| `TenantScopedModel<ID, TID>` | Adds tenant isolation support via the `tenantId` function        |
+| `Record<ID>`                  | Adds timestamp audit fields (`createdAt` and `updatedAt`)        |
+| `SoftDeletableRecord<ID>`     | Adds soft delete support via the `softDeletedAt` timestamp field |
+| `TenantScopedRecord<ID, TID>` | Adds tenant isolation support via the `tenantId` function        |
 
-You only need to implement these if you plan on using model mapping DSL methods like `table.insert(myRecord)`.
+You only need to implement these if you plan on using record mapping DSL methods like `table.insert(myRecord)`.
 
-## Postgres Array & JsonB Columns via The ModelMappingLongIdTable
+## Postgres Array & JsonB Columns via The RecordMappingLongIdTable
 
 ```kotlin
 data class Book(
@@ -19,13 +19,13 @@ data class Book(
     var sentenceCountsPerPage: Map<String, Int> = listOf(),
     override var createdAt: Instant? = null,
     override var updatedAt: Instant? = null
-) : Model<Long>
+) : Record<Long>
 
-val books = object : ModelMappingLongIdTable<Book>() {
+val books = object : RecordMappingLongIdTable<Book>() {
     val pages = stringArray("strings")
     val sentenceCountsPerPage = jsonB("sentence_counts_per_page")
 
-    override fun initializeModel(row: ResultRow) = Book(
+    override fun initializeRecord(row: ResultRow) = Book(
         pages = row[pages],
         sentenceCountsPerPage = row[sentenceCountsPerPage]
     )
@@ -40,7 +40,7 @@ books.insert(Book("Book 1",
     listOf("lorem ipsum..."), 
     mapOf("1" to 300)))
 
-val actualBooks = books.selectAll().map(books::toModel)
+val actualBooks = books.selectAll().map(books::toRecord)
 
 ```
 
@@ -53,15 +53,15 @@ with soft deletes.
 
 ```kotlin
 /** Given a table */
-val books = object : TenantScopedLongIdTable<Model<Long>>() {
+val books = object : TenantScopedLongIdTable<Record<Long>>() {
     val title = varchar("name", 50).nullable()
     override val tenantId: Column<Long> = long("author_id")
 
-    /** assuming we won't be using the model mapping DSL with this table */
-    override fun initializeModel(row: ResultRow) = object : Model<Long> { 
+    /** assuming we won't be using the record mapping DSL with this table */
+    override fun initializeRecord(row: ResultRow) = object : Record<Long> { 
         override val id: Long = -1L 
     }
-    override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: Model<long>) {}
+    override fun appendStatementValues(stmt: UpdateBuilder<Int>, record: Record<long>) {}
 }
 
 transaction {
@@ -96,14 +96,14 @@ support with tenant isolation.
 
 ```kotlin
 /** Given a table */
-val books = object : SoftDeletableLongIdTable<Model<Long>>() {
+val books = object : SoftDeletableLongIdTable<Record<Long>>() {
     val title = varchar("name", 50).nullable()
         
-    /** assuming we won't be using the model mapping DSL with this table */
-    override fun initializeModel(row: ResultRow) = object : Model<Long> {
+    /** assuming we won't be using the record mapping DSL with this table */
+    override fun initializeRecord(row: ResultRow) = object : Record<Long> {
         override val id = -1L
     }
-    override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: Model<Long>) {}
+    override fun appendStatementValues(stmt: UpdateBuilder<Int>, record: Record<Long>) {}
 }
 
 transaction {
@@ -116,7 +116,7 @@ transaction {
     /** executes the sql `SELECT * FROM books` */
     books.liveAndSoftDeleted().selectAll().toList()
     
-    /** You can also soft delete models in batches (assuming we had configured model mapping ofcourse) */
+    /** You can also soft delete records in batches (assuming we had configured record mapping ofcourse) */
     val myBook = books.liveAndSoftDeleted().selectAll().first()
     books.softDelete(myBook)
 }

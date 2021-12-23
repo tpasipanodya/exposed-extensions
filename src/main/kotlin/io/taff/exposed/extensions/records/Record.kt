@@ -1,14 +1,14 @@
-package io.taff.exposed.extensions.models
+package io.taff.exposed.extensions.records
 
 import java.time.Instant
 import io.taff.exposed.extensions.isNull
 
 /**
- * Models that have an Id.
+ * Records that have an Id.
  *
  * @param ID the id type.
  */
-interface Model<ID : Comparable<ID>> {
+interface Record<ID : Comparable<ID>> {
 
     var id: ID?
     var createdAt: Instant?

@@ -2,8 +2,8 @@ package io.taff.exposed.extensions.postgres
 
 import io.taff.exposed.extensions.env
 import io.taff.exposed.extensions.isNull
-import io.taff.exposed.extensions.models.Model
-import io.taff.exposed.extensions.tables.uuid.ModelMappingUuidTable
+import io.taff.exposed.extensions.records.Record
+import io.taff.exposed.extensions.tables.uuid.RecordMappingUuidTable
 import io.taff.spek.expekt.any.satisfy
 import io.taff.spek.expekt.should
 import org.jetbrains.exposed.sql.*
@@ -14,7 +14,7 @@ import org.spekframework.spek2.style.specification.describe
 import java.time.Instant
 import java.util.*
 
-data class ModelWithArrays(
+data class RecordWithArrays(
     override var id: UUID? = null,
     var strings: List<String> = listOf(),
     var longs: List<Long> = listOf(),
@@ -22,36 +22,36 @@ data class ModelWithArrays(
     var bools: List<Boolean> = listOf(),
     override var createdAt: Instant? = null,
     override var updatedAt: Instant? = null
-) : Model<UUID>
+) : Record<UUID>
 
 
-val modelsWithArrays = object : ModelMappingUuidTable<ModelWithArrays>("models_with_arrays") {
+val recordsWithArrays = object : RecordMappingUuidTable<RecordWithArrays>("records_with_arrays") {
     val strings = stringArray("strings")
     val ints = intArray("ints")
     val longs = longArray("longs")
     val bools = boolArray("bools")
 
-    override fun initializeModel(row: ResultRow) = ModelWithArrays(
+    override fun initializeRecord(row: ResultRow) = RecordWithArrays(
         strings = row[strings],
         longs = row[longs],
         ints = row[ints],
         bools = row[bools]
     )
 
-    override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: ModelWithArrays) {
-        stmt[strings] = model.strings
-        stmt[longs] = model.longs
-        stmt[ints] = model.ints
-        stmt[bools] = model.bools
+    override fun appendStatementValues(stmt: UpdateBuilder<Int>, record: RecordWithArrays) {
+        stmt[strings] = record.strings
+        stmt[longs] = record.longs
+        stmt[ints] = record.ints
+        stmt[bools] = record.bools
     }
 }
 
 object ArraySpek : Spek({
 
     Database.connect(env<String>("DB_URL"))
-    transaction { SchemaUtils.create(modelsWithArrays) }
+    transaction { SchemaUtils.create(recordsWithArrays) }
 
-    beforeEachTest { transaction { modelsWithArrays.deleteAll() } }
+    beforeEachTest { transaction { recordsWithArrays.deleteAll() } }
 
     describe("reading and writing") {
         val actualStrings by memoized { listOf("foo", "bar") }
@@ -60,7 +60,7 @@ object ArraySpek : Spek({
         val actualBools by memoized { listOf(false, true) }
         val persisted by memoized {
             transaction {
-                modelsWithArrays.insert(ModelWithArrays(
+                recordsWithArrays.insert(RecordWithArrays(
                     strings = actualStrings,
                     ints = actualInts,
                     longs = actualLongs,
@@ -70,14 +70,14 @@ object ArraySpek : Spek({
         }
         val reloaded by memoized {
             transaction {
-                modelsWithArrays
+                recordsWithArrays
                     .selectAll()
-                    .map(modelsWithArrays::toModel)
+                    .map(recordsWithArrays::toRecord)
                     .first()
             }
         }
 
-        it("correctly persists and loads the model") {
+        it("correctly persists and loads the record") {
             persisted should satisfy {
                 strings == actualStrings &&
                 ints == actualInts &&
