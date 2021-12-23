@@ -8,7 +8,7 @@ import io.taff.spek.expekt.any.equal
 import io.taff.spek.expekt.any.satisfy
 import io.taff.spek.expekt.boolean.beFalse
 import io.taff.spek.expekt.boolean.beTrue
-import io.taff.spek.expekt.iterable.beAnUnOrderedCollectionOf
+import io.taff.spek.expekt.iterable.containInAnyOrder
 import io.taff.spek.expekt.should
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column
@@ -123,7 +123,7 @@ fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
 
             it("loads all of the current tenant's records") {
                 selected should satisfy { size == 2 }
-                selected should beAnUnOrderedCollectionOf(
+                selected should containInAnyOrder(
                     satisfy<M> {
                         id == otherPersisted.id &&
                         title == otherPersisted.title &&

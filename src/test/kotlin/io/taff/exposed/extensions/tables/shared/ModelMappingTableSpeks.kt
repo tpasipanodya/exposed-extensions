@@ -6,7 +6,7 @@ import io.taff.exposed.extensions.models.Model
 import io.taff.exposed.extensions.tables.traits.ModelMappingTableTrait
 import io.taff.spek.expekt.any.equal
 import io.taff.spek.expekt.any.satisfy
-import io.taff.spek.expekt.iterable.beAnUnOrderedCollectionOf
+import io.taff.spek.expekt.iterable.containInAnyOrder
 import io.taff.spek.expekt.should
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column
@@ -36,7 +36,7 @@ fun<ID, M, T> Root.includeModelMappingTableSpeks(
     describe("insert & select") {
         it("persists the record") {
             persisted should satisfy { size == 1 }
-            persisted.toList() should beAnUnOrderedCollectionOf(
+            persisted.toList() should containInAnyOrder(
                 satisfy<M> {
                     isPersisted() &&
                     title == record.title &&
@@ -46,7 +46,7 @@ fun<ID, M, T> Root.includeModelMappingTableSpeks(
                 }
             )
             reloaded should satisfy { size == 1 }
-            reloaded should beAnUnOrderedCollectionOf(
+            reloaded should containInAnyOrder(
                 satisfy<M> {
                     isPersisted() &&
                     title == record.title &&
@@ -70,7 +70,7 @@ fun<ID, M, T> Root.includeModelMappingTableSpeks(
 
             it("modifies the record") {
                 persisted should satisfy { size == 1 }
-                persisted.toList() should beAnUnOrderedCollectionOf(
+                persisted.toList() should containInAnyOrder(
                     satisfy<M> {
                         isPersisted() &&
                         title == record.title &&
@@ -81,7 +81,7 @@ fun<ID, M, T> Root.includeModelMappingTableSpeks(
                 )
                 updated should equal(true)
                 reloaded should satisfy { size == 1 }
-                reloaded should beAnUnOrderedCollectionOf(
+                reloaded should containInAnyOrder(
                     satisfy<M> {
                         isPersisted() &&
                         title == record.title &&
@@ -120,7 +120,7 @@ fun<ID, M, T> Root.includeModelMappingTableSpeks(
 
             it("modifies the record") {
                 persisted should satisfy { size == 1 }
-                persisted.toList() should beAnUnOrderedCollectionOf(
+                persisted.toList() should containInAnyOrder(
                     satisfy<M> {
                         isPersisted() &&
                         title == record.title &&
@@ -131,7 +131,7 @@ fun<ID, M, T> Root.includeModelMappingTableSpeks(
                 )
                 updated should equal(1)
                 reloaded should satisfy { size == 1 }
-                reloaded should beAnUnOrderedCollectionOf(
+                reloaded should containInAnyOrder(
                     satisfy<M> {
                         isPersisted() &&
                         title == newTitle &&
@@ -150,7 +150,7 @@ fun<ID, M, T> Root.includeModelMappingTableSpeks(
 
             it("hard deletes the record") {
                 persisted should satisfy { size == 1 }
-                persisted.toList() should beAnUnOrderedCollectionOf(
+                persisted.toList() should containInAnyOrder(
                     satisfy<M> {
                         isPersisted() &&
                         title == record.title &&
@@ -173,12 +173,12 @@ fun<ID, M, T> Root.includeModelMappingTableSpeks(
 
             it("hard deletes the record") {
                 persisted should satisfy { size == 1 }
-                persisted.toList() should beAnUnOrderedCollectionOf(
+                persisted.toList() should containInAnyOrder(
                     satisfy<M> {
                         isPersisted() &&
-                                title == record.title &&
-                                createdAt.isNull() &&
-                                updatedAt.isNull()
+                        title == record.title &&
+                        createdAt.isNull() &&
+                        updatedAt.isNull()
 
                     }
                 )
