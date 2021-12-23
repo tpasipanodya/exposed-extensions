@@ -10,7 +10,7 @@ import java.util.*
 import io.taff.spek.expekt.any.equal
 import io.taff.spek.expekt.any.satisfy
 import io.taff.spek.expekt.boolean.beTrue
-import io.taff.spek.expekt.iterable.beAnUnOrderedCollectionOf
+import io.taff.spek.expekt.iterable.containInAnyOrder
 import io.taff.spek.expekt.should
 import io.taff.spek.expekt.shouldNot
 import org.jetbrains.exposed.dao.id.IdTable
@@ -68,7 +68,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
     describe("insert") {
         context("with tenant id set") {
             it("persists") {
-                persisted should beAnUnOrderedCollectionOf(
+                persisted should containInAnyOrder(
                     satisfy<M> {
                         isPersisted() &&
                         title == tenant1Record.title &&
@@ -81,7 +81,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
                 )
                 reloaded should satisfy { size == 2 }
-                reloaded should beAnUnOrderedCollectionOf(
+                reloaded should containInAnyOrder(
                     satisfy<M> {
                         isPersisted() &&
                         title == tenant1Record.title &&
@@ -130,7 +130,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
 
             it("only loads the current tenant's records") {
                 selected should satisfy { size == 1 }
-                selected should beAnUnOrderedCollectionOf(
+                selected should containInAnyOrder(
                     satisfy<M> {
                         id == tenant1Record.id &&
                         title == tenant1Record.title &&
@@ -139,7 +139,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
                 )
                 reloaded should satisfy { size == 2 }
-                reloaded should beAnUnOrderedCollectionOf(
+                reloaded should containInAnyOrder(
                     satisfy<M> {
                         id == tenant1Record.id &&
                         title == tenant1Record.title &&
@@ -169,7 +169,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
 
             it("only loads the current tenant's records") {
                 selected should satisfy { size == 2 }
-                selected should beAnUnOrderedCollectionOf(
+                selected should containInAnyOrder(
                     satisfy<M> {
                         id == tenant1Record.id &&
                         title == tenant1Record.title &&
@@ -184,7 +184,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
                 )
                 reloaded should satisfy { size == 2 }
-                reloaded should beAnUnOrderedCollectionOf(
+                reloaded should containInAnyOrder(
                     satisfy<M> {
                         id == tenant1Record.id &&
                         title == tenant1Record.title &&
@@ -217,12 +217,12 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("updates") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         updated should beTrue()
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 id == tenant1Record.id &&
                                 title == newTitle &&
@@ -252,12 +252,12 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("updates") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         updated should equal(1)
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 id == tenant1Record.id &&
                                 title == newTitle &&
@@ -287,7 +287,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("doesn't update because of tenant isolation") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
@@ -295,7 +295,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         try { updated; fail("Expected a tenant error but non was raised.") }
                         catch (e: TenantError) { e.message should satisfy { this == "Model ${tenant2Record.id} can't be persisted because it doesn't belong to the current tenant." } }
 
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 id == tenant1Record.id &&
                                 title == tenant1Record.title &&
@@ -324,12 +324,12 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("doesn't update because of tenant isolation") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         updated should equal(0)
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 id == tenant1Record.id &&
                                 title == tenant1Record.title &&
@@ -359,13 +359,13 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("doesn't update because of tenant isolation") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         try { updated; fail("Expected an error but non was raised.") }
                         catch (e: Exception) { e.message should satisfy { this == "Model ${tenant1Record.id} can't be persisted because There's no current tenant Id set." } }
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 id == tenant1Record.id &&
                                 title == tenant1RecordFunc().title &&
@@ -394,12 +394,12 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("doesn't update because of tenant isolation") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         updated should equal(0)
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 id == tenant1Record.id &&
                                 title == tenant1Record.title &&
@@ -431,13 +431,13 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("updates") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         updated should beTrue()
                         reloaded should satisfy { size == 2 }
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 id == tenant1Record.id &&
                                 title == newTitle &&
@@ -467,13 +467,13 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("updates") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         updated should equal(1)
                         reloaded should satisfy { size == 2 }
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 id == tenant1Record.id &&
                                 title == newTitle &&
@@ -503,12 +503,12 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("updates the record") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         updated should equal(true)
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 id == tenant1Record.id &&
                                 title == tenant1Record.title &&
@@ -538,12 +538,12 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("updates the record") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         updated should equal(1)
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 id == tenant1Record.id &&
                                 title == tenant1Record.title &&
@@ -573,12 +573,12 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("updates the record") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         updated should equal(true)
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 id == tenant1Record.id &&
                                 title == newTitle &&
@@ -608,12 +608,12 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("updates the record") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         updated should equal(1)
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 id == tenant1Record.id &&
                                 title == newTitle &&
@@ -644,13 +644,13 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("deletes the records") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         deleted should equal(true)
                         reloaded should satisfy { size == 1 }
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 isPersisted() &&
                                 id == tenant2Record.id &&
@@ -670,13 +670,13 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("deletes the records") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         deleted should equal(1)
                         reloaded should satisfy { size == 1 }
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 id == tenant2Record.id &&
                                 isPersisted() &&
@@ -700,7 +700,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("deletes the records") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
@@ -708,7 +708,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         catch (e: TenantError) { e.message should satisfy { this == "Cannot delete models because they belong to a different tenant." } }
 
                         reloaded should satisfy { size == 2 }
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 id == tenant1Record.id &&
                                 isPersisted() &&
@@ -738,13 +738,13 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("deletes the records") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         deleted should equal(0)
                         reloaded should satisfy { size == 2 }
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 id == tenant1Record.id &&
                                 isPersisted() &&
@@ -776,7 +776,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("doesn't delete the records") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
@@ -784,7 +784,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         catch (e: TenantError) { e.message should satisfy { this == "Cannot delete models because there is no CurrentTenantId." } }
 
                         reloaded should satisfy { size == 2 }
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 id == tenant1Record.id &&
                                 isPersisted() &&
@@ -814,13 +814,13 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("doesn't delete the records") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         deleted should equal(0)
                         reloaded should satisfy { size == 2 }
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 isPersisted() &&
                                 id == tenant1Record.id &&
@@ -852,13 +852,13 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("deletes the records") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         deleted should equal(true)
                         reloaded should satisfy { size == 1 }
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 isPersisted() &&
                                 id == tenant2Record.id &&
@@ -881,13 +881,13 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("deletes the records") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         deleted should equal(1)
                         reloaded should satisfy { size == 1 }
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 isPersisted() &&
                                 id == tenant2Record.id &&
@@ -912,13 +912,13 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("deletes the records") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         deleted should equal(true)
                         reloaded should satisfy { size == 1 }
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 id == tenant1Record.id &&
                                 isPersisted() &&
@@ -941,13 +941,13 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("deletes the records") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         deleted should equal(1)
                         reloaded should satisfy { size == 1 }
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 id == tenant1Record.id &&
                                 isPersisted() &&
@@ -972,13 +972,13 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("deletes the record") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         deleted should equal(true)
                         reloaded should satisfy { size == 1 }
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 id == tenant2Record.id &&
                                 isPersisted() &&
@@ -1001,13 +1001,13 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
 
                     it("deletes the record") {
-                        persisted should beAnUnOrderedCollectionOf(
+                        persisted should containInAnyOrder(
                             satisfy<M> { title == tenant1Record.title && isPersisted() },
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         deleted should equal(1)
                         reloaded should satisfy { size == 1 }
-                        reloaded should beAnUnOrderedCollectionOf(
+                        reloaded should containInAnyOrder(
                             satisfy<M> {
                                 id == tenant2Record.id &&
                                 isPersisted() &&
