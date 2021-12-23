@@ -2,7 +2,7 @@ package io.taff.exposed.extensions.tables.shared
 
 import io.taff.exposed.extensions.PersistenceError
 import io.taff.exposed.extensions.isNull
-import io.taff.exposed.extensions.models.SoftDeletableModel
+import io.taff.exposed.extensions.records.SoftDeletableRecord
 import io.taff.exposed.extensions.tables.traits.SoftDeletableTableTrait
 import io.taff.spek.expekt.any.equal
 import io.taff.spek.expekt.any.satisfy
@@ -28,7 +28,7 @@ fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
     titleColumnRef: Column<String>
 ) where T : SoftDeletableTableTrait<ID, M, T>,
         T : IdTable<ID>,
-        M : SoftDeletableModel<ID>,
+        M : SoftDeletableRecord<ID>,
         M : TitleAware = describe("soft deletable table speks") {
 
     val record by memoized { recordFxn() }
@@ -39,7 +39,7 @@ fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
         transaction {
             table.stripDefaultScope()
                 .selectAll()
-                .map(table::toModel)
+                .map(table::toRecord)
         }
     }
 
@@ -69,7 +69,7 @@ fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
                 transaction {
                     otherPersisted
                     table.softDelete(persisted)
-                    table.selectAll().map(table::toModel)
+                    table.selectAll().map(table::toRecord)
                 }
             }
 
@@ -93,7 +93,7 @@ fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
                     otherPersisted
                     table.softDelete(persisted)
                     table.softDeleted().selectAll()
-                        .map(table::toModel)
+                        .map(table::toRecord)
                 }
             }
 
@@ -117,7 +117,7 @@ fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
                     table.softDelete(persisted)
                     table.liveAndSoftDeleted().selectAll()
                         .orderBy(table.id, SortOrder.ASC)
-                        .map(table::toModel)
+                        .map(table::toRecord)
                 }
             }
 
@@ -167,7 +167,7 @@ fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
 
         context("when updating a soft deleted record") {
             context("when using the default scope") {
-                context("with model mapping") {
+                context("with record mapping") {
                     val updated by memoized {
                         transaction {
                             table.softDelete(persisted)
@@ -189,7 +189,7 @@ fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
                     }
                 }
 
-                context("without model mapping") {
+                context("without record mapping") {
                     val updated by memoized {
                         transaction {
                             persisted
@@ -215,7 +215,7 @@ fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
             }
 
             context("When using the soft deleted scope") {
-                context("with model mapping") {
+                context("with record mapping") {
                     val updated by memoized {
                         transaction {
                             table.softDelete(persisted)
@@ -238,7 +238,7 @@ fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
                     }
                 }
 
-                context("without model mapping") {
+                context("without record mapping") {
                     val updated by memoized {
                         transaction {
                             table.softDelete(persisted)
@@ -264,7 +264,7 @@ fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
             }
 
             context("When using both live and soft deleted scopes") {
-                context("with model mapping") {
+                context("with record mapping") {
                     val updated by memoized {
                         transaction {
                             table.softDelete(persisted)
@@ -287,7 +287,7 @@ fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
                     }
                 }
 
-                context("without model maping"){
+                context("without record maping"){
                     val updated by memoized {
                         transaction {
                             table.softDelete(persisted)
@@ -314,7 +314,7 @@ fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
 
         }
 
-        context("When the model hasn't been persisted yet") {
+        context("When the record hasn't been persisted yet") {
             val updated by memoized {
                 transaction { table.update(record) }
             }
@@ -332,7 +332,7 @@ fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
     }
 
     describe("delete") {
-        context("with model mapping") {
+        context("with record mapping") {
             val deleted by memoized { transaction { table.delete(persisted) } }
 
             it("hard deletes the record") {
@@ -343,7 +343,7 @@ fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
         }
 
 
-        context("without model mapping") {
+        context("without record mapping") {
             val deleted by memoized { transaction { table.deleteWhere { table.id eq persisted.id } } }
 
             it("hard deletes the record") {

@@ -1,28 +1,27 @@
-package io.taff.exposed.extensions.models.examples
+package io.taff.exposed.extensions.records.examples
 
-import io.taff.exposed.extensions.models.Model
+import io.taff.exposed.extensions.records.Record
 import io.taff.spek.expekt.any.satisfy
 import io.taff.spek.expekt.should
 import io.taff.spek.expekt.shouldNot
 import org.spekframework.spek2.dsl.Root
 import org.spekframework.spek2.style.specification.describe
-import java.util.*
 
-fun <ID : Comparable<ID>, M : Model<ID>> Root.includeModelSpeks(id: ID, modelFxn: (ID?) -> M) {
+fun <ID : Comparable<ID>, M : Record<ID>> Root.includeRecordSpeks(id: ID, recordFxn: (ID?) -> M) {
     describe("isPersisted") {
         context("with an id set") {
-            val model by memoized { modelFxn(id) }
+            val record by memoized { recordFxn(id) }
 
             it("is persisted") {
-                model should satisfy { isPersisted() }
+                record should satisfy { isPersisted() }
             }
         }
 
         context("with no id set") {
-            val model by memoized { modelFxn(null) }
+            val record by memoized { recordFxn(null) }
 
             it("is persisted") {
-                model shouldNot satisfy { isPersisted() }
+                record shouldNot satisfy { isPersisted() }
             }
         }
     }

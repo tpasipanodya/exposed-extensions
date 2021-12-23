@@ -1,6 +1,6 @@
 package io.taff.exposed.extensions.tables.long
 
-import io.taff.exposed.extensions.models.TenantScopedModel
+import io.taff.exposed.extensions.records.TenantScopedRecord
 import io.taff.exposed.extensions.tables.traits.TenantScopedTableTrait
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.javatime.timestamp
@@ -14,9 +14,9 @@ import org.jetbrains.exposed.sql.statements.UpdateBuilder
  * A table that enforces tenant isolation unless requested not to.
  *
  * @param TID The concrete tenantId type.
- * @param M The concrete model type.
+ * @param M The concrete record type.
  */
-abstract class TenantScopedLongIdTable<TID : Comparable<TID>, M : TenantScopedModel<Long, TID>>(name: String)
+abstract class TenantScopedLongIdTable<TID : Comparable<TID>, M : TenantScopedRecord<Long, TID>>(name: String)
     :LongIdTable(name = name), TenantScopedTableTrait<Long, TID, M, TenantScopedLongIdTable<TID, M>> {
 
     override val createdAt = timestamp("created_at").clientDefault { now() }
@@ -26,7 +26,7 @@ abstract class TenantScopedLongIdTable<TID : Comparable<TID>, M : TenantScopedMo
 
     override fun forAllTenants() = AllTenantsView(this)
 
-    class AllTenantsView<TID : Comparable<TID>, M : TenantScopedModel<Long, TID>>(private val actual: TenantScopedLongIdTable<TID, M>)
+    class AllTenantsView<TID : Comparable<TID>, M : TenantScopedRecord<Long, TID>>(private val actual: TenantScopedLongIdTable<TID, M>)
         : TenantScopedLongIdTable<TID, M>(name = actual.tableName), TenantScopedTableTrait<Long, TID, M, TenantScopedLongIdTable<TID, M>> {
 
         override val columns = actual.columns
@@ -37,16 +37,16 @@ abstract class TenantScopedLongIdTable<TID : Comparable<TID>, M : TenantScopedMo
 
         override fun self() = this
 
-        override fun initializeModel(row: ResultRow) = actual.initializeModel(row)
+        override fun initializeRecord(row: ResultRow) = actual.initializeRecord(row)
 
-        override fun validateDestruction(models: Array<out M>) = models
+        override fun validateDestruction(records: Array<out M>) = records
 
-        override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M, vararg skip: Column<*>) {
-            super<TenantScopedLongIdTable>.appendBaseStatementValues(stmt, model, tenantId, *skip)
+        override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, record: M, vararg skip: Column<*>) {
+            super<TenantScopedLongIdTable>.appendBaseStatementValues(stmt, record, tenantId, *skip)
         }
 
-        override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: M) =
-            actual.appendStatementValues(stmt, model)
+        override fun appendStatementValues(stmt: UpdateBuilder<Int>, record: M) =
+            actual.appendStatementValues(stmt, record)
     }
 
 }

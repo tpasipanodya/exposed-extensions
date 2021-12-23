@@ -2,8 +2,8 @@ package io.taff.exposed.extensions.tables.shared
 
 import io.taff.exposed.extensions.PersistenceError
 import io.taff.exposed.extensions.isNull
-import io.taff.exposed.extensions.models.Model
-import io.taff.exposed.extensions.tables.traits.ModelMappingTableTrait
+import io.taff.exposed.extensions.records.Record
+import io.taff.exposed.extensions.tables.traits.RecordMappingTableTrait
 import io.taff.spek.expekt.any.equal
 import io.taff.spek.expekt.any.satisfy
 import io.taff.spek.expekt.iterable.containInAnyOrder
@@ -19,19 +19,19 @@ import org.spekframework.spek2.dsl.Root
 import org.spekframework.spek2.style.specification.describe
 
 
-fun<ID, M, T> Root.includeModelMappingTableSpeks(
+fun<ID, M, T> Root.includeRecordMappingTableSpeks(
     table: T,
     recordFunc: () -> M,
     titleColumnRef: Column<String>
 ) where ID: Comparable<ID>,
-        M : Model<ID>,
+        M : Record<ID>,
         M : TitleAware,
         T : IdTable<ID>,
-        T : ModelMappingTableTrait<ID, M, T> = describe("model mapping table speks") {
+        T : RecordMappingTableTrait<ID, M, T> = describe("record mapping table speks") {
 
     val record by memoized { recordFunc() }
     val persisted by memoized { transaction { table.insert(record) } }
-    val reloaded by memoized { transaction { table.selectAll().map(table::toModel) } }
+    val reloaded by memoized { transaction { table.selectAll().map(table::toRecord) } }
 
     describe("insert & select") {
         it("persists the record") {
@@ -60,7 +60,7 @@ fun<ID, M, T> Root.includeModelMappingTableSpeks(
     describe("update") {
         val newTitle by memoized { "groovy soul food" }
 
-        context("via model mapping methods") {
+        context("via record mapping methods") {
             val updated by memoized {
                 transaction {
                     record.title = newTitle
@@ -92,7 +92,7 @@ fun<ID, M, T> Root.includeModelMappingTableSpeks(
             }
         }
 
-        context("When the model hasn't been saved yet") {
+        context("When the record hasn't been saved yet") {
             val updated by memoized {
                 transaction { table.update(record) }
             }
@@ -145,7 +145,7 @@ fun<ID, M, T> Root.includeModelMappingTableSpeks(
 
 
     describe("delete") {
-        context("via model mapping methods") {
+        context("via record mapping methods") {
             val deleted by memoized { transaction { table.delete(*persisted) } }
 
             it("hard deletes the record") {

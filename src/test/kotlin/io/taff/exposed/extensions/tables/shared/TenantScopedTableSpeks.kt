@@ -3,7 +3,7 @@ package io.taff.exposed.extensions.tables.shared
 import io.taff.exposed.extensions.TenantError
 import io.taff.exposed.extensions.clearCurrentTenantId
 import io.taff.exposed.extensions.isNull
-import io.taff.exposed.extensions.models.TenantScopedModel
+import io.taff.exposed.extensions.records.TenantScopedRecord
 import io.taff.exposed.extensions.setCurrentTenantId
 import io.taff.exposed.extensions.tables.traits.TenantScopedTableTrait
 import java.util.*
@@ -35,7 +35,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
     titleColumnRef: Column<String>
 ) where T : IdTable<ID>,
         T : TenantScopedTableTrait<ID, TID, M, T>,
-        M : TenantScopedModel<ID, TID>,
+        M : TenantScopedRecord<ID, TID>,
         M : TitleAware = describe("tenant scoped table") {
 
     beforeEachTest { transaction { table.stripDefaultScope().deleteAll() } }
@@ -61,7 +61,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
             table.stripDefaultScope()
                 .selectAll()
                 .orderBy(table.createdAt, SortOrder.ASC)
-                .map(table::toModel)
+                .map(table::toRecord)
         }
     }
 
@@ -110,7 +110,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
 
             it("doesn't persist") {
                 try { persistedNoTenant; fail("Expected an error to be raised but non was") }
-                catch (e: TenantError) { e should satisfy { message == "Model ${tenant1Record.id} can't be persisted because There's no current tenant Id set." } }
+                catch (e: TenantError) { e should satisfy { message == "Record ${tenant1Record.id} can't be persisted because There's no current tenant Id set." } }
                 tenant1Record shouldNot satisfy { isPersisted() }
                 tenant2Record shouldNot satisfy { isPersisted() }
                 reloaded should satisfy { isEmpty() }
@@ -124,7 +124,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                 transaction {
                     persisted
                     setCurrentTenantId(tenantId)
-                    table.selectAll().map(table::toModel)
+                    table.selectAll().map(table::toRecord)
                 }
             }
 
@@ -163,7 +163,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     setCurrentTenantId(tenantId)
                     table.forAllTenants()
                         .selectAll()
-                        .map(table::toModel)
+                        .map(table::toRecord)
                 }
             }
 
@@ -207,7 +207,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
 
         context("scope = forCurrentTenant") {
             context("with tenantId correctly set") {
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val updated by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
@@ -278,7 +278,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
             }
 
             context("attempting to update another tenant's records") {
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val updated by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
@@ -293,7 +293,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         )
 
                         try { updated; fail("Expected a tenant error but non was raised.") }
-                        catch (e: TenantError) { e.message should satisfy { this == "Model ${tenant2Record.id} can't be persisted because it doesn't belong to the current tenant." } }
+                        catch (e: TenantError) { e.message should satisfy { this == "Record ${tenant2Record.id} can't be persisted because it doesn't belong to the current tenant." } }
 
                         reloaded should containInAnyOrder(
                             satisfy<M> {
@@ -349,7 +349,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
             }
 
             context("No tenant id set") {
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val updated by memoized {
                         transaction {
                             clearCurrentTenantId<UUID>()
@@ -364,7 +364,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         try { updated; fail("Expected an error but non was raised.") }
-                        catch (e: Exception) { e.message should satisfy { this == "Model ${tenant1Record.id} can't be persisted because There's no current tenant Id set." } }
+                        catch (e: Exception) { e.message should satisfy { this == "Record ${tenant1Record.id} can't be persisted because There's no current tenant Id set." } }
                         reloaded should containInAnyOrder(
                             satisfy<M> {
                                 id == tenant1Record.id &&
@@ -421,7 +421,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
 
         context("scope = forAllTenants") {
             context("with tenantId correctly set") {
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val updated by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
@@ -493,7 +493,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
             }
 
             context("attempting to update another tenant's records") {
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val updated by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
@@ -563,7 +563,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
             }
 
             context("No tenant id set") {
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val updated by memoized {
                         transaction {
                             clearCurrentTenantId<UUID>()
@@ -637,7 +637,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
     describe("delete") {
         context("scope = forCurrentTenant") {
             context("tenant Id set") {
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val deleted by memoized {
                         setCurrentTenantId(tenantId)
                         transaction { table.delete(tenant1Record) }
@@ -691,7 +691,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
             }
 
             context("attempting to delete another tenant's records") {
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val deleted by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
@@ -705,7 +705,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         try { deleted; fail("Expected an error to be raised but non was") }
-                        catch (e: TenantError) { e.message should satisfy { this == "Cannot delete models because they belong to a different tenant." } }
+                        catch (e: TenantError) { e.message should satisfy { this == "Cannot delete records because they belong to a different tenant." } }
 
                         reloaded should satisfy { size == 2 }
                         reloaded should containInAnyOrder(
@@ -729,7 +729,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     }
                 }
 
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val deleted by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
@@ -767,7 +767,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
             }
 
             context("With no tenant id set") {
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val deleted by memoized {
                         transaction {
                             clearCurrentTenantId<UUID>()
@@ -781,7 +781,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                             satisfy<M> { title == tenant2Record.title && isPersisted() }
                         )
                         try { deleted; fail("Expected an error to be raised but non was") }
-                        catch (e: TenantError) { e.message should satisfy { this == "Cannot delete models because there is no CurrentTenantId." } }
+                        catch (e: TenantError) { e.message should satisfy { this == "Cannot delete records because there is no CurrentTenantId." } }
 
                         reloaded should satisfy { size == 2 }
                         reloaded should containInAnyOrder(
@@ -845,7 +845,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
 
         context("scope = forAllTenants") {
             context("tenant Id set") {
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val deleted by memoized {
                         setCurrentTenantId(tenantId)
                         transaction { table.forAllTenants().delete(tenant1Record) }
@@ -902,7 +902,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
             }
 
             context("attempting to delete another tenant's records") {
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val deleted by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
@@ -962,7 +962,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
             }
 
             context("With no tenant id set") {
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val deleted by memoized {
                         transaction {
                             clearCurrentTenantId<UUID>()

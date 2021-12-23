@@ -2,8 +2,8 @@ package io.taff.exposed.extensions.tables.uuid
 
 import io.taff.exposed.extensions.clearCurrentTenantId
 import io.taff.exposed.extensions.env
-import io.taff.exposed.extensions.models.SoftDeletableModel
-import io.taff.exposed.extensions.models.TenantScopedModel
+import io.taff.exposed.extensions.records.SoftDeletableRecord
+import io.taff.exposed.extensions.records.TenantScopedRecord
 import io.taff.exposed.extensions.tables.shared.TitleAware
 import io.taff.exposed.extensions.tables.shared.includeTenantScopedSoftDeletableTableSpeks
 import org.jetbrains.exposed.sql.*
@@ -13,7 +13,7 @@ import org.spekframework.spek2.Spek
 import java.time.Instant
 import java.util.*
 
-/** Dummy tenant scoped model for testing */
+/** Dummy tenant scoped record for testing */
 data class TenantScopedSoftDeletableUuidRecord(
     override var title: String? = null,
     override var tenantId: UUID? = null,
@@ -21,7 +21,7 @@ data class TenantScopedSoftDeletableUuidRecord(
     override var createdAt: Instant? = null,
     override var updatedAt: Instant? = null,
     override var softDeletedAt: Instant? = null
-) : TitleAware, TenantScopedModel<UUID, UUID>, SoftDeletableModel<UUID>
+) : TitleAware, TenantScopedRecord<UUID, UUID>, SoftDeletableRecord<UUID>
 
 /** Dummy tenant scoped t able for testing */
 var softDeleteTenantScopedTitleColumn: Column<String>? = null
@@ -29,9 +29,9 @@ val tenantScopedSoftDeletableUuidRecords = object : TenantScopedSoftDeletableUui
     val title = varchar("title", 50)
     init { softDeleteTenantScopedTitleColumn = title }
     override val tenantId: Column<UUID> = uuid("tenant_id")
-    override fun initializeModel(row: ResultRow) = TenantScopedSoftDeletableUuidRecord(title = row[title])
-    override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: TenantScopedSoftDeletableUuidRecord) {
-        model.title?.let { stmt[title] = it }
+    override fun initializeRecord(row: ResultRow) = TenantScopedSoftDeletableUuidRecord(title = row[title])
+    override fun appendStatementValues(stmt: UpdateBuilder<Int>, record: TenantScopedSoftDeletableUuidRecord) {
+        record.title?.let { stmt[title] = it }
     }
 }
 

@@ -1,6 +1,6 @@
 package io.taff.exposed.extensions.tables.traits
 
-import io.taff.exposed.extensions.models.SoftDeletableModel
+import io.taff.exposed.extensions.records.SoftDeletableRecord
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
@@ -9,12 +9,12 @@ import java.time.Instant
 /**
  * Soft delete behavior applicable to tables.
  *
- * @param ID The model id type.
- * @param M The model.
+ * @param ID The record id type.
+ * @param M The record.
  * @param T The underlying exposed table concrete type.
  */
-interface SoftDeletableTableTrait<ID : Comparable<ID>, M : SoftDeletableModel<ID>, T>
-    : ModelMappingTableTrait<ID, M, T> where T : IdTable<ID>, T : SoftDeletableTableTrait<ID, M, T>  {
+interface SoftDeletableTableTrait<ID : Comparable<ID>, M : SoftDeletableRecord<ID>, T>
+    : RecordMappingTableTrait<ID, M, T> where T : IdTable<ID>, T : SoftDeletableTableTrait<ID, M, T>  {
 
     val softDeletedAt: Column<Instant?>
 
@@ -33,24 +33,24 @@ interface SoftDeletableTableTrait<ID : Comparable<ID>, M : SoftDeletableModel<ID
     fun liveAndSoftDeleted() : T
 
     /** populate the insert/update statements */
-    override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, model: M, vararg skip: Column<*>) {
+    override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, record: M, vararg skip: Column<*>) {
         if (self().softDeletedAt !in skip) {
-            model.softDeletedAt?.let { stmt[softDeletedAt] = it }
+            record.softDeletedAt?.let { stmt[softDeletedAt] = it }
         }
-        super.appendBaseStatementValues(stmt, model, *skip)
+        super.appendBaseStatementValues(stmt, record, *skip)
     }
 
-    /** Set tenant Id on models loaded frm the DB */
-    override fun toModel(row: ResultRow) = super.toModel(row)
+    /** Set tenant Id on records loaded frm the DB */
+    override fun toRecord(row: ResultRow) = super.toRecord(row)
         .also { it.softDeletedAt = row[softDeletedAt] }
 
     /** Hard delete */
-    override fun delete(vararg models: M) = models.onEach { it.markAsSoftDeleted() }
-        .let { super.delete(*models) }
+    override fun delete(vararg records: M) = records.onEach { it.markAsSoftDeleted() }
+        .let { super.delete(*records) }
 
 
     /** Soft delete */
-    fun softDelete(vararg models: M) = models
+    fun softDelete(vararg records: M) = records
         .onEach { it.markAsSoftDeleted() }
         .let { update(*it) }
 }

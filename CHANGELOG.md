@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.8.0
 - `io.taff.exposed` version `0.3.0`.
+- Renamed `Model` to `Record`
 
 ## 0.7.0
 - `jackson-module-kotlin` version `2.13.1`.

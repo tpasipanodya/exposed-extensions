@@ -1,6 +1,6 @@
 package io.taff.exposed.extensions.tables.uuid
 
-import io.taff.exposed.extensions.models.SoftDeletableModel
+import io.taff.exposed.extensions.records.SoftDeletableRecord
 import io.taff.exposed.extensions.tables.traits.SoftDeletableTableTrait
 import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.*
@@ -11,9 +11,9 @@ import java.util.*
 
 /**
  * A table that supports soft-deletes by setting the `soft_deleted_at` column on destruction.
- * @param M The concrete model type.
+ * @param M The concrete record type.
  */
-abstract class SoftDeletableUuidTable<M : SoftDeletableModel<UUID>>(name: String)
+abstract class SoftDeletableUuidTable<M : SoftDeletableRecord<UUID>>(name: String)
     : UUIDTable(name), SoftDeletableTableTrait<UUID, M, SoftDeletableUuidTable<M>> {
 
     override val createdAt = timestamp("created_at").clientDefault { now() }
@@ -29,16 +29,16 @@ abstract class SoftDeletableUuidTable<M : SoftDeletableModel<UUID>>(name: String
         Op.build { softDeletedAt.isNull() or softDeletedAt.isNotNull() }
     }
 
-    class View<M : SoftDeletableModel<UUID>>(private val actual: SoftDeletableUuidTable<M>,
-                                           override val defaultScope: () -> Op<Boolean>)
+    class View<M : SoftDeletableRecord<UUID>>(private val actual: SoftDeletableUuidTable<M>,
+                                              override val defaultScope: () -> Op<Boolean>)
         : SoftDeletableUuidTable<M>(actual.tableName), SoftDeletableTableTrait<UUID, M, SoftDeletableUuidTable<M>> {
 
         override val columns: List<Column<*>> = actual.columns
 
-        override fun initializeModel(row: ResultRow) = actual.initializeModel(row)
+        override fun initializeRecord(row: ResultRow) = actual.initializeRecord(row)
 
-        override fun appendStatementValues(stmt: UpdateBuilder<Int>, model: M) =
-            actual.appendStatementValues(stmt, model)
+        override fun appendStatementValues(stmt: UpdateBuilder<Int>, record: M) =
+            actual.appendStatementValues(stmt, record)
 
         override fun describe(s: Transaction, queryBuilder: QueryBuilder) = actual.describe(s, queryBuilder)
 

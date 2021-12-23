@@ -3,9 +3,9 @@ package io.taff.exposed.extensions.tables.shared
 import io.taff.exposed.extensions.TenantError
 import io.taff.exposed.extensions.clearCurrentTenantId
 import io.taff.exposed.extensions.isNull
-import io.taff.exposed.extensions.models.Model
-import io.taff.exposed.extensions.models.SoftDeletableModel
-import io.taff.exposed.extensions.models.TenantScopedModel
+import io.taff.exposed.extensions.records.Record
+import io.taff.exposed.extensions.records.SoftDeletableRecord
+import io.taff.exposed.extensions.records.TenantScopedRecord
 import io.taff.exposed.extensions.setCurrentTenantId
 import io.taff.exposed.extensions.tables.traits.TenantScopedSoftDeletableTableTrait
 import io.taff.spek.expekt.any.equal
@@ -36,8 +36,8 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
     tenant2RecordsFunc: () -> Array<M>,
     titleColumnRef: Column<String>) where T : IdTable<ID>,
                                           T : TenantScopedSoftDeletableTableTrait<ID, TID, M, T>,
-                                          M : TenantScopedModel<ID, TID>,
-                                          M : SoftDeletableModel<ID>,
+                                          M : TenantScopedRecord<ID, TID>,
+                                          M : SoftDeletableRecord<ID>,
                                           M : TitleAware = describe("tenant scoped soft deletable table speks") {
 
     val tenantId by memoized { tenantIdFunc() }
@@ -63,7 +63,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
             table.stripDefaultScope()
                 .selectAll()
                 .orderBy(table.createdAt, SortOrder.ASC)
-                .map(table::toModel)
+                .map(table::toRecord)
         }
     }
 
@@ -79,7 +79,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 transaction {
                     softDeleteRecords
                     setCurrentTenantId(tenantId)
-                    table.selectAll().map(table::toModel)
+                    table.selectAll().map(table::toRecord)
                 }
             }
 
@@ -88,7 +88,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 selected should satisfy { size == 1 }
                 selected should containInAnyOrder (
                     satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record1.title
@@ -96,22 +96,22 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 )
                 reloaded should containInAnyOrder(
                     satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record1.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record2.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == otherTenantId &&
                         title == tenant2Record1.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         isSoftDeleted() &&
                         this.tenantId == otherTenantId &&
                         title == tenant2Record2.title
@@ -125,7 +125,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 transaction {
                     softDeleteRecords
                     setCurrentTenantId(tenantId)
-                    table.softDeleted().selectAll().map(table::toModel)
+                    table.softDeleted().selectAll().map(table::toRecord)
                 }
             }
 
@@ -134,7 +134,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 selected should satisfy { size == 1 }
                 selected should containInAnyOrder (
                     satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record2.title
@@ -142,22 +142,22 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 )
                 reloaded should containInAnyOrder(
                     satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record1.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record2.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == otherTenantId &&
                         title == tenant2Record1.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         isSoftDeleted() &&
                         this.tenantId == otherTenantId &&
                         title == tenant2Record2.title
@@ -172,7 +172,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     softDeleteRecords
                     table.liveAndSoftDeleted()
                         .selectAll()
-                        .map(table::toModel)
+                        .map(table::toRecord)
                 }
             }
 
@@ -181,13 +181,13 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 selected should satisfy { size == 2 }
                 selected should containInAnyOrder (
                     satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record1.title
                     },
                     satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record2.title
@@ -195,22 +195,22 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 )
                 reloaded should containInAnyOrder(
                     satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record1.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record2.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == otherTenantId &&
                         title == tenant2Record1.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         isSoftDeleted() &&
                         this.tenantId == otherTenantId &&
                         title == tenant2Record2.title
@@ -225,7 +225,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     softDeleteRecords
                     table.liveForAllTenants()
                         .selectAll()
-                        .map(table::toModel)
+                        .map(table::toRecord)
                 }
             }
 
@@ -234,13 +234,13 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 selected should satisfy { size == 2 }
                 selected should containInAnyOrder (
                     satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record1.title
                     },
                     satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == otherTenantId &&
                         title == tenant2Record1.title
@@ -248,22 +248,22 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 )
                 reloaded should containInAnyOrder(
                     satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record1.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record2.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == otherTenantId &&
                         title == tenant2Record1.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         isSoftDeleted() &&
                         this.tenantId == otherTenantId &&
                         title == tenant2Record2.title
@@ -278,7 +278,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     softDeleteRecords
                     table.softDeletedForAllTenants()
                         .selectAll()
-                        .map(table::toModel)
+                        .map(table::toRecord)
                 }
             }
 
@@ -287,13 +287,13 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 selected should satisfy { size == 2 }
                 selected should containInAnyOrder (
                     satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record2.title
                     },
                     satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         isSoftDeleted() &&
                         this.tenantId == otherTenantId &&
                         title == tenant2Record2.title
@@ -301,22 +301,22 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 )
                 reloaded should containInAnyOrder(
                     satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record1.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record2.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == otherTenantId &&
                         title == tenant2Record1.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         isSoftDeleted() &&
                         this.tenantId == otherTenantId &&
                         title == tenant2Record2.title
@@ -331,7 +331,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     softDeleteRecords
                     table.liveAndSoftDeletedForAllTenants()
                         .selectAll()
-                        .map(table::toModel)
+                        .map(table::toRecord)
                 }
             }
 
@@ -340,22 +340,22 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 selected should satisfy { size == 4 }
                 selected should containInAnyOrder (
                     satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record1.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record2.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == otherTenantId &&
                         title == tenant2Record1.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         isSoftDeleted() &&
                         this.tenantId == otherTenantId &&
                         title == tenant2Record2.title
@@ -363,22 +363,22 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 )
                 reloaded should containInAnyOrder(
                     satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record1.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record2.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == otherTenantId &&
                         title == tenant2Record1.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         isSoftDeleted() &&
                         this.tenantId == otherTenantId &&
                         title == tenant2Record2.title
@@ -394,23 +394,23 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 persisted should satisfy {
                     size == 4 &&
                     get(0).run {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record1.title
 
                     } && get(1).run {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record2.title
                     } && get(2).run {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == otherTenantId &&
                         title == tenant2Record1.title
                     } && get(3).run {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == otherTenantId &&
                         title == tenant2Record2.title
@@ -418,22 +418,22 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 }
                 reloaded should containInAnyOrder(
                     satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record1.title
                    }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record2.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == otherTenantId &&
                         title == tenant2Record1.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == otherTenantId &&
                         title == tenant2Record2.title
@@ -455,7 +455,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
 
             it("doesn't persist") {
                 try { persisted; fail("Expected an error to be raised but non was") }
-                catch (e: TenantError) { e should satisfy { message == "Model ${tenant1Record1.id} can't be persisted because There's no current tenant Id set." } }
+                catch (e: TenantError) { e should satisfy { message == "Record ${tenant1Record1.id} can't be persisted because There's no current tenant Id set." } }
 
                 tenant1Record1 shouldNot satisfy { isPersisted() }
                 reloaded should satisfy { isEmpty() }
@@ -473,7 +473,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
 
             it("doesn't persist") {
                 try { persisted; fail("Expected an error to be raised but non was") }
-                catch (e: TenantError) { e should satisfy { message == "Model ${tenant1Record1.id} can't be persisted because it doesn't belong to the current tenant." } }
+                catch (e: TenantError) { e should satisfy { message == "Record ${tenant1Record1.id} can't be persisted because it doesn't belong to the current tenant." } }
 
                 tenant1Record1 shouldNot satisfy { isPersisted() }
                 reloaded should satisfy { isEmpty() }
@@ -492,22 +492,22 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 updater() should beTrue()
                 reloaded should containInAnyOrder(
                     satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == newTitle
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == tenantId &&
                         title == tenant1Record2.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == otherTenantId &&
                         title == tenant2Record1.title
                     }, satisfy<M> {
-                        this.let(Model<*>::isPersisted) &&
+                        this.let(Record<*>::isPersisted) &&
                         !isSoftDeleted() &&
                         this.tenantId == otherTenantId &&
                         title == tenant2Record2.title
@@ -516,7 +516,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
             }
 
             context("when scope = live") {
-                context("updating via model mapping methods") {
+                context("updating via record mapping methods") {
                     val updated by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
@@ -548,7 +548,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
             }
 
             context("when scope = softDeleted") {
-                context("updating via model mapping methods") {
+                context("updating via record mapping methods") {
                     val updated by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
@@ -564,26 +564,26 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                         updated should equal(false)
                         reloaded should containInAnyOrder(
                             satisfy<M> {
-                                this.let(Model<*>::isPersisted) &&
-                                this.let(Model<*>::id) == tenant1Record1.id &&
+                                this.let(Record<*>::isPersisted) &&
+                                this.let(Record<*>::id) == tenant1Record1.id &&
                                 !isSoftDeleted() &&
                                 this.tenantId == tenantId &&
                                 title == tenant1RecordsFunc().first().title
                             }, satisfy<M> {
-                                this.let(Model<*>::isPersisted) &&
-                                this.let(Model<*>::id) == tenant1Record2.id &&
+                                this.let(Record<*>::isPersisted) &&
+                                this.let(Record<*>::id) == tenant1Record2.id &&
                                 !isSoftDeleted() &&
                                 this.tenantId == tenantId &&
                                 title == tenant1Record2.title
                             }, satisfy<M> {
-                                this.let(Model<*>::isPersisted) &&
-                                this.let(Model<*>::id) == tenant2Record1.id &&
+                                this.let(Record<*>::isPersisted) &&
+                                this.let(Record<*>::id) == tenant2Record1.id &&
                                 !isSoftDeleted() &&
                                 this.tenantId == otherTenantId &&
                                 title == tenant2Record1.title
                             }, satisfy<M> {
-                                this.let(Model<*>::isPersisted) &&
-                                this.let(Model<*>::id) == tenant2Record2.id &&
+                                this.let(Record<*>::isPersisted) &&
+                                this.let(Record<*>::id) == tenant2Record2.id &&
                                 !isSoftDeleted() &&
                                 this.tenantId == otherTenantId &&
                                 title == tenant2Record2.title
@@ -611,26 +611,26 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                         updated should equal(0)
                         reloaded should containInAnyOrder(
                             satisfy<M> {
-                                this.let(Model<*>::isPersisted) &&
-                                this.let(Model<*>::id) == tenant1Record1.id &&
+                                this.let(Record<*>::isPersisted) &&
+                                this.let(Record<*>::id) == tenant1Record1.id &&
                                 !isSoftDeleted() &&
                                 this.tenantId == tenantId &&
                                 title == tenant1RecordsFunc().first().title
                             }, satisfy<M> {
-                                this.let(Model<*>::isPersisted) &&
-                                this.let(Model<*>::id) == tenant1Record2.id &&
+                                this.let(Record<*>::isPersisted) &&
+                                this.let(Record<*>::id) == tenant1Record2.id &&
                                 !isSoftDeleted() &&
                                 this.tenantId == tenantId &&
                                 title == tenant1Record2.title
                             }, satisfy<M> {
-                                this.let(Model<*>::isPersisted) &&
-                                this.let(Model<*>::id) == tenant2Record1.id &&
+                                this.let(Record<*>::isPersisted) &&
+                                this.let(Record<*>::id) == tenant2Record1.id &&
                                 !isSoftDeleted() &&
                                 this.tenantId == otherTenantId &&
                                 title == tenant2Record1.title
                             }, satisfy<M> {
-                                this.let(Model<*>::isPersisted) &&
-                                this.let(Model<*>::id) == tenant2Record2.id &&
+                                this.let(Record<*>::isPersisted) &&
+                                this.let(Record<*>::id) == tenant2Record2.id &&
                                 !isSoftDeleted() &&
                                 this.tenantId == otherTenantId &&
                                 title == tenant2Record2.title
@@ -641,7 +641,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
             }
 
             context("when scope = liveAndSoftDeleted") {
-                context("updating via model mapping methods") {
+                context("updating via record mapping methods") {
                     val updated by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
@@ -674,7 +674,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
             }
 
             context("when scope = liveForAllTenants") {
-                context("updating via model mapping methods") {
+                context("updating via record mapping methods") {
                     val updated by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
@@ -707,7 +707,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
             }
 
             context("when all scopes have been striped") {
-                context("updating via model mapping methods") {
+                context("updating via record mapping methods") {
                     val updated by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
@@ -741,7 +741,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
             }
 
             context("when scope = softDeletedForAllTenants") {
-                context("updating via model mapping methods") {
+                context("updating via record mapping methods") {
                     val updated by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
@@ -757,26 +757,26 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                         updated should equal(false)
                         reloaded should containInAnyOrder(
                             satisfy<M> {
-                                this.let(Model<*>::isPersisted) &&
-                                this.let(Model<*>::id) == tenant1Record1.id &&
+                                this.let(Record<*>::isPersisted) &&
+                                this.let(Record<*>::id) == tenant1Record1.id &&
                                 !isSoftDeleted() &&
                                 this.tenantId == tenantId &&
                                 title == tenant1RecordsFunc().first().title
                             }, satisfy<M> {
-                                this.let(Model<*>::isPersisted) &&
-                                this.let(Model<*>::id) == tenant1Record2.id &&
+                                this.let(Record<*>::isPersisted) &&
+                                this.let(Record<*>::id) == tenant1Record2.id &&
                                 !isSoftDeleted() &&
                                 this.tenantId == tenantId &&
                                 title == tenant1Record2.title
                             }, satisfy<M> {
-                                this.let(Model<*>::isPersisted) &&
-                                this.let(Model<*>::id) == tenant2Record1.id &&
+                                this.let(Record<*>::isPersisted) &&
+                                this.let(Record<*>::id) == tenant2Record1.id &&
                                 !isSoftDeleted() &&
                                 this.tenantId == otherTenantId &&
                                 title == tenant2Record1.title
                             }, satisfy<M> {
-                                this.let(Model<*>::isPersisted) &&
-                                this.let(Model<*>::id) == tenant2Record2.id &&
+                                this.let(Record<*>::isPersisted) &&
+                                this.let(Record<*>::id) == tenant2Record2.id &&
                                 !isSoftDeleted() &&
                                 this.tenantId == otherTenantId &&
                                 title == tenant2Record2.title
@@ -804,26 +804,26 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                         updated should equal(0)
                         reloaded should containInAnyOrder(
                             satisfy<M> {
-                                this.let(Model<*>::isPersisted) &&
-                                this.let(Model<*>::id) == tenant1Record1.id &&
+                                this.let(Record<*>::isPersisted) &&
+                                this.let(Record<*>::id) == tenant1Record1.id &&
                                 !isSoftDeleted() &&
                                 this.tenantId == tenantId &&
                                 title == tenant1RecordsFunc().first().title
                             }, satisfy<M> {
-                                this.let(Model<*>::isPersisted) &&
-                                this.let(Model<*>::id) == tenant1Record2.id &&
+                                this.let(Record<*>::isPersisted) &&
+                                this.let(Record<*>::id) == tenant1Record2.id &&
                                 !isSoftDeleted() &&
                                 this.tenantId == tenantId &&
                                 title == tenant1Record2.title
                             }, satisfy<M> {
-                                this.let(Model<*>::isPersisted) &&
-                                this.let(Model<*>::id) == tenant2Record1.id &&
+                                this.let(Record<*>::isPersisted) &&
+                                this.let(Record<*>::id) == tenant2Record1.id &&
                                 !isSoftDeleted() &&
                                 this.tenantId == otherTenantId &&
                                 title == tenant2Record1.title
                             }, satisfy<M> {
-                                this.let(Model<*>::isPersisted) &&
-                                this.let(Model<*>::id) == tenant2Record2.id &&
+                                this.let(Record<*>::isPersisted) &&
+                                this.let(Record<*>::id) == tenant2Record2.id &&
                                 !isSoftDeleted() &&
                                 this.tenantId == otherTenantId &&
                                 title == tenant2Record2.title
@@ -835,7 +835,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
         }
 
         context("attempting to update another tenant's records") {
-            context("updating via model mapping methods") {
+            context("updating via record mapping methods") {
                 val updated by memoized {
                     setCurrentTenantId(otherTenantId)
                     tenant1Record1.title = newTitle
@@ -850,31 +850,31 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     try {
                         updated; fail("Expected a tenant error but non was raised.")
                     } catch (e: TenantError) {
-                        e.message should satisfy { this == "Model ${tenant1Record1.id} can't be persisted because it doesn't belong to the current tenant." }
+                        e.message should satisfy { this == "Record ${tenant1Record1.id} can't be persisted because it doesn't belong to the current tenant." }
                     }
 
                     reloaded should containInAnyOrder(
                         satisfy<M> {
-                            this.let(Model<*>::isPersisted) &&
-                            this.let(Model<*>::id) == tenant1Record1.id &&
+                            this.let(Record<*>::isPersisted) &&
+                            this.let(Record<*>::id) == tenant1Record1.id &&
                             !isSoftDeleted() &&
                             this.tenantId == tenantId &&
                             title == tenant1RecordsFunc().first().title
                         }, satisfy<M> {
-                            this.let(Model<*>::isPersisted) &&
-                            this.let(Model<*>::id) == tenant1Record2.id &&
+                            this.let(Record<*>::isPersisted) &&
+                            this.let(Record<*>::id) == tenant1Record2.id &&
                             !isSoftDeleted() &&
                             this.tenantId == tenantId &&
                             title == tenant1Record2.title
                         }, satisfy<M> {
-                            this.let(Model<*>::isPersisted) &&
-                            this.let(Model<*>::id) == tenant2Record1.id &&
+                            this.let(Record<*>::isPersisted) &&
+                            this.let(Record<*>::id) == tenant2Record1.id &&
                             !isSoftDeleted() &&
                             this.tenantId == otherTenantId &&
                             title == tenant2Record1.title
                         }, satisfy<M> {
-                            this.let(Model<*>::isPersisted) &&
-                            this.let(Model<*>::id) == tenant2Record2.id &&
+                            this.let(Record<*>::isPersisted) &&
+                            this.let(Record<*>::id) == tenant2Record2.id &&
                             !isSoftDeleted() &&
                             this.tenantId == otherTenantId &&
                             title == tenant2Record2.title
@@ -901,26 +901,26 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     updated should equal(0)
                     reloaded should containInAnyOrder(
                         satisfy<M> {
-                            this.let(Model<*>::isPersisted) &&
-                            this.let(Model<*>::id) == tenant1Record1.id &&
+                            this.let(Record<*>::isPersisted) &&
+                            this.let(Record<*>::id) == tenant1Record1.id &&
                             !isSoftDeleted() &&
                             this.tenantId == tenantId &&
                             title == tenant1RecordsFunc().first().title
                         }, satisfy<M> {
-                            this.let(Model<*>::isPersisted) &&
-                            this.let(Model<*>::id) == tenant1Record2.id &&
+                            this.let(Record<*>::isPersisted) &&
+                            this.let(Record<*>::id) == tenant1Record2.id &&
                             !isSoftDeleted() &&
                             this.tenantId == tenantId &&
                             title == tenant1Record2.title
                         }, satisfy<M> {
-                            this.let(Model<*>::isPersisted) &&
-                            this.let(Model<*>::id) == tenant2Record1.id &&
+                            this.let(Record<*>::isPersisted) &&
+                            this.let(Record<*>::id) == tenant2Record1.id &&
                             !isSoftDeleted() &&
                             this.tenantId == otherTenantId &&
                             title == tenant2Record1.title
                         }, satisfy<M> {
-                            this.let(Model<*>::isPersisted) &&
-                            this.let(Model<*>::id) == tenant2Record2.id &&
+                            this.let(Record<*>::isPersisted) &&
+                            this.let(Record<*>::id) == tenant2Record2.id &&
                             !isSoftDeleted() &&
                             this.tenantId == otherTenantId &&
                             title == tenant2Record2.title
@@ -931,7 +931,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
         }
 
         context("No tenant id set") {
-            context("updating via model mapping methods") {
+            context("updating via record mapping methods") {
                 val updated by memoized {
                     clearCurrentTenantId<UUID>()
                     transaction {
@@ -946,30 +946,30 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     }
 
                     try { updated; fail("Expected an error but non was raised.") }
-                    catch (e: Exception) { e.message should satisfy { this == "Model ${tenant1Record1.id} can't be persisted because There's no current tenant Id set." } }
+                    catch (e: Exception) { e.message should satisfy { this == "Record ${tenant1Record1.id} can't be persisted because There's no current tenant Id set." } }
 
                     reloaded should containInAnyOrder(
                         satisfy<M> {
-                            this.let(Model<*>::isPersisted) &&
-                            this.let(Model<*>::id) == tenant1Record1.id &&
+                            this.let(Record<*>::isPersisted) &&
+                            this.let(Record<*>::id) == tenant1Record1.id &&
                             !isSoftDeleted() &&
                             this.tenantId == tenantId &&
                             title == tenant1RecordsFunc().first().title
                         }, satisfy<M> {
-                            this.let(Model<*>::isPersisted) &&
-                            this.let(Model<*>::id) == tenant1Record2.id &&
+                            this.let(Record<*>::isPersisted) &&
+                            this.let(Record<*>::id) == tenant1Record2.id &&
                             !isSoftDeleted() &&
                             this.tenantId == tenantId &&
                             title == tenant1Record2.title
                         }, satisfy<M> {
-                            this.let(Model<*>::isPersisted) &&
-                            this.let(Model<*>::id) == tenant2Record1.id &&
+                            this.let(Record<*>::isPersisted) &&
+                            this.let(Record<*>::id) == tenant2Record1.id &&
                             !isSoftDeleted() &&
                             this.tenantId == otherTenantId &&
                             title == tenant2Record1.title
                         }, satisfy<M> {
-                            this.let(Model<*>::isPersisted) &&
-                            this.let(Model<*>::id) == tenant2Record2.id &&
+                            this.let(Record<*>::isPersisted) &&
+                            this.let(Record<*>::id) == tenant2Record2.id &&
                             !isSoftDeleted() &&
                             this.tenantId == otherTenantId &&
                             title == tenant2Record2.title
@@ -995,26 +995,26 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     updated should equal(0)
                     reloaded should containInAnyOrder(
                         satisfy<M> {
-                            this.let(Model<*>::isPersisted) &&
-                            this.let(Model<*>::id) == tenant1Record1.id &&
+                            this.let(Record<*>::isPersisted) &&
+                            this.let(Record<*>::id) == tenant1Record1.id &&
                             !isSoftDeleted() &&
                             this.tenantId == tenantId &&
                                     title == tenant1RecordsFunc().first().title
                         }, satisfy<M> {
-                            this.let(Model<*>::isPersisted) &&
-                            this.let(Model<*>::id) == tenant1Record2.id &&
+                            this.let(Record<*>::isPersisted) &&
+                            this.let(Record<*>::id) == tenant1Record2.id &&
                             !isSoftDeleted() &&
                             this.tenantId == tenantId &&
                             title == tenant1Record2.title
                         }, satisfy<M> {
-                            this.let(Model<*>::isPersisted) &&
-                            this.let(Model<*>::id) == tenant2Record1.id &&
+                            this.let(Record<*>::isPersisted) &&
+                            this.let(Record<*>::id) == tenant2Record1.id &&
                             !isSoftDeleted() &&
                             this.tenantId == otherTenantId &&
                             title == tenant2Record1.title
                         }, satisfy<M> {
-                            this.let(Model<*>::isPersisted) &&
-                            this.let(Model<*>::id) == tenant2Record2.id &&
+                            this.let(Record<*>::isPersisted) &&
+                            this.let(Record<*>::id) == tenant2Record2.id &&
                             !isSoftDeleted() &&
                             this.tenantId == otherTenantId &&
                             title == tenant2Record2.title
@@ -1028,7 +1028,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
     describe("delete") {
         context("when scope = live") {
             context("with tenant id correctly set") {
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val deleted by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
@@ -1037,7 +1037,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     }
 
                     it("hard deletes the record") {
-                        persisted should satisfy { all(Model<ID>::isPersisted) }
+                        persisted should satisfy { all(Record<ID>::isPersisted) }
                         deleted should equal(true)
                         reloaded should containInAnyOrder(
                             satisfy<M> { title == tenant1Record2.title && softDeletedAt.isNull() },
@@ -1057,7 +1057,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     }
 
                     it("hard deletes the record") {
-                        persisted should satisfy { all(Model<ID>::isPersisted) }
+                        persisted should satisfy { all(Record<ID>::isPersisted) }
                         deleted should equal(1)
                         reloaded should containInAnyOrder(
                             satisfy<M> { title == tenant1Record2.title && softDeletedAt.isNull() },
@@ -1069,17 +1069,17 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
             }
 
             context("attempting to delete another tenant's records") {
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val deleted by memoized {
                         setCurrentTenantId(otherTenantId)
                         transaction { table.delete(tenant1Record1) }
                     }
 
                     it("doesn't delete the record because of tenant isolation") {
-                        persisted should satisfy { all(Model<ID>::isPersisted) }
+                        persisted should satisfy { all(Record<ID>::isPersisted) }
 
                         try { deleted; fail("Expected an exception to be raised but none was") }
-                        catch (e: TenantError) { e.message should satisfy { this == "Cannot delete models because they belong to a different tenant." } }
+                        catch (e: TenantError) { e.message should satisfy { this == "Cannot delete records because they belong to a different tenant." } }
 
                         reloaded should containInAnyOrder(
                             satisfy<M> { title == tenant1Record1.title && softDeletedAt.isNull() },
@@ -1097,7 +1097,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     }
 
                     it("doesn't delete the record because of tenant isolation") {
-                        persisted should satisfy { all(Model<ID>::isPersisted) }
+                        persisted should satisfy { all(Record<ID>::isPersisted) }
 
                         deleted should equal(0)
 
@@ -1114,7 +1114,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
 
         context("when scope = softDeleted") {
             context("with tenant id correctly set") {
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val deleted by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
@@ -1123,7 +1123,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     }
 
                     it("doesn't delete the record") {
-                        persisted should satisfy { all(Model<ID>::isPersisted) }
+                        persisted should satisfy { all(Record<ID>::isPersisted) }
                         deleted should equal(false)
                         reloaded should containInAnyOrder(
                             satisfy<M> { title == tenant1Record1.title && softDeletedAt.isNull() },
@@ -1144,7 +1144,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     }
 
                     it("doesn't delete the record") {
-                        persisted should satisfy { all(Model<ID>::isPersisted) }
+                        persisted should satisfy { all(Record<ID>::isPersisted) }
                         deleted should equal(0)
                         reloaded should containInAnyOrder(
                             satisfy<M> { title == tenant1Record1.title && softDeletedAt.isNull() },
@@ -1157,16 +1157,16 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
             }
 
             context("attempting to delete another tenant's records") {
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val deleted by memoized {
                         setCurrentTenantId(otherTenantId)
                         transaction { table.softDeleted().delete(tenant1Record1) }
                     }
 
                     it("doesn't delete the record because of tenant isolation") {
-                        persisted should satisfy { all(Model<ID>::isPersisted) }
+                        persisted should satisfy { all(Record<ID>::isPersisted) }
                         try { deleted; fail("Expected an exception to be raised but none was") }
-                        catch (e: TenantError) { e.message should satisfy { this == "Cannot delete models because they belong to a different tenant." } }
+                        catch (e: TenantError) { e.message should satisfy { this == "Cannot delete records because they belong to a different tenant." } }
                         reloaded should containInAnyOrder(
                             satisfy<M> { title == tenant1Record1.title && softDeletedAt.isNull() },
                             satisfy<M> { title == tenant1Record2.title && softDeletedAt.isNull() },
@@ -1183,7 +1183,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     }
 
                     it("doesn't delete the record because of tenant isolation") {
-                        persisted should satisfy { all(Model<ID>::isPersisted) }
+                        persisted should satisfy { all(Record<ID>::isPersisted) }
                         deleted should equal(0)
                         reloaded should containInAnyOrder(
                             satisfy<M> { title == tenant1Record1.title && softDeletedAt.isNull() },
@@ -1198,7 +1198,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
 
         context("when scope = softDeletedForAllTenants") {
             context("with tenant id correctly set") {
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val deleted by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
@@ -1207,7 +1207,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     }
 
                     it("hard deletes the record") {
-                        persisted should satisfy { all(Model<ID>::isPersisted) }
+                        persisted should satisfy { all(Record<ID>::isPersisted) }
                         deleted should equal(false)
                         reloaded should containInAnyOrder(
                             satisfy<M> { title == tenant1Record1.title && softDeletedAt.isNull() },
@@ -1228,7 +1228,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     }
 
                     it("hard deletes the record") {
-                        persisted should satisfy { all(Model<ID>::isPersisted) }
+                        persisted should satisfy { all(Record<ID>::isPersisted) }
                         deleted should equal(0)
                         reloaded should containInAnyOrder(
                             satisfy<M> { title == tenant1Record1.title && softDeletedAt.isNull() },
@@ -1242,14 +1242,14 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
             }
 
             context("attempting to delete another tenant's records") {
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val deleted by memoized {
                         setCurrentTenantId(otherTenantId)
                         transaction { table.softDeletedForAllTenants().delete(tenant1Record1) }
                     }
 
                     it("doesn't delete the record because of tenant isolation") {
-                        persisted should satisfy { all(Model<ID>::isPersisted) }
+                        persisted should satisfy { all(Record<ID>::isPersisted) }
                         deleted should equal(false)
                         reloaded should containInAnyOrder(
                             satisfy<M> { title == tenant1Record1.title && softDeletedAt.isNull() },
@@ -1267,7 +1267,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     }
 
                     it("doesn't delete the record because of tenant isolation") {
-                        persisted should satisfy { all(Model<ID>::isPersisted) }
+                        persisted should satisfy { all(Record<ID>::isPersisted) }
                         deleted should equal(0)
                         reloaded should containInAnyOrder(
                             satisfy<M> { title == tenant1Record1.title && softDeletedAt.isNull() },
@@ -1282,7 +1282,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
 
         context("when scope = liveAndSoftDeleted") {
             context("with tenant id correctly set") {
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val deleted by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
@@ -1291,7 +1291,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     }
 
                     it("hard deletes the record") {
-                        persisted should satisfy { all(Model<ID>::isPersisted) }
+                        persisted should satisfy { all(Record<ID>::isPersisted) }
                         deleted should equal(true)
                         reloaded should containInAnyOrder(
                             satisfy<M> { title == tenant1Record2.title && softDeletedAt.isNull() },
@@ -1311,7 +1311,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     }
 
                     it("hard deletes the record") {
-                        persisted should satisfy { all(Model<ID>::isPersisted) }
+                        persisted should satisfy { all(Record<ID>::isPersisted) }
                         deleted should equal(1)
                         reloaded should containInAnyOrder(
                             satisfy<M> { title == tenant1Record2.title && softDeletedAt.isNull() },
@@ -1323,17 +1323,17 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
             }
 
             context("attempting to delete another tenant's records") {
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val deleted by memoized {
                         setCurrentTenantId(otherTenantId)
                         transaction { table.liveAndSoftDeleted().delete(tenant1Record1) }
                     }
 
                     it("doesn't delete the record because of tenant isolation") {
-                        persisted should satisfy { all(Model<ID>::isPersisted) }
+                        persisted should satisfy { all(Record<ID>::isPersisted) }
 
                         try { deleted; fail("Expected an exception to be raised but none was") }
-                        catch (e: TenantError) { e.message should satisfy { this == "Cannot delete models because they belong to a different tenant." } }
+                        catch (e: TenantError) { e.message should satisfy { this == "Cannot delete records because they belong to a different tenant." } }
 
                         reloaded should containInAnyOrder(
                             satisfy<M> { title == tenant1Record1.title && softDeletedAt.isNull() },
@@ -1352,7 +1352,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 }
 
                 it("doesn't delete the record because of tenant isolation") {
-                    persisted should satisfy { all(Model<ID>::isPersisted) }
+                    persisted should satisfy { all(Record<ID>::isPersisted) }
                     deleted should equal(0)
                     reloaded should containInAnyOrder(
                         satisfy<M> { title == tenant1Record1.title && softDeletedAt.isNull() },
@@ -1366,7 +1366,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
 
         context("when scope = liveForAllTenants") {
             context("with tenant id correctly set") {
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val deleted by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
@@ -1375,7 +1375,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     }
 
                     it("hard deletes the record") {
-                        persisted should satisfy { all(Model<ID>::isPersisted) }
+                        persisted should satisfy { all(Record<ID>::isPersisted) }
                         deleted should equal(true)
                         reloaded should containInAnyOrder(
                             satisfy<M> { title == tenant1Record2.title && softDeletedAt.isNull() },
@@ -1386,7 +1386,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     }
                 }
 
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val deleted by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
@@ -1395,7 +1395,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     }
 
                     it("hard deletes the record") {
-                        persisted should satisfy { all(Model<ID>::isPersisted) }
+                        persisted should satisfy { all(Record<ID>::isPersisted) }
                         deleted should equal(1)
                         reloaded should containInAnyOrder(
                             satisfy<M> { title == tenant1Record2.title && softDeletedAt.isNull() },
@@ -1407,14 +1407,14 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
             }
 
             context("attempting to delete another tenant's records") {
-                context("via model mapping methods") {
+                context("via record mapping methods") {
                     val deleted by memoized {
                         setCurrentTenantId(otherTenantId)
                         transaction { table.liveAndSoftDeletedForAllTenants().delete(tenant1Record1) }
                     }
 
                     it("doesn't delete the record because of tenant isolation") {
-                        persisted should satisfy { all(Model<ID>::isPersisted) }
+                        persisted should satisfy { all(Record<ID>::isPersisted) }
                         deleted should equal(true)
                         reloaded should containInAnyOrder(
                             satisfy<M> { title == tenant1Record2.title && softDeletedAt.isNull() },
@@ -1431,7 +1431,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     }
 
                     it("doesn't delete the record because of tenant isolation") {
-                        persisted should satisfy { all(Model<ID>::isPersisted) }
+                        persisted should satisfy { all(Record<ID>::isPersisted) }
                         deleted should equal(1)
                         reloaded should containInAnyOrder(
                             satisfy<M> { title == tenant1Record2.title && softDeletedAt.isNull() },
@@ -1455,7 +1455,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 }
 
                 it("soft deletes the record") {
-                    persisted should satisfy { all(Model<ID>::isPersisted) }
+                    persisted should satisfy { all(Record<ID>::isPersisted) }
                     softDeleted should equal(true)
                     reloaded should containInAnyOrder(
                         satisfy<M> { title == tenant1Record1.title && !softDeletedAt.isNull() },
@@ -1474,10 +1474,10 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 }
 
                 it("doesn't soft delete the record because of tenant isolation") {
-                    persisted should satisfy { all(Model<ID>::isPersisted) }
+                    persisted should satisfy { all(Record<ID>::isPersisted) }
 
                     try { softDeleted; fail("Expected an exception to be raised but none was") }
-                    catch (e: TenantError) { e.message should satisfy { this == "Cannot delete models because they belong to a different tenant." } }
+                    catch (e: TenantError) { e.message should satisfy { this == "Cannot delete records because they belong to a different tenant." } }
 
                     reloaded should containInAnyOrder(
                         satisfy<M> { title == tenant1Record1.title && softDeletedAt.isNull() },
@@ -1499,7 +1499,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 }
 
                 it("does not soft delete") {
-                    persisted should satisfy { all(Model<ID>::isPersisted) }
+                    persisted should satisfy { all(Record<ID>::isPersisted) }
                     deleted should equal(false)
                     reloaded should containInAnyOrder(
                         satisfy<M> { title == tenant1Record1.title && softDeletedAt.isNull() },
@@ -1518,10 +1518,10 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 }
 
                 it("doesn't soft delete the record because of tenant isolation") {
-                    persisted should satisfy { all(Model<ID>::isPersisted) }
+                    persisted should satisfy { all(Record<ID>::isPersisted) }
 
                     try { deleted; fail("Expected an exception to be raised but none was") }
-                    catch (e: TenantError) { e.message should satisfy { this == "Cannot delete models because they belong to a different tenant." } }
+                    catch (e: TenantError) { e.message should satisfy { this == "Cannot delete records because they belong to a different tenant." } }
 
                     reloaded should containInAnyOrder(
                         satisfy<M> { title == tenant1Record1.title && softDeletedAt.isNull() },
@@ -1543,7 +1543,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 }
 
                 it("hard soft deletes the record") {
-                    persisted should satisfy { all(Model<ID>::isPersisted) }
+                    persisted should satisfy { all(Record<ID>::isPersisted) }
                     deleted should equal(false)
                     reloaded should containInAnyOrder(
                         satisfy<M> { title == tenant1Record1.title && softDeletedAt.isNull() },
@@ -1562,7 +1562,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 }
 
                 it("doesn't soft delete the record because of tenant isolation") {
-                    persisted should satisfy { all(Model<ID>::isPersisted) }
+                    persisted should satisfy { all(Record<ID>::isPersisted) }
                     deleted should equal(false)
                     reloaded should containInAnyOrder(
                         satisfy<M> { title == tenant1Record1.title && softDeletedAt.isNull() },
@@ -1584,7 +1584,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 }
 
                 it("soft deletes the record") {
-                    persisted should satisfy { all(Model<ID>::isPersisted) }
+                    persisted should satisfy { all(Record<ID>::isPersisted) }
                     deleted should equal(true)
                     reloaded should containInAnyOrder(
                         satisfy<M> { title == tenant1Record1.title && !softDeletedAt.isNull() },
@@ -1603,10 +1603,10 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 }
 
                 it("doesn't delete the record because of tenant isolation") {
-                    persisted should satisfy { all(Model<ID>::isPersisted) }
+                    persisted should satisfy { all(Record<ID>::isPersisted) }
 
                     try { deleted; fail("Expected an exception to be raised but none was") }
-                    catch (e: TenantError) { e.message should satisfy { this == "Cannot delete models because they belong to a different tenant." } }
+                    catch (e: TenantError) { e.message should satisfy { this == "Cannot delete records because they belong to a different tenant." } }
 
                     reloaded should containInAnyOrder(
                         satisfy<M> { title == tenant1Record1.title && softDeletedAt.isNull() },
@@ -1628,7 +1628,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 }
 
                 it("soft deletes the record") {
-                    persisted should satisfy { all(Model<ID>::isPersisted) }
+                    persisted should satisfy { all(Record<ID>::isPersisted) }
                     deleted should equal(true)
                     reloaded should containInAnyOrder(
                         satisfy<M> { title == tenant1Record1.title && !softDeletedAt.isNull() },
@@ -1647,7 +1647,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 }
 
                 it("soft deletes the record") {
-                    persisted should satisfy { all(Model<ID>::isPersisted) }
+                    persisted should satisfy { all(Record<ID>::isPersisted) }
                     deleted should equal(true)
                     reloaded should containInAnyOrder(
                         satisfy<M> { title == tenant1Record1.title && !softDeletedAt.isNull() },
