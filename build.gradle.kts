@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "io.taff"
-version = "0.8.0${ if (isReleaseBuild()) "" else "-SNAPSHOT" }"
+version = "0.8.1${ if (isReleaseBuild()) "" else "-SNAPSHOT" }"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
@@ -41,7 +41,7 @@ dependencies {
 	api("io.taff.exposed:exposed-jdbc:0.3.0")
 	api("io.taff.exposed:exposed-java-time:0.3.0")
 	implementation("org.postgresql:postgresql:42.3.1")
-	testImplementation("io.taff:spek-expekt:0.6.0")
+	testImplementation("io.taff:spek-expekt:0.6.2")
 	testImplementation(enforcedPlatform("org.junit:junit-bom:5.8.2"))
 }
 
