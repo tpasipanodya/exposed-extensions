@@ -1,4 +1,5 @@
 # Exposed Extensions
+![Build](https://github.com/tpasipanodya/exposed-extensions/actions/workflows/.github/workflows/release.yml/badge.svg)
 
 A collection of extensions for [Exposed](https://github.com/tpasipanodya/Exposed). Includes:
 - Logical tenant isolation, soft deletes and  (and more) via [Exposed](https://github.com/tpasipanodya/Exposed)'s default scopes.
