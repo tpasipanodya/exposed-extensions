@@ -5,7 +5,7 @@ import groovy.lang.GroovyObject
 
 plugins {
 	kotlin("jvm") version "1.6.10"
-	id("com.jfrog.artifactory") version "4.25.4"
+	id("com.jfrog.artifactory") version "4.25.5"
 	id("org.jetbrains.dokka") version "1.6.10"
 	id("maven-publish")
 	idea
