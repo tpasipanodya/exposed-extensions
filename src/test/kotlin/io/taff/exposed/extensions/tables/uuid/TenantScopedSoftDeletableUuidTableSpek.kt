@@ -42,7 +42,7 @@ object TenantScopedSoftDeletableUuidTableSpek : Spek({
 
     beforeEachTest {
         transaction {
-            tenantScopedSoftDeletableUuidRecords.stripDefaultScope().deleteAll()
+            tenantScopedSoftDeletableUuidRecords.stripDefaultFilter().deleteAll()
         }
     }
 

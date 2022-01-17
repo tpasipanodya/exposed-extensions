@@ -37,7 +37,7 @@ fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
     }
     val reloaded by memoized {
         transaction {
-            table.stripDefaultScope()
+            table.stripDefaultFilter()
                 .selectAll()
                 .map(table::toRecord)
         }

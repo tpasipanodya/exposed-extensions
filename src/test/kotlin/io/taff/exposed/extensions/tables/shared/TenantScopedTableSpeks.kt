@@ -38,7 +38,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
         M : TenantScopedRecord<ID, TID>,
         M : TitleAware = describe("tenant scoped table") {
 
-    beforeEachTest { transaction { table.stripDefaultScope().deleteAll() } }
+    beforeEachTest { transaction { table.stripDefaultFilter().deleteAll() } }
 
     afterEachTest { clearCurrentTenantId() }
 
@@ -58,7 +58,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
     }
     val reloaded by memoized {
         transaction {
-            table.stripDefaultScope()
+            table.stripDefaultFilter()
                 .selectAll()
                 .orderBy(table.createdAt, SortOrder.ASC)
                 .map(table::toRecord)

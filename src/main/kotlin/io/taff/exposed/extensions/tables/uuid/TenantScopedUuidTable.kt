@@ -26,7 +26,7 @@ abstract class TenantScopedUuidTable<TID : Comparable<TID>, M : TenantScopedReco
 
     override fun self() = this
 
-    /** Returns a view on all records across tenants. Identical to stripDefaultScope */
+    /** Returns a view on all records across tenants. Identical to stripDefaultFilter */
     override fun forAllTenants() = AllTenantsView(this)
 
     class AllTenantsView<TID : Comparable<TID>, M : TenantScopedRecord<UUID, TID>>(private val actual: TenantScopedUuidTable<TID, M>)
