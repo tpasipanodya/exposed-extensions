@@ -24,7 +24,7 @@ abstract class TenantScopedSoftDeletableLongIdTable<TID : Comparable<TID>, M>(na
     override val createdAt = timestamp("created_at").clientDefault { now() }
     override val updatedAt = timestamp("updated_at").clientDefault { now() }
     override val softDeletedAt = timestamp("soft_deleted_at").nullable()
-    override val defaultScope = { Op.build { currentTenantScope() and softDeletedAt.isNull() } }
+    override val defaultFilter = { Op.build { currentTenantScope() and softDeletedAt.isNull() } }
 
     override fun self() = this
 
@@ -49,7 +49,7 @@ abstract class TenantScopedSoftDeletableLongIdTable<TID : Comparable<TID>, M>(na
     }
 
     open class View<TID : Comparable<TID>, M>(private val actual: TenantScopedSoftDeletableLongIdTable<TID, M>,
-        override val defaultScope: () -> Op<Boolean>)
+        override val defaultFilter: () -> Op<Boolean>)
         : TenantScopedSoftDeletableLongIdTable<TID, M>(actual.tableName),
         TenantScopedSoftDeletableTableTrait<Long, TID, M, TenantScopedSoftDeletableLongIdTable<TID, M>>
             where M : TenantScopedRecord<Long, TID>, M :  SoftDeletableRecord<Long> {
@@ -70,7 +70,7 @@ abstract class TenantScopedSoftDeletableLongIdTable<TID : Comparable<TID>, M>(na
     }
 
     class VIewWithTenantScopeStriped<TID : Comparable<TID>, M>(actual: TenantScopedSoftDeletableLongIdTable<TID, M>,
-        override val defaultScope: () -> Op<Boolean>) : View<TID, M>(actual, defaultScope)
+        override val defaultFilter: () -> Op<Boolean>) : View<TID, M>(actual, defaultFilter)
             where M : TenantScopedRecord<Long, TID>, M :  SoftDeletableRecord<Long> {
         override fun appendBaseStatementValues(stmt: UpdateBuilder<Int>, record: M, vararg skip: Column<*>) {
             super.appendBaseStatementValues(stmt, record, tenantId, *skip)

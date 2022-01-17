@@ -35,7 +35,7 @@ object RecordMappingUuidTableSpek  : Spek({
     Database.connect(env<String>("DB_URL"))
     transaction { SchemaUtils.create(uuidRecords) }
 
-    beforeEachTest { transaction { uuidRecords.stripDefaultScope().deleteAll() } }
+    beforeEachTest { transaction { uuidRecords.stripDefaultFilter().deleteAll() } }
 
     includeRecordMappingTableSpeks(
         table = uuidRecords,

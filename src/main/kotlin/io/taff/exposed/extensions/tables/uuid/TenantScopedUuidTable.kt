@@ -22,11 +22,11 @@ abstract class TenantScopedUuidTable<TID : Comparable<TID>, M : TenantScopedReco
 
     override val createdAt = timestamp("created_at").clientDefault { now() }
     override val updatedAt = timestamp("updated_at").clientDefault { now() }
-    override val defaultScope: (()-> Op<Boolean>)? = { Op.build { currentTenantScope() } }
+    override val defaultFilter: (()-> Op<Boolean>)? = { Op.build { currentTenantScope() } }
 
     override fun self() = this
 
-    /** Returns a view on all records across tenants. Identical to stripDefaultScope */
+    /** Returns a view on all records across tenants. Identical to stripDefaultFilter */
     override fun forAllTenants() = AllTenantsView(this)
 
     class AllTenantsView<TID : Comparable<TID>, M : TenantScopedRecord<UUID, TID>>(private val actual: TenantScopedUuidTable<TID, M>)
@@ -36,7 +36,7 @@ abstract class TenantScopedUuidTable<TID : Comparable<TID>, M : TenantScopedReco
         override val tenantId: Column<TID> = actual.tenantId
         override val createdAt = actual.createdAt
         override val updatedAt = actual.updatedAt
-        override val defaultScope:  (() -> Op<Boolean>)? = null
+        override val defaultFilter:  (() -> Op<Boolean>)? = null
 
         override fun self() = this
 

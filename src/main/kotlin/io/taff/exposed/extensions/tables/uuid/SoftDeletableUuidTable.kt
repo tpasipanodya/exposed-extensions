@@ -19,7 +19,7 @@ abstract class SoftDeletableUuidTable<M : SoftDeletableRecord<UUID>>(name: Strin
     override val createdAt = timestamp("created_at").clientDefault { now() }
     override val updatedAt = timestamp("updated_at").clientDefault { now() }
     override val softDeletedAt = timestamp("soft_deleted_at").nullable()
-    override val defaultScope = { Op.build { softDeletedAt.isNull() } }
+    override val defaultFilter = { Op.build { softDeletedAt.isNull() } }
 
     override fun self() = this
 
@@ -30,7 +30,7 @@ abstract class SoftDeletableUuidTable<M : SoftDeletableRecord<UUID>>(name: Strin
     }
 
     class View<M : SoftDeletableRecord<UUID>>(private val actual: SoftDeletableUuidTable<M>,
-                                              override val defaultScope: () -> Op<Boolean>)
+                                              override val defaultFilter: () -> Op<Boolean>)
         : SoftDeletableUuidTable<M>(actual.tableName), SoftDeletableTableTrait<UUID, M, SoftDeletableUuidTable<M>> {
 
         override val columns: List<Column<*>> = actual.columns

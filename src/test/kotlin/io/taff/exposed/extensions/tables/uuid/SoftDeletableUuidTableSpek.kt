@@ -37,7 +37,7 @@ object SoftDeletableUuidTableSpek  : Spek({
     Database.connect(env<String>("DB_URL"))
     transaction { SchemaUtils.create(softDeletableUuidTable) }
 
-    beforeEachTest { transaction { softDeletableUuidTable.stripDefaultScope().deleteAll() } }
+    beforeEachTest { transaction { softDeletableUuidTable.stripDefaultFilter().deleteAll() } }
 
 
     includeSoftDeletableTableSpeks(

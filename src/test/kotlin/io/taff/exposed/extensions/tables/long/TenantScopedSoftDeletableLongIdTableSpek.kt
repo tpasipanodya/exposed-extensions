@@ -40,7 +40,7 @@ object TenantScopedSoftDeletableLongIdTableSpek : Spek({
     Database.connect(env<String>("DB_URL"))
     transaction { SchemaUtils.create(tenantScopedSoftDeletableLongIdRecords) }
 
-    beforeEachTest { transaction { tenantScopedSoftDeletableLongIdRecords.stripDefaultScope().deleteAll() } }
+    beforeEachTest { transaction { tenantScopedSoftDeletableLongIdRecords.stripDefaultFilter().deleteAll() } }
 
     afterEachTest { clearCurrentTenantId() }
 

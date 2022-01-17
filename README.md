@@ -2,12 +2,12 @@
 ![CI & CD](https://github.com/tpasipanodya/exposed-extensions/actions/workflows/.github/workflows/cicd.yml/badge.svg)
 
 A collection of extensions for [Exposed](https://github.com/tpasipanodya/Exposed). Includes:
-- Logical tenant isolation, soft deletes and  (and more) via [Exposed](https://github.com/tpasipanodya/Exposed)'s default scopes.
-- Declarative mapping of data classes/POKOs to and from the database. This is similar to
-  [Exposed's](https://github.com/tpasipanodya/Exposed) DAO DSL with the exception that there is no magic. 
-  You define how entities and their associations should be mapped and those rules can be applied for any
-  query you write.
-- Postgres array & jsonb column support
+- Logical tenant isolation, soft deletes and  (and more) via [Exposed](https://github.com/tpasipanodya/Exposed)'s default filters.
+- Declarative mapping of objects to and from the database. This is similar to
+  [Exposed's](https://github.com/tpasipanodya/Exposed) DAO DSL. The library simply provides a slightly 
+  more flexible alternative. You define how entities and their associations should be mapped and those 
+  rules can be applied to any query you execute.
+- Postgres array & jsonb column support.
 
   
 ## How to Use
@@ -57,11 +57,9 @@ transaction {
 }
 ```
 
-[The Wiki ](WIKI.md) contains more documentation.
-
 ## Contributing
 
-All Contributions are welcome. To build locally:
+To build locally:
 ```shell
-.scripts/setup.sh
+.scripts/setup.sh && gradle clean test
 ```
