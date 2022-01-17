@@ -36,7 +36,7 @@ object SoftDeletableLongIdTableSpek  :Spek({
     Database.connect(env<String>("DB_URL"))
     transaction { SchemaUtils.create(softDeletableLongIdRecords) }
 
-    beforeEachTest { transaction { softDeletableLongIdRecords.stripDefaultScope().deleteAll() } }
+    beforeEachTest { transaction { softDeletableLongIdRecords.stripDefaultFilter().deleteAll() } }
 
     includeSoftDeletableTableSpeks(
         softDeletableLongIdRecords,

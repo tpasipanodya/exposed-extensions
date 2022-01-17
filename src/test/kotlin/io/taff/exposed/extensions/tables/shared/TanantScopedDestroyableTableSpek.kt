@@ -60,7 +60,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
     }
     val reloaded by memoized {
         transaction {
-            table.stripDefaultScope()
+            table.stripDefaultFilter()
                 .selectAll()
                 .orderBy(table.createdAt, SortOrder.ASC)
                 .map(table::toRecord)

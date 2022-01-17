@@ -18,7 +18,7 @@ abstract class SoftDeletableLongIdTable<M : SoftDeletableRecord<Long>>(name: Str
     override val createdAt = timestamp("created_at").clientDefault { Instant.now() }
     override val updatedAt = timestamp("updated_at").clientDefault { Instant.now() }
     override val softDeletedAt = timestamp("soft_deleted_at").nullable()
-    override val defaultScope = { Op.build { softDeletedAt.isNull() } }
+    override val defaultFilter = { Op.build { softDeletedAt.isNull() } }
 
     override fun self() = this
 
@@ -29,7 +29,7 @@ abstract class SoftDeletableLongIdTable<M : SoftDeletableRecord<Long>>(name: Str
     }
 
     class View<M : SoftDeletableRecord<Long>>(private val actual: SoftDeletableLongIdTable<M>,
-                                              override val defaultScope: () -> Op<Boolean>
+                                              override val defaultFilter: () -> Op<Boolean>
     )
         : SoftDeletableLongIdTable<M>(actual.tableName), SoftDeletableTableTrait<Long, M, SoftDeletableLongIdTable<M>> {
 
