@@ -38,7 +38,7 @@ dependencies {
 	api("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.2")
 	api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.2")
 	api("io.taff.exposed:exposed-core:0.6.0")
-	api("io.taff.exposed:exposed-jdbc:0.5.0")
+	api("io.taff.exposed:exposed-jdbc:0.6.0")
 	api("io.taff.exposed:exposed-java-time:0.5.0")
 	implementation("org.postgresql:postgresql:42.3.4")
 	testImplementation("io.taff:spek-expekt:0.7.2")
