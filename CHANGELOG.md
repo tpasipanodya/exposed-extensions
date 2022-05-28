@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+# 0.11.0
+- `exposed` version `0.7.0`
+- `jackson-module-kotlin` version `2.13.3`
+- `kotlin-logging-jvm` version `2.1.23`
+- `jackson-datatype-jsr310` version `2.13.3`
+
 # 0.10.0
 - `postgresql` version `42.3.3`
 - `jackson-module-kotlin` version `2.13.2`
