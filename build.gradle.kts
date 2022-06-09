@@ -4,7 +4,7 @@ import org.jfrog.gradle.plugin.artifactory.dsl.ResolverConfig
 import groovy.lang.GroovyObject
 
 plugins {
-	kotlin("jvm") version "1.6.21"
+	kotlin("jvm") version "1.7.0"
 	id("com.jfrog.artifactory") version "4.28.3"
 	id("org.jetbrains.dokka") version "1.6.21"
 	id("maven-publish")
