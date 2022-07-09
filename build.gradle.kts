@@ -41,7 +41,7 @@ dependencies {
 	api("io.taff.exposed:exposed-jdbc:0.7.0")
 	api("io.taff.exposed:exposed-java-time:0.7.0")
 	implementation("org.postgresql:postgresql:42.3.6")
-	testImplementation("io.taff:spek-expekt:0.7.3")
+	testImplementation("io.taff:spek-expekt:0.7.4")
 	testImplementation(enforcedPlatform("org.junit:junit-bom:5.8.2"))
 }
 
