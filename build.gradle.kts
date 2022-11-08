@@ -35,7 +35,7 @@ dependencies {
 	api("com.github.kittinunf.fuel:fuel:2.3.1")
 	api("com.github.kittinunf.fuel:fuel-coroutines:2.3.1")
 	api("org.slf4j:slf4j-simple:1.7.36")
-	api("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3")
+	api("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.0")
 	api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.3")
 	api("io.taff.exposed:exposed-core:0.7.0")
 	api("io.taff.exposed:exposed-jdbc:0.7.0")
