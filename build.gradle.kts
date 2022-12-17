@@ -12,8 +12,8 @@ plugins {
 }
 
 group = "io.taff"
-version = "0.11.0${ if (isReleaseBuild()) "" else "-SNAPSHOT" }"
-java.sourceCompatibility = JavaVersion.VERSION_17
+version = "0.12.0${ if (isReleaseBuild()) "" else "-SNAPSHOT" }"
+java.sourceCompatibility = JavaVersion.VERSION_18
 
 repositories {
 	mavenCentral()
@@ -48,7 +48,7 @@ dependencies {
 tasks.withType<KotlinCompile> {
 	kotlinOptions {
 		freeCompilerArgs = listOf("-Xjsr305=strict")
-		jvmTarget = "17"
+		jvmTarget = "18"
 	}
 }
 
