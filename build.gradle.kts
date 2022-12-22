@@ -16,8 +16,6 @@ version = "0.12.0${ if (isReleaseBuild()) "" else "-SNAPSHOT" }"
 java.sourceCompatibility = JavaVersion.VERSION_18
 
 repositories {
-	mavenCentral()
-	maven("https://jitpack.io")
 	maven {
 		name = "JFrog"
 		url = uri("https://tmpasipanodya.jfrog.io/artifactory/releases")
@@ -26,6 +24,8 @@ repositories {
 			password = System.getenv("ARTIFACTORY_PASSWORD")
 		}
 	}
+	maven("https://jitpack.io")
+	mavenCentral()
 }
 
 dependencies {
