@@ -3,8 +3,6 @@
 BOOTSTRAP_SQL="
 CREATE DATABASE exposed_extensions;
 CREATE USER exposed_extensions WITH ENCRYPTED PASSWORD 'exposed_extensions';
-GRANT ALL PRIVILEGES ON DATABASE exposed_extensions TO exposed_extensions;
-GRANT ALL ON SCHEMA public TO exposed_extensions;
 ALTER DATABASE exposed_extensions OWNER TO exposed_extensions;
 "
 
