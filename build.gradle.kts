@@ -12,12 +12,10 @@ plugins {
 }
 
 group = "io.taff"
-version = "0.11.0${ if (isReleaseBuild()) "" else "-SNAPSHOT" }"
-java.sourceCompatibility = JavaVersion.VERSION_17
+version = "0.12.0${ if (isReleaseBuild()) "" else "-SNAPSHOT" }"
+java.sourceCompatibility = JavaVersion.VERSION_18
 
 repositories {
-	mavenCentral()
-	maven("https://jitpack.io")
 	maven {
 		name = "JFrog"
 		url = uri("https://tmpasipanodya.jfrog.io/artifactory/releases")
@@ -26,6 +24,8 @@ repositories {
 			password = System.getenv("ARTIFACTORY_PASSWORD")
 		}
 	}
+	mavenCentral()
+	maven("https://jitpack.io")
 }
 
 dependencies {
@@ -42,13 +42,13 @@ dependencies {
 	api("io.taff.exposed:exposed-java-time:0.7.0")
 	implementation("org.postgresql:postgresql:42.4.0")
 	testImplementation("io.taff:spek-expekt:0.7.5")
-	testImplementation(enforcedPlatform("org.junit:junit-bom:5.8.2"))
+	testImplementation(enforcedPlatform("org.junit:junit-bom:5.9.1"))
 }
 
 tasks.withType<KotlinCompile> {
 	kotlinOptions {
 		freeCompilerArgs = listOf("-Xjsr305=strict")
-		jvmTarget = "17"
+		jvmTarget = "18"
 	}
 }
 
