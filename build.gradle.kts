@@ -5,7 +5,7 @@ import groovy.lang.GroovyObject
 
 plugins {
 	kotlin("jvm") version "1.7.10"
-	id("com.jfrog.artifactory") version "4.28.4"
+	id("com.jfrog.artifactory") version "4.30.1"
 	id("org.jetbrains.dokka") version "1.7.10"
 	id("maven-publish")
 	idea
@@ -34,13 +34,13 @@ dependencies {
 	api("io.github.microutils:kotlin-logging-jvm:2.1.23")
 	api("com.github.kittinunf.fuel:fuel:2.3.1")
 	api("com.github.kittinunf.fuel:fuel-coroutines:2.3.1")
-	api("org.slf4j:slf4j-simple:1.7.36")
+  api("org.slf4j:slf4j-simple:2.0.6")
 	api("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.1")
 	api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.3")
 	api("io.taff.exposed:exposed-core:0.7.0")
 	api("io.taff.exposed:exposed-jdbc:0.7.0")
 	api("io.taff.exposed:exposed-java-time:0.7.0")
-	implementation("org.postgresql:postgresql:42.4.0")
+	implementation("org.postgresql:postgresql:42.5.1")
 	testImplementation("io.taff:spek-expekt:0.7.5")
 	testImplementation(enforcedPlatform("org.junit:junit-bom:5.9.1"))
 }
