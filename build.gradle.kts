@@ -31,7 +31,7 @@ repositories {
 dependencies {
 	runtimeOnly("org.jetbrains.kotlin:kotlin-reflect")
 	runtimeOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-	api("io.github.microutils:kotlin-logging-jvm:2.1.23")
+	api("io.github.microutils:kotlin-logging-jvm:3.0.4")
 	api("com.github.kittinunf.fuel:fuel:2.3.1")
 	api("com.github.kittinunf.fuel:fuel-coroutines:2.3.1")
   api("org.slf4j:slf4j-simple:2.0.6")
