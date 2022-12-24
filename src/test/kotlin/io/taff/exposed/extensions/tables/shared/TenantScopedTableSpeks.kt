@@ -15,6 +15,7 @@ import io.taff.spek.expekt.should
 import io.taff.spek.expekt.shouldNot
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.deleteWhere
@@ -666,7 +667,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                 context("via sql DSL") {
                     val deleted by memoized {
                         setCurrentTenantId(tenantId)
-                        transaction { table.deleteWhere { table.id eq tenant1Record.id } }
+                        transaction { table.deleteWhere { Op.build { table.id eq tenant1Record.id } } }
                     }
 
                     it("deletes the records") {
@@ -733,7 +734,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     val deleted by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
-                            table.deleteWhere { table.id eq tenant2Record.id }
+                            table.deleteWhere { Op.build { table.id eq tenant2Record.id } }
                         }
                     }
 
@@ -809,7 +810,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                     val deleted by memoized {
                         transaction {
                             clearCurrentTenantId<UUID>()
-                            table.deleteWhere { table.id eq tenant1Record.id }
+                            table.deleteWhere { Op.build { table.id eq tenant1Record.id } }
                         }
                     }
 
@@ -876,7 +877,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         transaction {
                             setCurrentTenantId(tenantId)
                             table.forAllTenants()
-                                .deleteWhere { table.id eq tenant1Record.id }
+                                .deleteWhere { Op.build { table.id eq tenant1Record.id } }
                         }
                     }
 
@@ -936,7 +937,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         transaction {
                             setCurrentTenantId(tenantId)
                             table.forAllTenants()
-                                .deleteWhere { table.id eq tenant2Record.id }
+                                .deleteWhere { Op.build {  table.id eq tenant2Record.id } }
                         }
                     }
 
@@ -996,7 +997,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedT
                         transaction {
                             clearCurrentTenantId<UUID>()
                             table.forAllTenants()
-                                .deleteWhere { table.id eq tenant1Record.id }
+                                .deleteWhere { Op.build { table.id eq tenant1Record.id } }
                         }
                     }
 
