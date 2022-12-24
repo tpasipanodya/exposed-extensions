@@ -7,7 +7,7 @@ jobs:
       - name: "checkout"
         uses: actions/checkout@v3
       - name: "detekt"
-        uses: alaegin/Detekt-Action@v1
+        uses: alaegin/Detekt-Action@v1.22.0-RC3
         with:
           github_token: ${{ secrets.github_token }}
           detekt_config: .detekt.yml
