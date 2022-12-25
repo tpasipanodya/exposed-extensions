@@ -23,6 +23,7 @@ import org.spekframework.spek2.dsl.Root
 import org.spekframework.spek2.style.specification.describe
 import java.util.*
 import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.update
 import org.spekframework.spek2.dsl.TestBody
@@ -1052,7 +1053,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     val deleted by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
-                            table.deleteWhere { table.id eq tenant1Record1.id }
+                            table.deleteWhere { Op.build { table.id eq tenant1Record1.id  } }
                         }
                     }
 
@@ -1093,7 +1094,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 context("via sql DSL") {
                     val deleted by memoized {
                         setCurrentTenantId(otherTenantId)
-                        transaction { table.deleteWhere { table.id eq tenant1Record1.id } }
+                        transaction { table.deleteWhere { Op.build { table.id eq tenant1Record1.id } } }
                     }
 
                     it("doesn't delete the record because of tenant isolation") {
@@ -1139,7 +1140,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     val deleted by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
-                            table.softDeleted().deleteWhere { table.id eq tenant1Record1.id }
+                            table.softDeleted().deleteWhere {  Op.build { table.id eq tenant1Record1.id } }
                         }
                     }
 
@@ -1179,7 +1180,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 context("via sql DSL") {
                     val deleted by memoized {
                         setCurrentTenantId(otherTenantId)
-                        transaction { table.softDeleted().deleteWhere { table.id eq tenant1Record1.id } }
+                        transaction { table.softDeleted().deleteWhere { Op.build { table.id eq tenant1Record1.id } } }
                     }
 
                     it("doesn't delete the record because of tenant isolation") {
@@ -1223,7 +1224,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     val deleted by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
-                            table.softDeletedForAllTenants().deleteWhere { table.id eq tenant1Record1.id }
+                            table.softDeletedForAllTenants().deleteWhere { Op.build { table.id eq tenant1Record1.id } }
                         }
                     }
 
@@ -1263,7 +1264,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 context("via sql DSL") {
                     val deleted by memoized {
                         setCurrentTenantId(otherTenantId)
-                        transaction { table.softDeletedForAllTenants().deleteWhere { table.id eq tenant1Record1.id } }
+                        transaction { table.softDeletedForAllTenants().deleteWhere { Op.build { table.id eq tenant1Record1.id } } }
                     }
 
                     it("doesn't delete the record because of tenant isolation") {
@@ -1306,7 +1307,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     val deleted by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
-                            table.liveAndSoftDeleted().deleteWhere { table.id eq tenant1Record1.id }
+                            table.liveAndSoftDeleted().deleteWhere {  Op.build { table.id eq tenant1Record1.id } }
                         }
                     }
 
@@ -1348,7 +1349,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
             context("via sql dsl") {
                 val deleted by memoized {
                     setCurrentTenantId(otherTenantId)
-                    transaction { table.liveAndSoftDeleted().deleteWhere { table.id eq tenant1Record1.id } }
+                    transaction { table.liveAndSoftDeleted().deleteWhere { Op.build { table.id eq tenant1Record1.id } } }
                 }
 
                 it("doesn't delete the record because of tenant isolation") {
@@ -1390,7 +1391,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                     val deleted by memoized {
                         transaction {
                             setCurrentTenantId(tenantId)
-                            table.liveForAllTenants().deleteWhere { table.id eq tenant1Record1.id }
+                            table.liveForAllTenants().deleteWhere { Op.build { table.id eq tenant1Record1.id } }
                         }
                     }
 
@@ -1427,7 +1428,7 @@ fun <ID : Comparable<ID>, TID : Comparable<TID>, M, T> Root.includeTenantScopedS
                 context("via the sql DSL") {
                     val deleted by memoized {
                         setCurrentTenantId(otherTenantId)
-                        transaction { table.liveAndSoftDeletedForAllTenants().deleteWhere { table.id eq tenant1Record1.id } }
+                        transaction { table.liveAndSoftDeletedForAllTenants().deleteWhere {  Op.build { table.id eq tenant1Record1.id } } }
                     }
 
                     it("doesn't delete the record because of tenant isolation") {

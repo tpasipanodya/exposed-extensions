@@ -10,6 +10,7 @@ import io.taff.spek.expekt.iterable.containInAnyOrder
 import io.taff.spek.expekt.should
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -167,7 +168,7 @@ fun<ID, M, T> Root.includeRecordMappingTableSpeks(
         context("via sql DSL") {
             val deleted by memoized {
                 transaction {
-                    table.deleteWhere { table.id eq persisted.first().id }
+                    table.deleteWhere { Op.build { table.id eq persisted.first().id } }
                 }
             }
 
