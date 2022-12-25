@@ -8,7 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 # 0.12.0
 
 - `jdk` version `18`
-
+- `jvm` version `1.7.22`
+- `kotlin-logging-jvm` version `3.0.4`
+- `jackson-datatype-jsr310` version `2.14.1`
+- ` jackson-module-kotlin` version `2.14.1`
+- `postgresql` version `42.5.1`
+- `slf4j-simple` version `2.0.6`
 
 # 0.11.0
 - `exposed` version `0.7.0`
