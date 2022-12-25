@@ -84,7 +84,7 @@ interface RecordMappingTableTrait<ID : Comparable<ID>, M : Record<ID>, T : IdTab
         .let { ids ->
             val idColumn = id
             transaction {
-                self().deleteWhere { idColumn inList ids }
+                self().deleteWhere { Op.build { idColumn inList ids } }
             } == records.size
         }
 }

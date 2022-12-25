@@ -20,7 +20,7 @@ data class TenantScopedUuidRecord(
     override var updatedAt: Instant? = null
 ) : TenantScopedRecord<UUID, UUID>, TitleAware
 
-/** Dummy tenant scoped t able for testing */
+/** Dummy tenant scoped table for testing */
 var tenantScopedTitleColumn: Column<String>? = null
 val tenantScopedUuidRecords = object : TenantScopedUuidTable<UUID, TenantScopedUuidRecord>("tenant_scoped_uuid_records") {
     val title = varchar("title", 50)

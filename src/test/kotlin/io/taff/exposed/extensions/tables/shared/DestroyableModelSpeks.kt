@@ -12,6 +12,7 @@ import io.taff.spek.expekt.iterable.containInAnyOrder
 import io.taff.spek.expekt.should
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
@@ -344,7 +345,7 @@ fun <ID : Comparable<ID>, M, T> Root.includeSoftDeletableTableSpeks(
 
 
         context("without record mapping") {
-            val deleted by memoized { transaction { table.deleteWhere { table.id eq persisted.id } } }
+            val deleted by memoized { transaction { table.deleteWhere { Op.build { table.id eq persisted.id } } } }
 
             it("hard deletes the record") {
                 persisted should satisfy { isPersisted() }
