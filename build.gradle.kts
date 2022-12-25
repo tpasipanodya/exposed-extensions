@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "io.taff"
-version = "0.12.0${ if (isReleaseBuild()) "" else "-SNAPSHOT" }"
+version = "0.12.1${ if (isReleaseBuild()) "" else "-SNAPSHOT" }"
 java.sourceCompatibility = JavaVersion.VERSION_18
 
 repositories {
