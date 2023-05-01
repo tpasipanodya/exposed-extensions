@@ -42,7 +42,7 @@ dependencies {
 	api("io.taff.exposed:exposed-java-time:0.8.1")
 	implementation("org.postgresql:postgresql:42.6.0")
 	testImplementation("io.taff:spek-expekt:0.9.0")
-	testImplementation(enforcedPlatform("org.junit:junit-bom:5.9.2"))
+	testImplementation(enforcedPlatform("org.junit:junit-bom:5.9.3"))
 }
 
 tasks.withType<KotlinCompile> {
