@@ -37,7 +37,7 @@ dependencies {
   api("org.slf4j:slf4j-simple:2.0.7")
 	api("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
 	api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
-	api("io.taff.exposed:exposed-core:0.8.1")
+	api("io.taff.exposed:exposed-core:0.9.0")
 	api("io.taff.exposed:exposed-jdbc:0.8.1")
 	api("io.taff.exposed:exposed-java-time:0.8.1")
 	implementation("org.postgresql:postgresql:42.6.0")
