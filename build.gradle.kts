@@ -39,7 +39,7 @@ dependencies {
 	api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
 	api("io.taff.exposed:exposed-core:0.8.1")
 	api("io.taff.exposed:exposed-jdbc:0.8.1")
-	api("io.taff.exposed:exposed-java-time:0.8.1")
+	api("io.taff.exposed:exposed-java-time:0.9.0")
 	implementation("org.postgresql:postgresql:42.6.0")
 	testImplementation("io.taff:spek-expekt:0.9.0")
 	testImplementation(enforcedPlatform("org.junit:junit-bom:5.9.3"))
