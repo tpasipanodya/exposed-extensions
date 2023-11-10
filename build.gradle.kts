@@ -68,8 +68,8 @@ publishing {
 			name = "GitHubPackages"
 			url = uri("https://maven.pkg.github.com/tpasipanodya/exposed-extensions")
 			credentials {
-				username = System.getenv("GITHUB_ACTOR")
-				password = System.getenv("GITHUB_TOKEN")
+				username = System.getenv("PACKAGE_STORE_USERNAME")
+				password = System.getenv("PACKAGE_STORE_TOKEN")
 			}
 		}
 	}
