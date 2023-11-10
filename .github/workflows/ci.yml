@@ -11,7 +11,7 @@ jobs:
         with:
           github_token: ${{ secrets.github_token }}
           detekt_config: .detekt.yml
-  Build-And-Publish-A-Snapshot:
+  CI:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -31,6 +31,8 @@ jobs:
       - name: Build & Deploy
         uses: gradle/gradle-build-action@v2.4.2
         env:
+          PACKAGE_STORE_USERNAME: ${{ secrets.PACKAGE_STORE_USERNAME }}
+          PACKAGE_STORE_TOKEN: ${{ secrets.PACKAGE_STORE_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DB_URL: ${{ secrets.DB_URL }}
         with:
