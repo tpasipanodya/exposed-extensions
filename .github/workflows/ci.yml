@@ -11,12 +11,13 @@ jobs:
         with:
           github_token: ${{ secrets.github_token }}
           detekt_config: .detekt.yml
-  Build:
+  CI:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
       checks: write
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -24,18 +25,19 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: zulu
-          java-version: 18
+          java-version: 20
       - name: Start Supporting Services
         run: ./scripts/setup.sh
       - name: Build & Deploy
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v2.4.2
         env:
-          ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
-          ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+          PACKAGE_STORE_USERNAME: ${{ secrets.PACKAGE_STORE_USERNAME }}
+          PACKAGE_STORE_TOKEN: ${{ secrets.PACKAGE_STORE_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DB_URL: ${{ secrets.DB_URL }}
         with:
-          gradle-version: 7.6
-          arguments: clean test build artifactoryPublish --info -PIS_SNAPSHOT_BUILD=true
+          gradle-version: 8.2.1
+          arguments: clean test build publish --info --stacktrace -PIS_SNAPSHOT_BUILD=true
       - name: Upload Test Results
         uses: dorny/test-reporter@v1.6.0
         if: success() || failure()
@@ -43,3 +45,4 @@ jobs:
           name: Test Results
           path: build/test-results/test/*.xml
           reporter: java-junit
+
