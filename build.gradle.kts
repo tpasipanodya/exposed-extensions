@@ -14,6 +14,14 @@ java.sourceCompatibility = JavaVersion.VERSION_20
 repositories {
 	maven {
 		name = "spek-expect"
+		url = uri("https://maven.pkg.github.com/tpasipanodya/exposed")
+		credentials {
+			username = System.getenv("PACKAGE_STORE_USERNAME")
+			password = System.getenv("PACKAGE_STORE_TOKEN")
+		}
+	}
+	maven {
+		name = "spek-expect"
 		url = uri("https://maven.pkg.github.com/tpasipanodya/spek-expekt")
 		credentials {
 			username = System.getenv("PACKAGE_STORE_USERNAME")
@@ -33,9 +41,9 @@ dependencies {
   api("org.slf4j:slf4j-simple:2.0.7")
 	api("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
 	api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
-	api("io.taff.exposed:exposed-core:0.9.1")
-	api("io.taff.exposed:exposed-jdbc:0.9.1")
-	api("io.taff.exposed:exposed-java-time:0.9.1")
+	api("io.taff.exposed:exposed-core:0.9.2")
+	api("io.taff.exposed:exposed-jdbc:0.9.2")
+	api("io.taff.exposed:exposed-java-time:0.9.2")
 	implementation("org.postgresql:postgresql:42.6.0")
 	testImplementation("io.taff:spek-expekt:0.10.3")
 	testImplementation(enforcedPlatform("org.junit:junit-bom:5.9.3"))
