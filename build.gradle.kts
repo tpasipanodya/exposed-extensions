@@ -76,8 +76,8 @@ publishing {
 			name = "GitHubPackages"
 			url = uri("https://maven.pkg.github.com/tpasipanodya/exposed-extensions")
 			credentials {
-				username = System.getenv("PACKAGE_STORE_USERNAME")
-				password = System.getenv("PACKAGE_STORE_TOKEN")
+				username = System.getenv("GITHUB_ACTOR")
+				password = System.getenv("GITHUB_TOKEN")
 			}
 		}
 	}
@@ -87,36 +87,41 @@ publishing {
 			this.artifactId = project.name
 			this.version = project.version.toString()
 			from(components["java"])
+
 			versionMapping {
 				usage("java-api") {
 					fromResolutionOf("runtimeClasspath")
 				}
 			}
+
 			artifact(tasks["dokkaJar"])
 			artifact(tasks["sourcesJar"])
+
 			pom {
 				name.set(project.name)
 				description.set("${project.name} $version - Lightweight utilities for simplifying backend application configuration")
 				url.set("https://github.com/tpasipanodya/exposed-extensions")
+
 				licenses {
 					license {
 						name.set("The Apache Software License, Version 2.0")
 						url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
 					}
 				}
+
 				developers {
 					developer {
 						name.set("Tafadzwa Pasipanodya")
 						email.set("tmpasipanodya@gmail.com")
 					}
 				}
+
 				scm {
 					connection.set("scm:git:git://github.com/tpasipanodya/exposed-extensions.git")
 					developerConnection.set("scm:git:ssh://github.com/tpasipanodya/exposed-extensions.git")
 					url.set("http://github.com/tpasipanodya/exposed-extensions/tree/main")
 				}
 			}
-
 		}
 	}
 }
