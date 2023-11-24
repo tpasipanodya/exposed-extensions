@@ -8,12 +8,12 @@ plugins {
 }
 
 group = "io.taff"
-version = "0.12.2${ if (isReleaseBuild()) "" else "-SNAPSHOT" }"
+version = "0.13.0${ if (isReleaseBuild()) "" else "-SNAPSHOT" }"
 java.sourceCompatibility = JavaVersion.VERSION_20
 
 repositories {
 	maven {
-		name = "spek-expect"
+		name = "exposed"
 		url = uri("https://maven.pkg.github.com/tpasipanodya/exposed")
 		credentials {
 			username = System.getenv("PACKAGE_STORE_USERNAME")
@@ -41,9 +41,9 @@ dependencies {
   api("org.slf4j:slf4j-simple:2.0.9")
 	api("com.fasterxml.jackson.module:jackson-module-kotlin:2.16.0")
 	api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.16.0")
-	api("io.taff.exposed:exposed-core:0.9.2")
-	api("io.taff.exposed:exposed-jdbc:0.9.2")
-	api("io.taff.exposed:exposed-java-time:0.9.2")
+	api("io.taff.exposed:exposed-core:0.10.0")
+	api("io.taff.exposed:exposed-jdbc:0.10.0")
+	api("io.taff.exposed:exposed-java-time:0.10.0")
 	implementation("org.postgresql:postgresql:42.7.0")
 	testImplementation("io.taff:spek-expekt:0.10.3")
 	testImplementation(enforcedPlatform("org.junit:junit-bom:5.10.1"))

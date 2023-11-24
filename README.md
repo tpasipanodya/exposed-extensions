@@ -12,7 +12,7 @@ A collection of extensions for [Exposed](https://github.com/tpasipanodya/Exposed
   
 ## How to Use
 ```kotlin
-implementation("io.taff:exposed-extensions:0.12.2")
+implementation("io.taff:exposed-extensions:0.13.0")
 ```
 
 Using logical tenant isolation as an example:
