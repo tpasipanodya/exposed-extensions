@@ -36,7 +36,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DB_URL: ${{ secrets.DB_URL }}
         with:
-          gradle-version: 8.2.1
+          gradle-version: 8.4
           arguments: clean test build publish --info --stacktrace -PIS_SNAPSHOT_BUILD=true
       - name: Upload Test Results
         uses: dorny/test-reporter@v1.6.0
