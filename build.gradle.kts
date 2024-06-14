@@ -38,7 +38,7 @@ dependencies {
 	api("io.github.microutils:kotlin-logging-jvm:3.0.5")
 	api("com.github.kittinunf.fuel:fuel:2.3.1")
 	api("com.github.kittinunf.fuel:fuel-coroutines:2.3.1")
-  api("org.slf4j:slf4j-simple:2.0.9")
+  api("org.slf4j:slf4j-simple:2.0.12")
 	api("com.fasterxml.jackson.module:jackson-module-kotlin:2.16.0")
 	api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.16.0")
 	api("io.taff.exposed:exposed-core:0.10.0")
