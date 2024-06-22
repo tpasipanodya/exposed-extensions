@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+# 0.14.0
+
+* Make the thread local `CurrentTenantId` accessible to consumers of this library.
+* Bump jvm from 1.9.21 to 2.0.0 by @dependabot in https://github.com/tpasipanodya/exposed-extensions/pull/170
+* Bump com.fasterxml.jackson.datatype:jackson-datatype-jsr310 from 2.16.0 to 2.17.1 by @dependabot in https://github.com/tpasipanodya/exposed-extensions/pull/169
+* Bump org.junit:junit-bom from 5.10.1 to 5.10.2 by @dependabot in https://github.com/tpasipanodya/exposed-extensions/pull/166
+* Bump org.jetbrains.dokka from 1.9.10 to 1.9.20 by @dependabot in https://github.com/tpasipanodya/exposed-extensions/pull/168
+* Bump org.postgresql:postgresql from 42.7.0 to 42.7.3 by @dependabot in https://github.com/tpasipanodya/exposed-extensions/pull/171
+* Bump org.slf4j:slf4j-simple from 2.0.9 to 2.0.13 by @dependabot in https://github.com/tpasipanodya/exposed-extensions/pull/167
+* Bump com.fasterxml.jackson.module:jackson-module-kotlin from 2.16.0 to 2.17.1 by @dependabot in https://github.com/tpasipanodya/exposed-extensions/pull/172
+
 # 0.13.0
 
 - `exposed` version `0.10.0`
