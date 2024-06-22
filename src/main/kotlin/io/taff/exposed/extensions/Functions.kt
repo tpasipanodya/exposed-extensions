@@ -3,7 +3,7 @@ package io.taff.exposed.extensions
 import kotlinx.coroutines.asContextElement
 
 /** The current tenant's id */
-internal var CurrentTenantId = ThreadLocal<Any>()
+val CurrentTenantId = ThreadLocal<Any>()
 
 fun <ID> currentTenantId() = CurrentTenantId.get() as ID
 
